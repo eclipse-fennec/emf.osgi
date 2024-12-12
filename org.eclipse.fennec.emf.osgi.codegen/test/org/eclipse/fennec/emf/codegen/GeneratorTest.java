@@ -16,6 +16,8 @@ package org.eclipse.fennec.emf.codegen;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,11 +57,11 @@ class GeneratorTest {
 			assertThat(project).isNotNull();
 			project.verifyDependencies(false);
 			assertThat(project.getErrors()).isEmpty();
-			Map<String, String> attrs = Map.of(
-					"generate", "fennecEMF",
-					"genmodel", "model/rdf.genmodel",
-					"output", "src");
-			BuildContext bc = new BuildContext(project, attrs, List.of(), System.in, System.out, System.err);
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("genmodel", "model/rdf.genmodel");
+			attrs.put("output", "src");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
 			GeckoEmfGenerator generator = new GeckoEmfGenerator();
 			generator.generate(bc, new GeneratorOptions() {
 				
@@ -91,11 +93,11 @@ class GeneratorTest {
 			assertThat(project).isNotNull();
 			project.verifyDependencies(false);
 			assertThat(project.getErrors()).isEmpty();
-			Map<String, String> attrs = Map.of(
-					"generate", "fennecEMF",
-					"genmodel", "other/main/resources/model/basic.genmodel",
-					"output", "src-gen");
-			BuildContext bc = new BuildContext(project, attrs, List.of(), System.in, System.out, System.err);
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("genmodel", "other/main/resources/model/basic.genmodel");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
 			GeckoEmfGenerator generator = new GeckoEmfGenerator();
 			generator.generate(bc, new GeneratorOptions() {
 				

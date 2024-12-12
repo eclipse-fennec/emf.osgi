@@ -22,6 +22,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @since 23.11.2017
  */
 @ProviderType
+@Deprecated
 public interface Detachable {
 	
 	/**

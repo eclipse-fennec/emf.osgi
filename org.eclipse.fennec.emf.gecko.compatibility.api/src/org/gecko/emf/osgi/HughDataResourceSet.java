@@ -31,6 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @since 27.09.2019
  */
 @ProviderType
+@Deprecated
 public interface HughDataResourceSet extends ResourceSet {
 	
 	/**

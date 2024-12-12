@@ -1,0 +1,15 @@
+-buildpath: \
+	org.eclipse.emf.ecore,\
+	org.eclipse.emf.common,\
+	org.osgi.namespace.extender,\
+	org.osgi.framework
+
+src=${^src},src-gen
+#populates the VersionConstant class, with the current geckoEMF Version 
+-generate:   \
+    src-version/**.java; \
+        output='src-gen/' ; \
+        generate='javagen -o src-gen src-version/'
+        
+# Add proper JPMS module-info
+-jpms-module-info: 

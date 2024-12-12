@@ -26,6 +26,7 @@
 [INFO]         |->: model/EcoreAnnotation.ecore - model/EcoreAnnotation.ecore
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.29.0/org.eclipse.emf.common-2.29.0.jar
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.condition/1.0.0/org.osgi.service.condition-1.0.0.jar
+[INFO]       Container: N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.api/generated/org.eclipse.fennec.emf.osgi.api.jar
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.framework/1.10.0/org.osgi.framework-1.10.0.jar
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.annotation.bundle/2.0.0/org.osgi.annotation.bundle-2.0.0.jar
 [INFO] Loading resource://org.eclipse.fennec.emf.osgi.example.model.manual/model/manual.genmodel

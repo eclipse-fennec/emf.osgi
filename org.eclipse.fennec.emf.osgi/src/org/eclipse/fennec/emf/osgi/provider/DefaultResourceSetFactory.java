@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -42,6 +43,8 @@ import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.factory.ResourceSetPrototypeFactory;
+import org.eclipse.fennec.emf.osgi.helper.DelegatingEPackageRegistry;
+import org.eclipse.fennec.emf.osgi.helper.DelegatingResourceFactoryRegistry;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertyContext;
 import org.osgi.framework.Constants;
@@ -63,7 +66,8 @@ import org.osgi.service.condition.Condition;
  * @author Mark Hoffmann
  * @since 28.06.2017
  */
-public class DefaultResourceSetFactory implements ResourceSetFactory {
+@SuppressWarnings({"deprecation" })
+public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.emf.osgi.ResourceSetFactory{
 
 	private final Set<ResourceSetConfigurator> resourceSetConfigurators = new CopyOnWriteArraySet<>();
 	private final Set<EPackageConfigurator> ePackageConfigurators = new CopyOnWriteArraySet<>();
@@ -330,9 +334,17 @@ public class DefaultResourceSetFactory implements ResourceSetFactory {
 	}
 
 	@Override
-	public Collection<ResourceSetConfigurator> getResourceSetConfigurators() {
-		return Collections.unmodifiableCollection(resourceSetConfigurators);
+	public Collection<org.gecko.emf.osgi.configurator.ResourceSetConfigurator> getResourceSetConfigurators() {
+		return Collections.unmodifiableCollection(resourceSetConfigurators.stream().map(e -> new org.gecko.emf.osgi.configurator.ResourceSetConfigurator() {
+
+			@Override
+			public void configureResourceSet(ResourceSet resourceSet) {
+				e.configureResourceSet(resourceSet);
+			}
+			
+		}).collect(Collectors.toList()));
 	}
+
 
 	/**
 	 * Updates the package registry
@@ -386,7 +398,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory {
 	 */
 	private Dictionary<String, Object> copyDictionaryForCondition(Dictionary<String, Object> dictionary) {
 		Dictionary<String, Object> copy = copyDictionary(dictionary);
-		copy.put(Condition.CONDITION_ID, CONDITION_ID);
+		copy.put(Condition.CONDITION_ID, ResourceSetFactory.CONDITION_ID);
 		return copy;
 	}
 	

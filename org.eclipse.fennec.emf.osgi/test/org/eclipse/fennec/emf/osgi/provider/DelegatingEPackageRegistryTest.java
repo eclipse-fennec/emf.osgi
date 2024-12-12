@@ -26,8 +26,8 @@ import java.util.Set;
 
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
-import org.eclipse.fennec.emf.osgi.provider.DelegatingEPackageRegistry;
-import org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap;
+import org.eclipse.fennec.emf.osgi.helper.DelegatingEPackageRegistry;
+import org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 class DelegatingEPackageRegistryTest {
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#size()}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#size()}.
 	 */
 	@Test
 	void testSize() {
@@ -58,7 +58,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#isEmpty()}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#isEmpty()}.
 	 */
 	@Test
 	void testIsEmpty() {
@@ -82,7 +82,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#containsKey(java.lang.Object)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#containsKey(java.lang.Object)}.
 	 */
 	@Test
 	void testContainsKey() {
@@ -106,7 +106,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#containsValue(java.lang.Object)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#containsValue(java.lang.Object)}.
 	 */
 	@Test
 	void testContainsValue() {
@@ -130,7 +130,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#entrySet()}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#entrySet()}.
 	 */
 	@Test
 	void testEntrySet() {
@@ -154,7 +154,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#get(java.lang.Object)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#get(java.lang.Object)}.
 	 */
 	@Test
 	void testGet() {
@@ -171,7 +171,7 @@ class DelegatingEPackageRegistryTest {
 		assertEquals("test", d.get("1"));	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#values()}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#values()}.
 	 */
 	@Test
 	void testValues() {
@@ -195,7 +195,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#keySet()}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#keySet()}.
 	 */
 	@Test
 	void testKeySet() {
@@ -219,7 +219,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#put(java.lang.Object, java.lang.Object)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#put(java.lang.Object, java.lang.Object)}.
 	 */
 	@Test
 	void testPut() {
@@ -237,7 +237,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#remove(java.lang.Object)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#remove(java.lang.Object)}.
 	 */
 	@Test
 	void testRemove() {
@@ -260,7 +260,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#putAll(java.util.Map)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#putAll(java.util.Map)}.
 	 */
 	@Test
 	void testPutAll() {
@@ -282,7 +282,7 @@ class DelegatingEPackageRegistryTest {
 	}
 
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.provider.DelegatingHashMap#clear()}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap#clear()}.
 	 */
 	@Test
 	void testClear() {

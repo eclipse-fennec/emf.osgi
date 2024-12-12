@@ -10,7 +10,7 @@ src=${^src},src-gen
 	org.osgi.service.component.annotations,\
 	org.osgi.framework,\
 	org.osgi.service.condition;version=latest,\
-
+	org.eclipse.fennec.emf.osgi.api
 -includeresource: model=model
 
 Export-Package: \

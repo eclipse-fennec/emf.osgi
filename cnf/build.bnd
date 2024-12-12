@@ -18,24 +18,17 @@ javac.target: 1.8
 # SPDX-License-Identifier: Apache-2.0
 -require-bnd: "(version>=7.0.0)"
 
--library: geckoDIMC,\
- 	geckoOSGi-Test,\
-	geckoJacoco
+-library: \
+ 	geckoOSGi-Test
 
-github-project: osgi.emf
+github-project: emf.osgi
 github-group: eclipse-fennec
 
-dimcBaselining: true
 mavenCentral: true
 
--baseline: *
+#-baseline: *
 
 -groupid: org.eclipse.fennec.osgi.emf
-
--fixupmessages: \
-	"No metadata for revision";\
-		restrict:=error;\
-    	is:=warning
     	
 -plugin.3.Central: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \

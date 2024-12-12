@@ -11,5 +11,5 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-@org.osgi.annotation.versioning.Version("4.6.3")
+@org.osgi.annotation.versioning.Version("1.0")
 package org.eclipse.fennec.emf.osgi.factory;

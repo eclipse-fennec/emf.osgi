@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.gecko.emf.osgi.annotation.require.RequireEMF;
+import org.eclipse.fennec.emf.osgi.annotation.require.RequireEMF;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.osgi.test.assertj.dictionary.DictionaryAssert;

@@ -24,6 +24,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author Mark Hoffmann
  */
 @ProviderType
+@Deprecated
 public interface ResourceSetCache {
 	
 	/** Service property name to define a name for the instance */

@@ -16,4 +16,6 @@ src=${^src},src-gen
 	org.eclipse.emf.ecore.xmi;version=latest,\
 	biz.aQute.bnd.annotation;version=latest,\
 	org.osgi.namespace.implementation,\
-	org.osgi.resource
+	org.osgi.resource,\
+	osgi.annotation
+	

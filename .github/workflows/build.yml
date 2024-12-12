@@ -14,6 +14,7 @@ on:
     - '.github/*.yml'
 
 env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
   LC_ALL: en_US.UTF-8
   GRADLE_OPTS: >-
     -Dorg.gradle.parallel=true
@@ -27,7 +28,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-        java: [ 17 ]
+        java: [ 8 ]
         runner: [ 'xvfb-run --auto-servernum {0}' ]
     name: JDK${{ matrix.java }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -48,6 +49,8 @@ jobs:
       run: ./gradlew --no-daemon --version
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Test with Gradle
+      run: ./gradlew testOSGi
     - name: Upload Test Reports
       if: ${{ always() && ((steps.build.outcome == 'success') || (steps.build.outcome == 'failure')) }}
       uses: actions/upload-artifact@v3
@@ -55,4 +58,6 @@ jobs:
         name: JDK${{ matrix.java }}_${{ matrix.os }}-test-reports
         path: |
           */generated/test-reports/*/TEST-*.xml
+    - name: Release to Sonartype
+      run: ./gradlew release
 

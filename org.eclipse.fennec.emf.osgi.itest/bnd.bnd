@@ -18,7 +18,7 @@
 	org.eclipse.fennec.emf.osgi.example.model.extended;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.example.model.basic;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.example.model.manual;version=snapshot,\
-	org.osgi.test.assertj.monitoring;version=snapshot
+	org.osgi.test.assertj.monitoring;version=latest
 
 -includeresource: \
 	data/=data/
@@ -27,6 +27,6 @@ Export-Package: org.eclipse.fennec.emf.osgi.itest
 Private-Package: org.eclipse.fennec.emf.osgi.itest.configurator
 
 Bundle-Name: EMF OSGi Tests
-Bundle-Description: Gecko EMF OSGi integration tests
+Bundle-Description: Eclipse Fennec EMF OSGi integration tests
 
 -baseline: 
