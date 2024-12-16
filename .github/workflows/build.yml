@@ -85,5 +85,5 @@ jobs:
     - name: BND Properties
       run: ./gradlew bndproperties
     - name: Release to Sonartype
-      run: ./gradlew release --info
+      run: ./gradlew release --debug --stacktrace
 
