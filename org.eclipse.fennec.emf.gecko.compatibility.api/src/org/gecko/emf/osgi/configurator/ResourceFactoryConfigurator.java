@@ -23,6 +23,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @since 25.07.2017
  */
 @ProviderType
+@Deprecated
 public interface ResourceFactoryConfigurator {
 	
 	/**

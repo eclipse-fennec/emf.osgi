@@ -13,5 +13,4 @@
  */
 @org.osgi.annotation.versioning.Version("4.0.0")
 @org.osgi.annotation.bundle.Export
-@Deprecated
 package org.gecko.emf.osgi;

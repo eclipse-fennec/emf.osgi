@@ -1,5 +1,3 @@
-src=${^src},src-gen
-
 -buildpath: \
 	org.osgi.framework;version=latest,\
 	org.osgi.annotation.bundle;version=latest,\

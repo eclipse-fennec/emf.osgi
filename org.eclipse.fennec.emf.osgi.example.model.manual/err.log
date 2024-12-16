@@ -50,7 +50,9 @@ java.net.MalformedURLException
 	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:555)
 	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:503)
 	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:585)
-	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:207)
-	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:300)
+	at org.eclipse.core.internal.resources.Workspace.buildInternal(Workspace.java:594)
+	at org.eclipse.core.internal.resources.Workspace.build(Workspace.java:483)
+	at bndtools.central.sync.WorkspaceChange.done0(WorkspaceChange.java:52)
+	at org.eclipse.core.runtime.jobs.Job$1.run(Job.java:166)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
 Caused by: java.lang.NullPointerException

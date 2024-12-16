@@ -25,6 +25,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author Mark Hoffmann
  */
 @ProviderType
+@Deprecated
 public interface ResourceSetFactory
 {
 	public static final String EMF_CAPABILITY_NAME = "osgi";

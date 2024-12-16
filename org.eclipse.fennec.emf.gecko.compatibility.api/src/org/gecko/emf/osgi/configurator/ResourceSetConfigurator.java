@@ -24,6 +24,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author bhunt, Mark Hoffmann
  */
 @ProviderType
+@Deprecated
 public interface ResourceSetConfigurator {
 	
 	public static final String EMF_CONFIGURATOR_NAME = "resourceSet";

@@ -23,6 +23,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * 
  */
 @ProviderType
+@Deprecated
 public interface UriHandlerProvider {
 	
 	/**

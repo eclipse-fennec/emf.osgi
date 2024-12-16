@@ -16,6 +16,11 @@ on:
 env:
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
   LC_ALL: en_US.UTF-8
+  GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+  OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+  OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
   GRADLE_OPTS: >-
     -Dorg.gradle.parallel=true
 
@@ -25,6 +30,7 @@ defaults:
 
 jobs:
   Build_Matrix:
+    if: ${{ ((github.ref == 'nope')) }}
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
@@ -79,5 +85,5 @@ jobs:
     - name: BND Properties
       run: ./gradlew bndproperties
     - name: Release to Sonartype
-      run: ./gradlew release
+      run: ./gradlew release --info
 

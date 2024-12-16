@@ -25,6 +25,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @since 25.07.2017
  */
 @ProviderType
+@Deprecated
 public interface UriMapProvider {
 	
 	public static final String URI_MAP_SOURE = "uri.map.src"; 
