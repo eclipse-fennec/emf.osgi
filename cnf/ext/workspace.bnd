@@ -71,7 +71,7 @@ github-group: geckoprojects-org
 -pom: true
 -digest: sha256
 
--releaserepo: Release
+branch: ${env;BRANCH_NAME}-test
 
 # If the 'GPG_PASSPHRASE' property is set , we make a release release, otherwise we make only a snapshot release
 # As long as we are on github, we also release to Maven Central

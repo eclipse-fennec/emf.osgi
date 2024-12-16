@@ -58,7 +58,26 @@ jobs:
         name: JDK${{ matrix.java }}_${{ matrix.os }}-test-reports
         path: |
           */generated/test-reports/*/TEST-*.xml
+  Release:
+    runs-on: ubuntu-latest
+    if: ${{ ((github.ref == 'refs/heads/main' || github.ref == 'refs/heads/snapshot')) }}
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v3
+    - name: Gradle Wrapper Validation
+      uses: gradle/wrapper-validation-action@v1
+    - name: Set up Java ${{ matrix.java }}
+      uses: actions/setup-java@v3
+      with:
+        distribution: "temurin"
+        cache: "gradle"
+        java-version: 17
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+    - name: Gradle version
+      run: ./gradlew --no-daemon --version
+    - name: BND Properties
+      run: ./gradlew bndproperties
     - name: Release to Sonartype
-      if: ${{ ((env.BRANCH_NAME == 'main') || (env.BRANCH_NAME == 'snapshot')) }}
       run: ./gradlew release
 
