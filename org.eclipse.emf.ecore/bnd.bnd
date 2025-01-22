@@ -1,0 +1,50 @@
+javac.source: 1.8
+javac.target: 1.8
+
+-buildpath: \
+	org.eclipse.emf.common;version=latest,\
+	org.eclipse.core.runtime;version=latest,\
+	org.eclipse.equinox.registry,\
+	org.eclipse.core.resources,\
+	org.osgi.framework,\
+	org.eclipse.equinox.common,\
+	org.eclipse.core.contenttype,\
+	org.eclipse.equinox.preferences,\
+	org.osgi.util.tracker
+	
+Bundle-SymbolicName: org.eclipse.emf.ecore;singleton:=true
+Eclipse-BuddyPolicy: dependent
+Bundle-Activator: org.eclipse.emf.ecore.plugin.EcorePlugin$Implementation$Activator
+Bundle-ActivationPolicy: lazy
+Automatic-Module-Name: org.eclipse.emf.ecore
+Bundle-Version: 2.39.0.SNAPSHOT
+
+Require-Bundle: \
+	org.eclipse.emf.common;bundle-version="[2.40.0,3.0.0)";visibility:=reexport
+	
+Export-Package: \
+	org.eclipse.emf.ecore,\
+	org.eclipse.emf.ecore.impl,\
+	org.eclipse.emf.ecore.plugin,\
+	org.eclipse.emf.ecore.resource,\
+	org.eclipse.emf.ecore.resource.impl,\
+	org.eclipse.emf.ecore.util,\
+	org.eclipse.emf.ecore.xml.namespace,\
+	org.eclipse.emf.ecore.xml.namespace.impl,\
+	org.eclipse.emf.ecore.xml.namespace.util,\
+	org.eclipse.emf.ecore.xml.type,\
+	org.eclipse.emf.ecore.xml.type.impl,\
+	org.eclipse.emf.ecore.xml.type.internal,\
+	org.eclipse.emf.ecore.xml.type.util
+	
+Provide-Capability: \
+	org.eclipse.emf.ecore.generated_package;uri="http://www.eclipse.org/emf/2002/Ecore";class=org.eclipse.emf.ecore.EcorePackage;genModel="model/Ecore.genmodel",\
+ 	org.eclipse.emf.ecore.generated_package;uri="http://www.w3.org/XML/1998/namespace";class=org.eclipse.emf.ecore.xml.namespace.XMLNamespacePackage;genModel="model/XMLNamespace.genmodel",\
+	org.eclipse.emf.ecore.generated_package;uri="http://www.eclipse.org/emf/2003/XMLType";class=org.eclipse.emf.ecore.xml.type.XMLTypePackage;genModel="model/XMLType.genmodel",\
+	org.eclipse.emf.ecore.dynamic_package;uri="http:///org/eclipse/emf/ecore/util/ExtendedMetaData";location="model/ExtendedMetaData.ecore",\
+	org.eclipse.emf.ecore.dynamic_package;uri="http:///org/eclipse/emf/ecore/util/EcoreAnnotation";location="model/EcoreAnnotation.ecore",\
+	org.eclipse.emf.ecore.dynamic_package;uri="http:///org/eclipse/emf/ecore/util/DateConversionDelegateAnnotation";location="model/DateConversionDelegateAnnotation.ecore"
+	
+Import-Package: \
+	org.eclipse.core.*;resolution:=optional,\
+ 	*
