@@ -20,6 +20,6 @@ package org.eclipse.fennec.emf.osgi.constants;
  */
 public class VersionConstant {
 
-	public static final String GECKOPROJECTS_EMF_VERSION = "7.0.0"; //$NON-NLS-1$
-	public static final String GECKOPROJECTS_EMF_MAJOR_VERSION = "7"; //$NON-NLS-1$
+	public static final String GECKOPROJECTS_EMF_VERSION = "1.0.0"; //$NON-NLS-1$
+	public static final String GECKOPROJECTS_EMF_MAJOR_VERSION = "1"; //$NON-NLS-1$
 }

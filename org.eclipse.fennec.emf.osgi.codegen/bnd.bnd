@@ -62,7 +62,6 @@ javac.target: 17
 	aQute.bnd.service.generate.Options
 	
 Import-Package: \
-	org.eclipse.core.runtime;version=1.0,\
 	!*
 
 Bundle-Name: EMF OSGi Bnd Codegen

@@ -1,4 +1,4 @@
-java.net.MalformedURLException
+java.net.MalformedURLException: Cannot invoke "String.length()" because "spec" is null
 	at java.base/java.net.URL.<init>(URL.java:806)
 	at java.base/java.net.URL.<init>(URL.java:654)
 	at java.base/java.net.URL.<init>(URL.java:590)
@@ -11,14 +11,14 @@ java.net.MalformedURLException
 	at java.xml/com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse(DocumentBuilderImpl.java:342)
 	at org.eclipse.emf.codegen.merge.java.JControlModel.initialize(JControlModel.java:963)
 	at org.eclipse.emf.codegen.merge.java.JControlModel.initialize(JControlModel.java:952)
-	at org.eclipse.emf.codegen.ecore.generator.Generator.getJControlModel(Generator.java:451)
+	at org.eclipse.emf.codegen.ecore.generator.Generator.getJControlModel(Generator.java:476)
 	at org.eclipse.emf.codegen.ecore.generator.AbstractGeneratorAdapter.generateJava(AbstractGeneratorAdapter.java:1969)
 	at org.eclipse.emf.codegen.ecore.genmodel.generator.GenPackageGeneratorAdapter.generateResourceClass(GenPackageGeneratorAdapter.java:815)
 	at org.eclipse.fennec.emf.osgi.codegen.adapter.GeckoGenPackageGeneratorAdapter.generateModel(GeckoGenPackageGeneratorAdapter.java:138)
 	at org.eclipse.emf.codegen.ecore.genmodel.generator.GenBaseGeneratorAdapter.doGenerate(GenBaseGeneratorAdapter.java:215)
 	at org.eclipse.emf.codegen.ecore.generator.AbstractGeneratorAdapter.generate(AbstractGeneratorAdapter.java:318)
-	at org.eclipse.emf.codegen.ecore.generator.Generator.generate(Generator.java:768)
-	at org.eclipse.emf.codegen.ecore.generator.Generator.generate(Generator.java:679)
+	at org.eclipse.emf.codegen.ecore.generator.Generator.generate(Generator.java:793)
+	at org.eclipse.emf.codegen.ecore.generator.Generator.generate(Generator.java:704)
 	at org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator.doGenerate(GeckoEmfGenerator.java:333)
 	at org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator.generate(GeckoEmfGenerator.java:170)
 	at org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator.generate(GeckoEmfGenerator.java:1)
@@ -35,7 +35,7 @@ java.net.MalformedURLException
 	at aQute.bnd.service.progress.TaskManager.with(TaskManager.java:37)
 	at bndtools.central.Central.lambda$bndCall$18(Central.java:787)
 	at aQute.bnd.build.WorkspaceLock.locked(WorkspaceLock.java:168)
-	at aQute.bnd.build.Workspace.readLocked(Workspace.java:1504)
+	at aQute.bnd.build.Workspace.readLocked(Workspace.java:1514)
 	at bndtools.central.Central.bndCall(Central.java:798)
 	at org.bndtools.builder.BndSourceGenerateCompilationParticipant.aboutToBuild(BndSourceGenerateCompilationParticipant.java:58)
 	at org.eclipse.jdt.internal.core.builder.JavaBuilder.initializeBuilder(JavaBuilder.java:652)
@@ -50,9 +50,9 @@ java.net.MalformedURLException
 	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:555)
 	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:503)
 	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:585)
-	at org.eclipse.core.internal.resources.Workspace.buildInternal(Workspace.java:594)
-	at org.eclipse.core.internal.resources.Workspace.build(Workspace.java:483)
-	at bndtools.central.sync.WorkspaceChange.done0(WorkspaceChange.java:52)
-	at org.eclipse.core.runtime.jobs.Job$1.run(Job.java:166)
+	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:207)
+	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:300)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
-Caused by: java.lang.NullPointerException
+Caused by: java.lang.NullPointerException: Cannot invoke "String.length()" because "spec" is null
+	at java.base/java.net.URL.<init>(URL.java:712)
+	... 53 more

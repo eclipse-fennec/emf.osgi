@@ -83,6 +83,8 @@ class GeneratorTest {
 					return Optional.empty();
 				}
 			});
+			File file = project.getFile("src/org/w3/rdfs/RdfsPackage.java");
+			assertThat(file).exists();
 		};
 	}
 
@@ -119,6 +121,8 @@ class GeneratorTest {
 					return Optional.empty();
 				}
 			});
+			File file = project.getFile("src-gen/org/gecko/emf/osgi/example/model/basic/util/BasicResourceImpl.java");
+			assertThat(file).exists();
 		};
 	}
 	
