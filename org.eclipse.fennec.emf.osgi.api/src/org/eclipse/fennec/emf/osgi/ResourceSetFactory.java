@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012 - 2022 Data In Motion and others.
+ * Copyright (c) 2012 - 2024 Data In Motion and others.
  * All rights reserved. 
  * 
  * This program and the accompanying materials are made
@@ -13,10 +13,7 @@
  */
 package org.eclipse.fennec.emf.osgi;
 
-import java.util.Collection;
-
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.osgi.annotation.versioning.ProviderType;
 
 /**

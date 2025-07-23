@@ -13,24 +13,19 @@
  */
 package org.eclipse.fennec.emf.osgi.components;
 
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_NAME;
-
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.Resource.Factory;
 import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
-import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.constants.VersionConstant;
-import org.eclipse.fennec.emf.osgi.ecore.EcoreConfigurator;
 import org.eclipse.fennec.emf.osgi.ecore.EcorePackagesRegistrator;
 import org.eclipse.fennec.emf.osgi.provider.DefaultResourceSetFactory;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -55,7 +50,9 @@ import aQute.bnd.annotation.service.ServiceCapability;
  * @author Mark Hoffmann
  * @since 28.06.2017
  */
-@Component(name="DefaultResourcesetFactory", enabled=true, immediate=true, service= {})
+@Component(name="DefaultResourcesetFactory", enabled=true, immediate=true, service= {}, reference = {
+		@Reference(name="ResourceFactoryRegistry", policy=ReferencePolicy.STATIC, unbind="unsetResourceFactoryRegistry", updated = "modifiedResourceFactoryRegistry")
+})
 @Capability(
 		namespace = EMFNamespaces.EMF_NAMESPACE,
 		name = ResourceSetFactory.EMF_CAPABILITY_NAME,
@@ -68,6 +65,8 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	
 	private ServiceReference<Registry> resourceFactoryRegistryReference;
 	private BundleContext cxt;
+	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
+	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> staticRegistry;
 
 	/**
 	 * Called before component activation
@@ -75,38 +74,23 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	 */
 	@Activate
 	public DefaultResourceSetFactoryComponent(BundleContext ctx,
-			@Reference(name="ePackageRegistry", unbind = "unsetRegistry")
-			EPackage.Registry registry,
+			@Reference(name="resourceSetEPackageRegistry")
+			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
+			@Reference(name="staticEPackageRegistry")
+			ServiceReference<EPackage.Registry> staticRegistry,
 			@Reference(name="resourceFactoryRegistry")
 			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference
 			) {
 		this.cxt = ctx;
+		this.defaultResourceSetRegistry = defaultResourceSetRegistry;
+		this.staticRegistry = staticRegistry;
 		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
-		super.setEPackageRegistry(registry);
+		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
+		super.setEPackageRegistry(ctx.getService(defaultResourceSetRegistry), FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(ctx.getService(resourceFactoryRegistryReference), FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
-		EcoreConfigurator ecoreConfigurator = new EcoreConfigurator();
-		addEPackageConfigurator(ecoreConfigurator, EcoreConfigurator.PROPERTIES);
-		addResourceFactoryConfigurator(ecoreConfigurator, EcoreConfigurator.PROPERTIES);
+		//TODO: Tut dat note, dass das so rumoxidiert?
 		EcorePackagesRegistrator.start();
-	}
-	
-	/*
-	 * We have a two step activation for historic reasons. We use the constructor injection to 
-	 * make sure everything mandatory is available before activation has there had been cases, 
-	 * where mandatory fields have been null at activation for some reason. Felix SCR will also
-	 * look for a method named activate which is present through the DefaultResourceSetFactory
-	 * and will call it after the Constructor, regardless of the fact that it is already activated 
-	 * through the Constructor. So to avoid activating this twice by accident, we don't call the 
-	 * super activate method in the constructor but let SCR run its course. The Activate 
-	 * annotation is on here, to act as a marker.
-	 *
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.provider.DefaultResourceSetFactory#activate(org.osgi.service.component.ComponentContext)
-	 */
-	@Activate
-	@Override
-	public void activate(ComponentContext ctx) {
-		super.activate(ctx);
+		doActivate(cxt);
 	}
 	
 	/**
@@ -120,9 +104,44 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 		EcorePackagesRegistrator.stop();
 	}
 
-	protected void unsetRegistry(org.eclipse.emf.ecore.EPackage.Registry registry) {
-		super.unsetEPackageRegistry(registry);
+	/**
+	 * This is a bit of a hack. To make sure that we have the Registry as early as possible, we use constructor Injection. 
+	 * We want to know about the property updates as well, which is not possible for constructor injected references. 
+	 * We know that our Default registry is a singleton. Thus, we create a second Reference, that does nothing on set, 
+	 * but reacts to changes of the properties. Not nice, but it works.   
+	 */
+	@Reference(policy=ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY, unbind="unsetEPackageRegistryProperties", updated = "modifieEPackageRegistryProperties")
+	public void setEPackageRegistryProperties(Map<String, Object> properties) {
+//		Do nothing here
 	}
+
+	public void modifieEPackageRegistryProperties(Map<String, Object> properties) {
+//		Do nothing here
+	}
+
+	public void unsetEPackageRegistryProperties(Map<String, Object> properties) {
+//		Do nothing here
+	}
+
+	/**
+	 * This is a bit of a hack. To make sure that we have the Registry as early as possible, we use constructor Injection. 
+	 * We want to know about the property updates as well, which is not possible for constructor injected references. 
+	 * We know that our Default registry is a singleton. Thus, we create a second Reference, that does nothing on set, 
+	 * but reacts to changes of the properties. Not nice, but it works.   
+	 */
+	@Reference(policy=ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY, unbind="unsetEPackageRegistryProperties", updated = "modifieEPackageRegistryProperties")
+	public void setStaticEPackageRegistryProperties(EPackage.Registry registry, Map<String, Object> properties) {
+//		Do nothing here
+	}
+	
+	public void modifieStaticEPackageRegistryProperties(Map<String, Object> properties) {
+//		Do nothing here
+	}
+	
+	public void unsetStaticEPackageRegistryProperties(Map<String, Object> properties) {
+//		Do nothing here
+	}
+	
 
 	/**
 	 * This is a bit of a hack. To make sure that we have the Registry as early as possible, we use constructor Injection. 
@@ -137,11 +156,6 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 //		Do nothing here
 	}
 	
-	@Override
-	public void modifiedResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-		super.modifiedResourceFactoryRegistry(resourceFactoryRegistry, properties);
-	}
-
 	/**
 	 * Removed the registry on shutdown
 	 * @param resourceFactoryRegistry the registry to be removed
@@ -150,66 +164,6 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	public void unsetResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
 		super.unsetResourceFactoryRegistry(resourceFactoryRegistry, properties);
 		cxt.ungetService(resourceFactoryRegistryReference);
-	}
-
-	/**
-	 * Injects {@link EPackageConfigurator}, to register a new {@link EPackage}
-	 * @param configurator the {@link EPackageConfigurator} to be registered
-	 * @param properties the service properties
-	 */
-	@Override
-	@Reference(policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(!(" + EMF_MODEL_NAME + "=ecore))", updated = "modifyEPackageConfigurator", unbind = "removeEPackageConfigurator")
-	public void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		super.addEPackageConfigurator(configurator, properties);
-	}
-	
-	/**
-	 * Injects {@link EPackageConfigurator}, to update a new {@link EPackage}
-	 * @param configurator the {@link EPackageConfigurator} to be updated
-	 * @param properties the service properties
-	 */
-	public void modifyEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		super.addEPackageConfigurator(configurator, properties);
-	}
-
-	/**
-	 * Removes a {@link EPackageConfigurator} from the registry and un-configures it
-	 * @param configurator the configurator to be removed
-	 * @param properties the service properties
-	 */
-	@Override
-	public void removeEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		super.removeEPackageConfigurator(configurator, properties);
-	}
-
-	/**
-	 * Adds a resource factory configurator to the registry 
-	 * @param configurator the resource factory configurator to be registered
-	 * @param properties the service properties
-	 */
-	@Override
-	@Reference(policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(!(" + EMF_MODEL_NAME + "=ecore))", updated = "modifyResourceFactoryConfigurator")
-	public void addResourceFactoryConfigurator(ResourceFactoryConfigurator configurator, Map<String, Object> properties) {
-		super.addResourceFactoryConfigurator(configurator, properties);
-	}
-	
-	/**
-	 * Modifies a resource factory configurator to the registry 
-	 * @param configurator the resource factory configurator to be updated
-	 * @param properties the service properties
-	 */
-	public void modifyResourceFactoryConfigurator(ResourceFactoryConfigurator configurator, Map<String, Object> properties) {
-		super.addResourceFactoryConfigurator(configurator, properties);
-	}
-
-	/**
-	 * Removes a resource factory configurator from the registry
-	 * @param configurator the resource factory configurator to be removed
-	 * @param properties the service properties
-	 */
-	@Override
-	public void removeResourceFactoryConfigurator(ResourceFactoryConfigurator configurator, Map<String, Object> properties) {
-		super.removeResourceFactoryConfigurator(configurator, properties);
 	}
 
 	/**

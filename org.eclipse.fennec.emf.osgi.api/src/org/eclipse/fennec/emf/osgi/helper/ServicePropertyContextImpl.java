@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012 - 2023 Data In Motion and others.
+ * Copyright (c) 2012 - 2025 Data In Motion and others.
  * All rights reserved. 
  * 
  * This program and the accompanying materials are made
@@ -33,7 +33,7 @@ import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.framework.FrameworkUtil;
 
 /**
- * {@link ServicePropertyContext} implementation. Hold a set of property maps for Gecko EMF
+ * {@link ServicePropertyContext} implementation. Hold a set of property maps for Fennec EMF
  * @author Mark Hoffmann
  * @since 04.11.2023
  */

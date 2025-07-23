@@ -13,286 +13,81 @@
  */
 package org.eclipse.fennec.emf.osgi.components;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
-
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.impl.EPackageImpl;
+import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
+import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.versioning.ProviderType;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import aQute.bnd.annotation.service.ServiceCapability;
+
 /**
- * An implementation of a package registry that can delegate failed lookup to
- * another registry. This implementation is derived from the default
+ * An implementation of a package registry;
  * {@link DefaultEPackageRegistryComponent} to be enabled as OSGi component
  */
-@Component(name = DefaultEPackageRegistryComponent.NAME, service = EPackage.Registry.class)
+@Component(name = DefaultEPackageRegistryComponent.NAME, service = {})
 @ProviderType
-public class DefaultEPackageRegistryComponent extends HashMap<String, Object> implements EPackage.Registry {
+@ServiceCapability(EPackage.Registry.class)
+public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComponent{
 	
 	/** DEFAULT_E_PACKAGE_REGISTRY */
 	public static final String NAME = "DefaultEPackageRegistry";
 
-	private static final long serialVersionUID = 1L;
-
+	private final Set<EPackageConfigurator> ePackageConfigurators = new CopyOnWriteArraySet<>();
+	
 	/**
 	 * The delegate registry.
 	 */
-	protected transient EPackage.Registry delegateRegistry;
+	protected transient EPackage.Registry registry;
 
 	/**
 	 * Creates a non-delegating instance.
 	 */
-	public DefaultEPackageRegistryComponent() {
-		super();
-	}
-
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, unbind = "unsetDelegateRegistry", target = "(!(component.name=DefaultEPackageRegistry))")
-	public void setDelegateRegistry(EPackage.Registry delegateRegistry) {
-		if (delegateRegistry.equals(this)) {
-			return;
-		}
-		this.delegateRegistry = delegateRegistry;
-	}
-
-	public void unsetDelegateRegistry(EPackage.Registry delegateRegistry) {
-		this.delegateRegistry = null;
-	}
-
-	/*
-	 * Javadoc copied from interface.
-	 */
-	public EPackage getEPackage(String nsURI) {
-		Object ePackage = get(nsURI);
-		if (ePackage instanceof EPackage) {
-			EPackage result = (EPackage) ePackage;
-			if (result.getNsURI() == null) {
-				initialize(result);
-			}
-			return result;
-		} else if (ePackage instanceof EPackage.Descriptor) {
-			EPackage.Descriptor ePackageDescriptor = (EPackage.Descriptor) ePackage;
-			EPackage result = ePackageDescriptor.getEPackage();
-			if (result != null) {
-				if (result.getNsURI() == null) {
-					initialize(result);
-				} else {
-					put(nsURI, result);
-				}
-			}
-			return result;
-		} else {
-			return delegatedGetEPackage(nsURI);
-		}
-	}
-
-	/*
-	 * Javadoc copied from interface.
-	 */
-	public EFactory getEFactory(String nsURI) {
-		Object ePackage = get(nsURI);
-		if (ePackage instanceof EPackage) {
-			EPackage result = (EPackage) ePackage;
-			if (result.getNsURI() == null) {
-				initialize(result);
-			}
-			return result.getEFactoryInstance();
-		} else if (ePackage instanceof EPackage.Descriptor) {
-			EPackage.Descriptor ePackageDescriptor = (EPackage.Descriptor) ePackage;
-			return ePackageDescriptor.getEFactory();
-		} else {
-			return delegatedGetEFactory(nsURI);
-		}
+	@Activate
+	public DefaultEPackageRegistryComponent(BundleContext ctx) {
+		super(NAME, Collections.singletonMap("default.resourceset.epackage.registry", true));
+		registry = new EPackageRegistryImpl();
+		registerService(ctx, EPackage.Registry.class, registry);
 	}
 
 	/**
-	 * Creates a delegating instance.
+	 * Adds {@link EPackageConfigurator}, to register a new {@link EPackage}
+	 * @param configurator the {@link EPackageConfigurator} to be registered
+	 * @param properties the service properties
 	 */
-	protected void initialize(EPackage ePackage) {
-		// Nothing to do here
+	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + "))", unbind = "removeEPackageConfigurator")
+	protected void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
+		synchronized (ePackageConfigurators) {
+			ePackageConfigurators.add(configurator);
+			getPropertyContext().addSubContext(properties);
+		}
+		configurator.configureEPackage(registry);
+		updateRegistrationProperties();
 	}
 
 	/**
-	 * Returns the package from the delegate registry, if there is one.
-	 * 
-	 * @return the package from the delegate registry.
+	 * Removes a {@link EPackageConfigurator} from the registry and unconfigures it
+	 * @param configurator the configurator to be removed
+	 * @param modelInfo the model information
+	 * @param properties the service properties
 	 */
-	protected EPackage delegatedGetEPackage(String nsURI) {
-		if (delegateRegistry != null) {
-			return delegateRegistry.getEPackage(nsURI);
+	protected void removeEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
+		synchronized (ePackageConfigurators) {
+			ePackageConfigurators.remove(configurator);
+			getPropertyContext().removeSubContext(properties);
 		}
-
-		return null;
+		configurator.unconfigureEPackage(registry);
+		updateRegistrationProperties();
 	}
-
-	/**
-	 * Returns the factory from the delegate registry, if there is one.
-	 * 
-	 * @return the factory from the delegate registry.
-	 */
-	protected EFactory delegatedGetEFactory(String nsURI) {
-		if (delegateRegistry != null) {
-			return delegateRegistry.getEFactory(nsURI);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns whether this map or the delegate map contains this key. Note that if
-	 * there is a delegate map, the result of this method may <em><b>not</b></em> be
-	 * the same as <code>keySet().contains(key)</code>.
-	 * 
-	 * @param key the key whose presence in this map is to be tested.
-	 * @return whether this map or the delegate map contains this key.
-	 */
-	@Override
-	public boolean containsKey(Object key) {
-		return super.containsKey(key) || delegateRegistry != null && delegateRegistry.containsKey(key);
-	}
-
-	/**
-	 * A map from class loader to its associated registry.
-	 */
-	protected static Map<ClassLoader, EPackage.Registry> classLoaderToRegistryMap = new WeakHashMap<>();
-
-	/**
-	 * Returns the package registry associated with the given class loader.
-	 * 
-	 * @param classLoader the class loader.
-	 * @return the package registry associated with the given class loader.
-	 */
-	public static synchronized EPackage.Registry getRegistry(ClassLoader classLoader) {
-		EPackage.Registry result = classLoaderToRegistryMap.get(classLoader);
-		if (isNull(result) && nonNull(classLoader)) {
-			DefaultEPackageRegistryComponent newRegistry = new DefaultEPackageRegistryComponent();
-			newRegistry.setDelegateRegistry(getRegistry(classLoader.getParent()));
-			result = newRegistry;
-			classLoaderToRegistryMap.put(classLoader, result);
-		}
-		return result;
-	}
-
-	/**
-	 * A package registry implementation that delegates to a class loader specific
-	 * registry.
-	 */
-	public static class Delegator implements EPackage.Registry {
-		protected EPackage.Registry delegateRegistry(ClassLoader classLoader) {
-			return getRegistry(classLoader);
-		}
-
-		protected EPackage.Registry delegateRegistry() {
-			return delegateRegistry(getContextClassLoader());
-		}
-
-		protected ClassLoader getContextClassLoader() {
-			return Thread.currentThread().getContextClassLoader();
-		}
-
-		protected ClassLoader getParent(ClassLoader classLoader) {
-			return classLoader == null ? null : classLoader.getParent();
-		}
-
-		public EPackage getEPackage(String key) {
-			return delegateRegistry().getEPackage(key);
-		}
-
-		public EFactory getEFactory(String key) {
-			return delegateRegistry().getEFactory(key);
-		}
-
-		public int size() {
-			return delegateRegistry().size();
-		}
-
-		public boolean isEmpty() {
-			return delegateRegistry().isEmpty();
-		}
-
-		public boolean containsKey(Object key) {
-			return delegateRegistry().containsKey(key);
-		}
-
-		public boolean containsValue(Object value) {
-			return delegateRegistry().containsValue(value);
-		}
-
-		public Object get(Object key) {
-			return delegateRegistry().get(key);
-		}
-
-		public Object put(String key, Object value) {
-			Class<?> valueClass = value.getClass();
-			if (valueClass == EPackageImpl.class) {
-				return delegateRegistry().put(key, value);
-			} else {
-				String valueClassName = valueClass.getName();
-
-				// Find the uppermost class loader in the hierarchy that can load the class.
-				//
-				ClassLoader result = getContextClassLoader();
-				for (ClassLoader classLoader = getParent(result); classLoader != null; classLoader = getParent(
-						classLoader)) {
-					try {
-						Class<?> loadedClass = classLoader.loadClass(valueClassName);
-						if (loadedClass == valueClass) {
-							result = classLoader;
-						} else {
-							// The class address was not equal, so we don't want this class loader,
-							// but instead want the last result that was able to load the class.
-							//
-							break;
-						}
-					} catch (ClassNotFoundException exception) {
-						// We can't find the class, so we don't want this class loader,
-						// but instead want the last result that was able to load the class.
-						//
-						break;
-					}
-				}
-
-				// Register with the upper most class loader that's able to load the class.
-				//
-				return delegateRegistry(result).put(key, value);
-			}
-		}
-
-		public Object remove(Object key) {
-			return delegateRegistry().remove(key);
-		}
-
-		public void putAll(Map<? extends String, ? extends Object> map) {
-			for (Map.Entry<? extends String, ? extends Object> entry : map.entrySet()) {
-				put(entry.getKey(), entry.getValue());
-			}
-		}
-
-		public void clear() {
-			delegateRegistry().clear();
-		}
-
-		public Set<String> keySet() {
-			return delegateRegistry().keySet();
-		}
-
-		public Collection<Object> values() {
-			return delegateRegistry().values();
-		}
-
-		public Set<Entry<String, Object>> entrySet() {
-			return delegateRegistry().entrySet();
-		}
-	}
-
 }

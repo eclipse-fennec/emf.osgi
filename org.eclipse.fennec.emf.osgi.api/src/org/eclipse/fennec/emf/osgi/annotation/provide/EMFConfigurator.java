@@ -21,7 +21,6 @@ import java.lang.annotation.Target;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.emf.osgi.annotation.ConfiguratorType;
 import org.eclipse.fennec.emf.osgi.annotation.require.RequireEMF;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.ComponentPropertyType;

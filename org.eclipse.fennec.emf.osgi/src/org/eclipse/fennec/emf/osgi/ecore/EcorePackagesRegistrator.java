@@ -19,9 +19,12 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.impl.BinaryResourceImpl;
+import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.EMOFResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
@@ -41,11 +44,29 @@ import org.osgi.framework.Version;
  */
 public class EcorePackagesRegistrator {
 
+	/** OCTET_STREAM */
+	protected static final String OCTET_STREAM = "application/octet-stream";
+	/** APPLICATION_XMI */
+	protected static final String APPLICATION_XMI = "application/xmi";
+	/** EMF_EMOF */
+	protected static final String EMF_EMOF = "org.eclipse.emf.emof";
+	/** EMF_ECORE */
+	protected static final String EMF_ECORE = EcorePackage.eCONTENT_TYPE;
+	/** ECORE */
+	private static final String ECORE = "ecore";
+	
 	private static AtomicInteger activateCount = new AtomicInteger(0);
 	
 	private static BundleContext bctx = FrameworkUtil.getBundle(EcorePackagesRegistrator.class).getBundleContext();
 
 	private static List<ServiceRegistration<?>> registrations = new ArrayList<>();
+	
+	protected static Resource.Factory BINARY_FACTORY = new ResourceFactoryImpl(){
+		@Override
+		public Resource createResource(URI uri) {
+			return new BinaryResourceImpl(uri);
+		}
+	};
 	
 	public static void start() {
 		synchronized (activateCount) {
@@ -57,11 +78,11 @@ public class EcorePackagesRegistrator {
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), XMIResourceFactoryImpl.class.getName()}, new XMIResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"*", "xmi"}, "application/xmi", new Version("2002"))));
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), EcoreResourceFactoryImpl.class.getName()}, new EcoreResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"ecore"}, EcorePackage.eCONTENT_TYPE, new Version("2002"))));
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), EMOFResourceFactoryImpl.class.getName()}, new EMOFResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"emof"}, "org.eclipse.emf.emof", new Version("2002"))));
-				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName()}, EcoreConfigurator.binaryFactory, getServiceProperties(EcorePackage.eINSTANCE, new String[]{"bin"}, EcoreConfigurator.OCTET_STREAM, new Version("2002"))));
+				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName()}, BINARY_FACTORY, getServiceProperties(EcorePackage.eINSTANCE, new String[]{"bin"}, OCTET_STREAM, new Version("2002"))));
 			}
 		}
 	}
-	
+
 	/**
 	 * A method providing the Properties the services around this Model should be registered with.
 	 * @generated

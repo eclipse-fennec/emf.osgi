@@ -15,7 +15,6 @@
 	biz.aQute.bnd.annotation;version=latest,\
 	org.osgi.namespace.implementation,\
 	org.osgi.resource,\
-	org.eclipse.fennec.emf.gecko.compatibility.api;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.api;version=snapshot
 	
 # Add proper JPMS module-info

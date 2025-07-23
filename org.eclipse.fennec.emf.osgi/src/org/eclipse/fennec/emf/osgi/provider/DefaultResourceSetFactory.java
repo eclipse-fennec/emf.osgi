@@ -14,22 +14,17 @@
 package org.eclipse.fennec.emf.osgi.provider;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -38,8 +33,6 @@ import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
-import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.factory.ResourceSetPrototypeFactory;
@@ -47,6 +40,7 @@ import org.eclipse.fennec.emf.osgi.helper.DelegatingEPackageRegistry;
 import org.eclipse.fennec.emf.osgi.helper.DelegatingResourceFactoryRegistry;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertyContext;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.PrototypeServiceFactory;
@@ -66,12 +60,9 @@ import org.osgi.service.condition.Condition;
  * @author Mark Hoffmann
  * @since 28.06.2017
  */
-@SuppressWarnings({"deprecation" })
-public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.emf.osgi.ResourceSetFactory{
+public class DefaultResourceSetFactory implements ResourceSetFactory{
 
 	private final Set<ResourceSetConfigurator> resourceSetConfigurators = new CopyOnWriteArraySet<>();
-	private final Set<EPackageConfigurator> ePackageConfigurators = new CopyOnWriteArraySet<>();
-	private final Set<ResourceFactoryConfigurator> resourceFactoryConfigurators = new CopyOnWriteArraySet<>();
 	private final ServicePropertyContext propertyContext = ServicePropertyContext.create();
 	private final AtomicReference<Resource.Factory.Registry> resourceFactoryRegistry = new AtomicReference<>();
 	protected EPackage.Registry packageRegistry;
@@ -100,16 +91,57 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 	 * Set the {@link EPackage.Registry}
 	 * @param registry the {@link EPackage} registry to set
 	 */
-	protected void setEPackageRegistry(EPackage.Registry registry) {
-		this.packageRegistry = registry;
-		updatePackageRegistry();
+	protected void setStaticEPackageRegistryProperties(Map<String, Object> properties) {
+		getPropertyContext().removeSubContext(properties);
+		updateRegistrationProperties();
+	}
+	
+	/**
+	 * Set the {@link EPackage.Registry}
+	 * @param registry the {@link EPackage} registry to set
+	 */
+	protected void updateStaticEPackageRegistry(Map<String, Object> properties) {
+		getPropertyContext().removeSubContext(properties);
+		getPropertyContext().addSubContext(properties);
+		updateRegistrationProperties();
 	}
 	
 	/**
 	 * Un-set the {@link EPackage} registry
 	 * @param registry the {@link EPackage} registry to be removed
 	 */
-	protected void unsetEPackageRegistry(EPackage.Registry registry) {
+	protected void unsetStaticEPackageRegistry(Map<String, Object> properties) {
+		getPropertyContext().removeSubContext(properties);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Set the {@link EPackage.Registry}
+	 * @param registry the {@link EPackage} registry to set
+	 */
+	protected void setEPackageRegistry(EPackage.Registry registry, Map<String, Object> properties) {
+		this.packageRegistry = registry;
+		getPropertyContext().removeSubContext(properties);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Set the {@link EPackage.Registry}
+	 * @param registry the {@link EPackage} registry to set
+	 */
+	protected void updateEPackageRegistry(Map<String, Object> properties) {
+		getPropertyContext().removeSubContext(properties);
+		getPropertyContext().addSubContext(properties);
+		updateRegistrationProperties();
+	}
+	
+	/**
+	 * Un-set the {@link EPackage} registry
+	 * @param registry the {@link EPackage} registry to be removed
+	 */
+	protected void unsetResourceSetEPackageRegistry(EPackage.Registry registry, Map<String, Object> properties) {
+		getPropertyContext().removeSubContext(properties);
+		updateRegistrationProperties();
 		this.packageRegistry.clear();
 		this.packageRegistry = null;
 	}
@@ -122,7 +154,6 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 	 */
 	protected void setResourceFactoryRegistry(Resource.Factory.Registry registry, Map<String, Object> properties) {
 		this.resourceFactoryRegistry.updateAndGet(rfr-> {
-			updateResourceFactoryRegistry(registry);
 			ServicePropertyContext ctx = getPropertyContext();
 			synchronized (ctx) {
 				ctx.addSubContext(properties);
@@ -137,10 +168,11 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 	 * @param registry the resource factory to be injected
 	 * @param properties the service properties of this registry service
 	 */
-	protected void modifiedResourceFactoryRegistry(Resource.Factory.Registry registry, Map<String, Object> properties) {
+	protected void modifiedResourceFactoryRegistry(Map<String, Object> properties) {
 		this.resourceFactoryRegistry.getAndUpdate(rfr->{
 			ServicePropertyContext ctx = getPropertyContext();
 			synchronized (ctx) {
+				ctx.removeSubContext(properties);
 				ctx.addSubContext(properties);
 			}
 			return rfr;
@@ -160,83 +192,9 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 			synchronized (ctx) {
 				ctx.removeSubContext(properties);
 			}
-			disposeResourceFactoryRegistry(rfr);
 			return null;
 		});
 		updateRegistrationProperties();
-	}
-
-	/**
-	 * Adds {@link EPackageConfigurator}, to register a new {@link EPackage}
-	 * @param configurator the {@link EPackageConfigurator} to be registered
-	 * @param properties the service properties
-	 */
-	protected void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		synchronized (ePackageConfigurators) {
-			ePackageConfigurators.add(configurator);
-		}
-		if (packageRegistry != null) {
-			configurator.configureEPackage(packageRegistry);
-		}
-		getPropertyContext().addSubContext(properties);
-		updateRegistrationProperties();
-	}
-
-	/**
-	 * Removes a {@link EPackageConfigurator} from the registry and unconfigures it
-	 * @param configurator the configurator to be removed
-	 * @param modelInfo the model information
-	 * @param properties the service properties
-	 */
-	protected void removeEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		getPropertyContext().removeSubContext(properties);
-		updateRegistrationProperties();
-		synchronized (ePackageConfigurators) {
-			ePackageConfigurators.remove(configurator);
-		}
-		Object nsUris = properties.get(EMFNamespaces.EMF_MODEL_NSURI);
-		if (packageRegistry != null) {
-			configurator.unconfigureEPackage(packageRegistry);
-			if (nsUris != null && (nsUris instanceof String || nsUris instanceof String[])) {
-				List<String> nsUriList = nsUris instanceof String ? 
-						Collections.singletonList((String)nsUris) : Arrays.asList((String[])nsUris);
-				for (String nsUri : nsUriList) {
-					EPackage.Registry.INSTANCE.remove(nsUri);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Adds a resource factory configurator to the registry 
-	 * @param configurator the resource factory configurator to be registered
-	 * @param properties the service properties
-	 */
-	protected void addResourceFactoryConfigurator(ResourceFactoryConfigurator configurator, Map<String, Object> properties) {
-		synchronized (resourceFactoryConfigurators) {
-			resourceFactoryConfigurators.add(configurator);
-		}
-		Factory.Registry rfr = resourceFactoryRegistry.get();
-		if (rfr != null) {
-			configurator.configureResourceFactory(rfr);
-		}
-		getPropertyContext().addSubContext(properties);
-		updateRegistrationProperties();
-	}
-
-	/**
-	 * Removes a resource factory configurator from the registry
-	 * @param configurator the resource factory configurator to be removed
-	 * @param properties the service properties
-	 */
-	protected void removeResourceFactoryConfigurator(ResourceFactoryConfigurator configurator, Map<String, Object> properties) {
-		getPropertyContext().removeSubContext(properties);
-		updateRegistrationProperties();
-		resourceFactoryConfigurators.remove(configurator);
-		Factory.Registry rfr = resourceFactoryRegistry.get();
-		if (rfr != null) {
-			configurator.unconfigureResourceFactory(rfr);
-		}
 	}
 
 	/**
@@ -265,7 +223,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 	 * Called on component activation
 	 * @param ctx the component context
 	 */
-	protected void activate(ComponentContext ctx) {
+	protected void doActivate(BundleContext ctx) {
 		packageRegistry.putAll(EPackage.Registry.INSTANCE);
 		Factory.Registry rfr = resourceFactoryRegistry.get();
 		Objects.requireNonNull(rfr);
@@ -279,12 +237,12 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 	 * Registers the {@link ResourceSet} and {@link ResourceSetFactory}
 	 * @param ctx the component context
 	 */
-	protected void registerServices(ComponentContext ctx) {
+	protected void registerServices(BundleContext ctx) {
 		Dictionary<String, Object> props = getDictionary();
-		rsfRegistration = ctx.getBundleContext().registerService(ResourceSetFactory.class, this, copyDictionary(props));
+		rsfRegistration = ctx.registerService(ResourceSetFactory.class, this, copyDictionary(props));
 		PrototypeServiceFactory<ResourceSet> protoFactory = new ResourceSetPrototypeFactory(this);
-		rsRegistration = ctx.getBundleContext().registerService(ResourceSet.class, protoFactory, copyDictionary(props));
-		conditionRegistration = ctx.getBundleContext().registerService(Condition.class, Condition.INSTANCE, copyDictionaryForCondition(props));
+		rsRegistration = ctx.registerService(ResourceSet.class, protoFactory, copyDictionary(props));
+		conditionRegistration = ctx.registerService(Condition.class, Condition.INSTANCE, copyDictionaryForCondition(props));
 	}
 	
 	/**
@@ -333,47 +291,6 @@ public class DefaultResourceSetFactory implements ResourceSetFactory, org.gecko.
 		return resourceSet;
 	}
 
-	@Override
-	public Collection<org.gecko.emf.osgi.configurator.ResourceSetConfigurator> getResourceSetConfigurators() {
-		return Collections.unmodifiableCollection(resourceSetConfigurators.stream().map(e -> new org.gecko.emf.osgi.configurator.ResourceSetConfigurator() {
-
-			@Override
-			public void configureResourceSet(ResourceSet resourceSet) {
-				e.configureResourceSet(resourceSet);
-			}
-			
-		}).collect(Collectors.toList()));
-	}
-
-
-	/**
-	 * Updates the package registry
-	 */
-	protected void updatePackageRegistry() {
-		List<EPackageConfigurator> providers = new ArrayList<>(ePackageConfigurators);
-		providers.forEach(p->p.configureEPackage(packageRegistry));
-	}
-	
-	/**
-	 * Updates the resource factory registry
-	 * Register the XML resource factory to handle XML files 
-	 */
-	protected void updateResourceFactoryRegistry(final Factory.Registry rfRegistry) {
-		requireNonNull(rfRegistry);
-		List<ResourceFactoryConfigurator> providers = new ArrayList<>(resourceFactoryConfigurators);
-		providers.forEach(p->p.configureResourceFactory(rfRegistry));
-	}
-	
-	/**
-	 * Updates the resource factory registry
-	 * Register the XML resource factory to handle XML files 
-	 */
-	protected void disposeResourceFactoryRegistry(final Factory.Registry rfRegistry) {
-		requireNonNull(rfRegistry);
-		List<ResourceFactoryConfigurator> providers = new ArrayList<>(resourceFactoryConfigurators);
-		providers.forEach(p->p.unconfigureResourceFactory(rfRegistry));
-	}
-	
 	/**
 	 * Updates the service registration properties
 	 */
