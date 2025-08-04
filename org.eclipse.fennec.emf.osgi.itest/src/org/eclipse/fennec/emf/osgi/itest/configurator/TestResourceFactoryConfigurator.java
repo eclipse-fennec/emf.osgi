@@ -15,11 +15,8 @@ package org.eclipse.fennec.emf.osgi.itest.configurator;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
-import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.annotation.ConfiguratorType;
 import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -35,40 +32,17 @@ import org.osgi.service.component.annotations.Component;
 		protocol = {"p123", "p234"},
 		fileExtension = {"fe123", "fe234"})
 @Component(name = "TestResourceFactoryConfigurator", enabled = false)
-public class TestResourceFactoryConfigurator implements ResourceFactoryConfigurator {
-
-	private final ResourceFactoryImpl resourceFactory = new ResourceFactoryImpl() {
-		/* 
-		 * (non-Javadoc)
-		 * @see org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl#createResource(org.eclipse.emf.common.util.URI)
-		 */
-		@Override
-		public Resource createResource(URI uri) {
-			
-			return new TestResource(uri);
-		}
-	};
-	
-	
-	/* 
-	 * (non-Javadoc)
-	 * @see org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator#configureResourceFactory(org.eclipse.emf.ecore.resource.Resource.Factory.Registry)
-	 */
-	@Override
-	public void configureResourceFactory(Registry registry) {
-		registry.getContentTypeToFactoryMap().put("test/123", resourceFactory);
-		registry.getContentTypeToFactoryMap().put("test234", resourceFactory);
-	}
-
+public class TestResourceFactoryConfigurator implements Resource.Factory {
 
 	/* 
 	 * (non-Javadoc)
-	 * @see org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator#unconfigureResourceFactory(org.eclipse.emf.ecore.resource.Resource.Factory.Registry)
+	 * @see org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl#createResource(org.eclipse.emf.common.util.URI)
 	 */
 	@Override
-	public void unconfigureResourceFactory(Registry registry) {
-		registry.getContentTypeToFactoryMap().remove("test/123");
-		registry.getContentTypeToFactoryMap().remove("test234");
+	public Resource createResource(URI uri) {
+		
+		return new TestResource(uri);
 	}
-
+	
+	
 }

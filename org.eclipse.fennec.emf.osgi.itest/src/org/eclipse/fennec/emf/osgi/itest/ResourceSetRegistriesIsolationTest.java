@@ -32,7 +32,6 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage;
 import org.eclipse.fennec.emf.osgi.example.model.manual.Foo;
 import org.eclipse.fennec.emf.osgi.example.model.manual.ManualFactory;
@@ -87,7 +86,7 @@ public class ResourceSetRegistriesIsolationTest {
 		tryLoadAndSave(rs1);
 		
 		ServiceRegistration<?> registration = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
+				new String[] { EPackageConfigurator.class.getName()},
 				new ManualPackageConfigurator(), new Hashtable<String, Object>());
 		
 		assertTrue(rs1.getPackageRegistry().containsKey(ManualPackage.eNS_URI));
@@ -121,9 +120,7 @@ public class ResourceSetRegistriesIsolationTest {
 		assertFalse(rs1.getPackageRegistry().containsKey(ManualPackage.eNS_URI));
 		assertFalse(rs2.getPackageRegistry().containsKey(ManualPackage.eNS_URI));
 		
-		ServiceRegistration<?> registration = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName()},
-				new ManualPackageConfigurator(), new Hashtable<String, Object>());
+		ServiceRegistration<?> registration = ManualPackageConfigurator.registerManualPackage(bc, null);
 		
 		assertTrue(rs1.getPackageRegistry().containsKey(ManualPackage.eNS_URI));
 		assertTrue(rs2.getPackageRegistry().containsKey(ManualPackage.eNS_URI));
@@ -182,9 +179,7 @@ public class ResourceSetRegistriesIsolationTest {
 		
 		
 		//Now register the service and look if it adds
-		ServiceRegistration<?> registration = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				new ManualPackageConfigurator(), new Hashtable<String, Object>());
+		ServiceRegistration<?> registration = ManualPackageConfigurator.registerManualPackage(bc, null);
 		
 		assertInstanceOf(ManualResourceFactoryImpl.class, rs1.getResourceFactoryRegistry().getProtocolToFactoryMap().get("xxx"));
 		assertInstanceOf(ManualResourceFactoryImpl.class, rs1.getResourceFactoryRegistry().getContentTypeToFactoryMap().get("xxx"));

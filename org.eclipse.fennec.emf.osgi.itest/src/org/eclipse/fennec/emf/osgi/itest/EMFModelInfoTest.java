@@ -33,7 +33,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage;
 import org.eclipse.fennec.emf.osgi.example.model.extended.ExtendedPackage;
 import org.eclipse.fennec.emf.osgi.example.model.extended.ExtendedPerson;
@@ -81,7 +80,7 @@ public class EMFModelInfoTest {
 		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
 
 		ServiceRegistration<?> reg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
+				new String[] { EPackageConfigurator.class.getName()},
 				configurator, new Hashtable<String, Object>());
 
 		ResourceSetFactory factory = saRF.waitForService(100l);

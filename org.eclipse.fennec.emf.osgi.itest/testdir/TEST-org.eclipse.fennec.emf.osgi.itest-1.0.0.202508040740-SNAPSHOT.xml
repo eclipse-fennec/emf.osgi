@@ -1,0 +1,1993 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="[28] org.eclipse.fennec.emf.osgi.itest;1.0.0.202508040740-SNAPSHOT" tests="61" skipped="4" failures="22" errors="7" time="56.672" hostname="Groundzero" timestamp="2025-08-04T09:41:56">
+<properties>
+<property name="ecoreBase" value="N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest"/>
+<property name="file.encoding" value="UTF-8"/>
+<property name="file.separator" value="\"/>
+<property name="java.class.path" value="N:/git/eclipse/fennec/osgi.emf/cnf/cache/7.2.0/bnd-cache/biz.aQute.launcher/biz.aQute.launcher.pre.jar"/>
+<property name="java.class.version" value="61.0"/>
+<property name="java.home" value="N:\tools\java\jdk-17.0.3.1"/>
+<property name="java.io.tmpdir" value="C:\Users\ungei\AppData\Local\Temp\"/>
+<property name="java.library.path" value="N:\tools\java\jdk-17.0.3.1\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:/Users/ungei/.p2/pool/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.5.v20241023-1957/jre/bin/server;C:/Users/ungei/.p2/pool/plugins/org.eclipse.justj.openjdk.hotspot.jre.full.win32.x86_64_21.0.5.v20241023-1957/jre/bin;C:\Python313\Scripts\;C:\Python313\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;N:\tools\Git\cmd;N:\tools\apache-ant-1.10.14\bin;C:\Program Files\Docker\Docker\resources\bin;N:\tools\java\jdk-17.0.3.1\bin;n:\tools\maven\apache-maven-3.9.9\bin\;c:\Program Files\SSHFS-Win\bin\;C:\Program Files\WireGuard\;;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;N:\tools\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\GitHub CLI\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Users\ungei\AppData\Local\Microsoft\WindowsApps;;C:\Users\ungei\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\ungei\AppData\Roaming\npm;n:\tools\eclipse\eclipse\fennec\emf\FennecEMF\eclipse;;."/>
+<property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+<property name="java.runtime.version" value="17.0.3.1+2-LTS-6"/>
+<property name="java.specification.name" value="Java Platform API Specification"/>
+<property name="java.specification.vendor" value="Oracle Corporation"/>
+<property name="java.specification.version" value="17"/>
+<property name="java.vendor" value="Oracle Corporation"/>
+<property name="java.vendor.url" value="https://java.oracle.com/"/>
+<property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+<property name="java.version" value="17.0.3.1"/>
+<property name="java.version.date" value="2022-04-22"/>
+<property name="java.vm.compressedOopsMode" value="Zero based"/>
+<property name="java.vm.info" value="mixed mode, sharing"/>
+<property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+<property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+<property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+<property name="java.vm.specification.version" value="17"/>
+<property name="java.vm.vendor" value="Oracle Corporation"/>
+<property name="java.vm.version" value="17.0.3.1+2-LTS-6"/>
+<property name="jdk.debug" value="release"/>
+<property name="launch.activation.eager" value="false"/>
+<property name="launch.activators" value=""/>
+<property name="launch.bundles" value="C:/Users/ungei/.m2/repository/org/apache/felix/org.apache.felix.gogo.command/1.1.2/org.apache.felix.gogo.command-1.1.2.jar,C:/Users/ungei/.m2/repository/org/apache/felix/org.apache.felix.gogo.runtime/1.1.6/org.apache.felix.gogo.runtime-1.1.6.jar,C:/Users/ungei/.m2/repository/org/apache/felix/org.apache.felix.gogo.shell/1.1.4/org.apache.felix.gogo.shell-1.1.4.jar,N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.example.model.basic/generated/org.eclipse.fennec.emf.osgi.example.model.basic.jar,N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.model.info/generated/org.eclipse.fennec.emf.osgi.model.info.jar,C:/Users/ungei/.m2/repository/org/apache/felix/org.apache.felix.scr/2.2.6/org.apache.felix.scr-2.2.6.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.test.assertj.framework/1.2.1/org.osgi.test.assertj.framework-1.2.1.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.test.common/1.2.1/org.osgi.test.common-1.2.1.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.test.junit5/1.2.1/org.osgi.test.junit5-1.2.1.jar,C:/Users/ungei/.m2/repository/org/objenesis/objenesis/3.3/objenesis-3.3.jar,C:/Users/ungei/.m2/repository/org/mockito/mockito-junit-jupiter/4.11.0/mockito-junit-jupiter-4.11.0.jar,C:/Users/ungei/.m2/repository/org/mockito/mockito-core/4.11.0/mockito-core-4.11.0.jar,C:/Users/ungei/.m2/repository/org/apache/felix/org.apache.felix.configadmin/1.9.26/org.apache.felix.configadmin-1.9.26.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.cm/1.6.1/org.osgi.service.cm-1.6.1.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.component/1.5.1/org.osgi.service.component-1.5.1.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.util.converter/1.0.9/org.osgi.util.converter-1.0.9.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.util.function/1.2.0/org.osgi.util.function-1.2.0.jar,C:/Users/ungei/.m2/repository/org/osgi/org.osgi.util.promise/1.3.0/org.osgi.util.promise-1.3.0.jar,C:/Users/ungei/.m2/repository/org/assertj/assertj-core/3.24.2/assertj-core-3.24.2.jar,C:/Users/ungei/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.1/junit-jupiter-api-5.10.1.jar,C:/Users/ungei/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.1/junit-jupiter-params-5.10.1.jar,C:/Users/ungei/.m2/repository/org/junit/platform/junit-platform-commons/1.10.1/junit-platform-commons-1.10.1.jar,C:/Users/ungei/.m2/repository/net/bytebuddy/byte-buddy/1.14.9/byte-buddy-1.14.9.jar,C:/Users/ungei/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.9/byte-buddy-agent-1.14.9.jar,C:/Users/ungei/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar,N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi/generated/org.eclipse.fennec.emf.osgi.component.jar,N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.example.model.manual/generated/org.eclipse.fennec.emf.osgi.example.model.manual.jar,N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/generated/org.eclipse.fennec.emf.osgi.itest.jar,N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.example.model.extended/generated/org.eclipse.fennec.emf.osgi.example.model.extended.jar,C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore.xmi/2.38.0/org.eclipse.emf.ecore.xmi-2.38.0.jar,C:/Users/ungei/.m2/repository/org/geckoprojects/emf/org.osgi.test.assertj.monitoring/0.0.1/org.osgi.test.assertj.monitoring-0.0.1.jar,C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.43.0-SNAPSHOT/org.eclipse.emf.common-2.43.0-SNAPSHOT.jar,C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.40.0-SNAPSHOT/org.eclipse.emf.ecore-2.40.0-SNAPSHOT.jar,C:/Users/ungei/.m2/repository/org/junit/platform/junit-platform-engine/1.10.1/junit-platform-engine-1.10.1.jar,C:/Users/ungei/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar,C:/Users/ungei/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.1/junit-jupiter-engine-5.10.1.jar,N:/git/eclipse/fennec/osgi.emf/cnf/cache/7.2.0/bnd-cache/biz.aQute.tester.junit-platform/biz.aQute.tester.junit-platform-7.2.0.jar,C:/Users/ungei/.m2/repository/org/junit/platform/junit-platform-launcher/1.10.1/junit-platform-launcher-1.10.1.jar"/>
+<property name="launch.embedded" value="false"/>
+<property name="launch.framework.restart" value="false"/>
+<property name="launch.framework.restart.count" value="0"/>
+<property name="launch.keep" value="false"/>
+<property name="launch.name" value="test.bndrun"/>
+<property name="launch.noreferences" value="false"/>
+<property name="launch.notificationPort" value="59833"/>
+<property name="launch.services" value="true"/>
+<property name="launch.system.packages" value="sun.misc,sun.reflect,org.osgi.dto;version=&quot;1.1.1&quot;,org.osgi.framework;version=&quot;1.10&quot;,org.osgi.framework.connect;uses:=&quot;org.osgi.framework,org.osgi.framework.launch&quot;;version=&quot;1.0&quot;,org.osgi.framework.dto;uses:=&quot;org.osgi.dto&quot;;version=&quot;1.8&quot;,org.osgi.framework.hooks.bundle;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.1&quot;,org.osgi.framework.hooks.resolver;uses:=&quot;org.osgi.framework.wiring&quot;;version=&quot;1.0&quot;,org.osgi.framework.hooks.service;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.1&quot;,org.osgi.framework.hooks.weaving;uses:=&quot;org.osgi.framework.wiring&quot;;version=&quot;1.1&quot;,org.osgi.framework.launch;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.2&quot;,org.osgi.framework.namespace;uses:=&quot;org.osgi.resource&quot;;version=&quot;1.2&quot;,org.osgi.framework.startlevel;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.0&quot;,org.osgi.framework.startlevel.dto;uses:=&quot;org.osgi.dto&quot;;version=&quot;1.0&quot;,org.osgi.framework.wiring;uses:=&quot;org.osgi.framework,org.osgi.resource&quot;;version=&quot;1.2&quot;,org.osgi.framework.wiring.dto;uses:=&quot;org.osgi.dto,org.osgi.resource.dto&quot;;version=&quot;1.3&quot;,org.osgi.resource;version=&quot;1.0.1&quot;,org.osgi.resource.dto;uses:=&quot;org.osgi.dto&quot;;version=&quot;1.0.1&quot;,org.osgi.service.condition;version=&quot;1.0&quot;,org.osgi.service.packageadmin;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.2.1&quot;,org.osgi.service.resolver;uses:=&quot;org.osgi.resource&quot;;version=&quot;1.1.1&quot;,org.osgi.service.startlevel;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.1.1&quot;,org.osgi.service.url;version=&quot;1.0.1&quot;,org.osgi.util.tracker;uses:=&quot;org.osgi.framework&quot;;version=&quot;1.5.3&quot;"/>
+<property name="launch.timeout" value="0"/>
+<property name="launch.trace" value="false"/>
+<property name="launcher.properties" value="N:\git\eclipse\fennec\osgi.emf\org.eclipse.fennec.emf.osgi.itest\generated\launch13137733440821461713.properties"/>
+<property name="launcher.runpath" value="C:/Users/ungei/.m2/repository/org/apache/felix/org.apache.felix.framework/7.0.5/org.apache.felix.framework-7.0.5.jar,N:/git/eclipse/fennec/osgi.emf/cnf/cache/7.2.0/bnd-cache/biz.aQute.launcher/biz.aQute.launcher-7.2.0.jar"/>
+<property name="line.separator" value="
+"/>
+<property name="native.encoding" value="Cp1252"/>
+<property name="os.arch" value="amd64"/>
+<property name="os.name" value="Windows 11"/>
+<property name="os.version" value="10.0"/>
+<property name="path.separator" value=";"/>
+<property name="stderr.encoding" value="UTF-8"/>
+<property name="stdout.encoding" value="UTF-8"/>
+<property name="sun.arch.data.model" value="64"/>
+<property name="sun.boot.library.path" value="N:\tools\java\jdk-17.0.3.1\bin"/>
+<property name="sun.cpu.endian" value="little"/>
+<property name="sun.cpu.isalist" value="amd64"/>
+<property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+<property name="sun.java.command" value="aQute.launcher.pre.EmbeddedLauncher"/>
+<property name="sun.java.launcher" value="SUN_STANDARD"/>
+<property name="sun.jnu.encoding" value="Cp1252"/>
+<property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+<property name="sun.os.patch.level" value=""/>
+<property name="tester.trace" value="true"/>
+<property name="user.country" value="US"/>
+<property name="user.country.format" value="DE"/>
+<property name="user.dir" value="N:\git\eclipse\fennec\osgi.emf\org.eclipse.fennec.emf.osgi.itest"/>
+<property name="user.home" value="C:\Users\ungei"/>
+<property name="user.language" value="en"/>
+<property name="user.name" value="ungei"/>
+<property name="user.script" value=""/>
+<property name="user.timezone" value="Europe/Berlin"/>
+<property name="user.variant" value=""/>
+</properties>
+<testcase name="testCreateDynamicModelUnregister(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.DynamicModelConfiguratorTest" time="10.121">
+<failure message="
+Expecting
+  &lt;EventsSnapshotImpl [events=[TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.osgi.service.cm.ManagedService]], instant=2025-08-04T07:40:59.966102300Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator]], instant=2025-08-04T07:40:59.999991900Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage]], instant=2025-08-04T07:41:00.000991700Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.osgi.service.component.runtime.ServiceComponentRuntime]], instant=2025-08-04T07:41:05.001360800Z]], timedOut=true]&gt;
+to not be a timedOut, but it was" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+Expecting
+  <EventsSnapshotImpl [events=[TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.osgi.service.cm.ManagedService]], instant=2025-08-04T07:40:59.966102300Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator]], instant=2025-08-04T07:40:59.999991900Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage]], instant=2025-08-04T07:41:00.000991700Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.osgi.service.component.runtime.ServiceComponentRuntime]], instant=2025-08-04T07:41:05.001360800Z]], timedOut=true]>
+to not be a timedOut, but it was
+	at org.eclipse.fennec.emf.osgi.itest.DynamicModelConfiguratorTest.testCreateDynamicModelUnregister(DynamicModelConfiguratorTest.java:192)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testCreateDynamicModelModify(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.DynamicModelConfiguratorTest" time="10.03">
+<failure message="
+Expecting
+  &lt;EventsSnapshotImpl [events=[TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage]], instant=2025-08-04T07:41:10.015318500Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator]], instant=2025-08-04T07:41:10.016332800Z]], timedOut=true]&gt;
+to not be a timedOut, but it was" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+Expecting
+  <EventsSnapshotImpl [events=[TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage]], instant=2025-08-04T07:41:10.015318500Z], TimedEvent [event=org.osgi.framework.ServiceEvent[source=[org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator]], instant=2025-08-04T07:41:10.016332800Z]], timedOut=true]>
+to not be a timedOut, but it was
+	at org.eclipse.fennec.emf.osgi.itest.DynamicModelConfiguratorTest.testCreateDynamicModelModify(DynamicModelConfiguratorTest.java:280)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testCreateDynamicModel(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.DynamicModelConfiguratorTest" time="0.011">
+<failure message="
+Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: 
+Expecting value to be true but was false
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at org.eclipse.fennec.emf.osgi.itest.DynamicModelConfiguratorTest.testCreateDynamicModel(DynamicModelConfiguratorTest.java:79)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testResourceFactoryAnnotation(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFConfiguratorAnnotationTest" time="0.161">
+<failure message="expected: &lt;false&gt; but was: &lt;true&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <false> but was: <true>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:31)
+	at org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:231)
+	at org.eclipse.fennec.emf.osgi.itest.EMFConfiguratorAnnotationTest.testResourceFactoryAnnotation(EMFConfiguratorAnnotationTest.java:71)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testResourceSetAnnotation(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFConfiguratorAnnotationTest" time="0.004">
+<failure message="expected: &lt;null&gt; but was: &lt;[p234, p123]&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <null> but was: <[p234, p123]>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertNull.failNotNull(AssertNull.java:50)
+	at org.junit.jupiter.api.AssertNull.assertNull(AssertNull.java:35)
+	at org.junit.jupiter.api.AssertNull.assertNull(AssertNull.java:30)
+	at org.junit.jupiter.api.Assertions.assertNull(Assertions.java:279)
+	at org.eclipse.fennec.emf.osgi.itest.EMFConfiguratorAnnotationTest.testResourceSetAnnotation(EMFConfiguratorAnnotationTest.java:273)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testEPackageAnnotation(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFConfiguratorAnnotationTest" time="0.004">
+<failure message="expected: &lt;null&gt; but was: &lt;[p234, p123]&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <null> but was: <[p234, p123]>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertNull.failNotNull(AssertNull.java:50)
+	at org.junit.jupiter.api.AssertNull.assertNull(AssertNull.java:35)
+	at org.junit.jupiter.api.AssertNull.assertNull(AssertNull.java:30)
+	at org.junit.jupiter.api.Assertions.assertNull(Assertions.java:279)
+	at org.eclipse.fennec.emf.osgi.itest.EMFConfiguratorAnnotationTest.testEPackageAnnotation(EMFConfiguratorAnnotationTest.java:185)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testEPackage_BinaryFactory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0">
+</testcase>
+<testcase name="testEPackage_XMIResourceFactory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0.001">
+</testcase>
+<testcase name="testEPackage_XMLNamespacePackage(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0.002">
+</testcase>
+<testcase name="testEPackage_XMLTypePackage(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0.002">
+</testcase>
+<testcase name="testEPackage_EcorePackage(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0">
+</testcase>
+<testcase name="testEPackage_EcoreResourceFactoryImpl(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0.001">
+</testcase>
+<testcase name="testEPackage_EMOFResourceFactoryImpl(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFEcoreStaticRegistrationStuffTest" time="0.002">
+</testcase>
+<testcase name="testFindEClassByClass(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFModelInfoTest" time="1.033">
+<system-err><![CDATA[java.lang.ClassCastException: class org.eclipse.emf.ecore.impl.EFactoryImpl cannot be cast to class org.eclipse.fennec.emf.osgi.example.model.manual.ManualFactory (org.eclipse.emf.ecore.impl.EFactoryImpl is in unnamed module of loader org.apache.felix.framework.BundleWiringImpl$BundleClassLoader @3b74ac8; org.eclipse.fennec.emf.osgi.example.model.manual.ManualFactory is in unnamed module of loader org.apache.felix.framework.BundleWiringImpl$BundleClassLoader @2d35442b)
+	at org.eclipse.fennec.emf.osgi.example.model.manual.impl.ManualFactoryImpl.init(ManualFactoryImpl.java:41)
+	at org.eclipse.fennec.emf.osgi.example.model.manual.ManualFactory.<clinit>(ManualFactory.java:36)
+	at org.eclipse.fennec.emf.osgi.example.model.manual.impl.ManualPackageImpl.<init>(ManualPackageImpl.java:57)
+	at org.eclipse.fennec.emf.osgi.example.model.manual.impl.ManualPackageImpl.init(ManualPackageImpl.java:83)
+	at org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage.<clinit>(ManualPackage.java:81)
+	at org.eclipse.fennec.emf.osgi.example.model.manual.configuration.ManualPackageConfigurator.configureEPackage(ManualPackageConfigurator.java:52)
+	at org.eclipse.fennec.emf.osgi.model.info.impl.EMFModelInfoImpl.lambda$4(EMFModelInfoImpl.java:108)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.eclipse.fennec.emf.osgi.model.info.impl.EMFModelInfoImpl.refresh(EMFModelInfoImpl.java:108)
+	at org.eclipse.fennec.emf.osgi.model.info.impl.EMFModelInfoImpl.bindEPackageConfigurator(EMFModelInfoImpl.java:97)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.apache.felix.scr.impl.inject.methods.BaseMethod.invokeMethod(BaseMethod.java:245)
+	at org.apache.felix.scr.impl.inject.methods.BaseMethod.access$500(BaseMethod.java:41)
+	at org.apache.felix.scr.impl.inject.methods.BaseMethod$Resolved.invoke(BaseMethod.java:687)
+	at org.apache.felix.scr.impl.inject.methods.BaseMethod.invoke(BaseMethod.java:531)
+	at org.apache.felix.scr.impl.inject.methods.BindMethod.invoke(BindMethod.java:42)
+	at org.apache.felix.scr.impl.manager.DependencyManager.doInvokeBindMethod(DependencyManager.java:2086)
+	at org.apache.felix.scr.impl.manager.DependencyManager.invokeBindMethod(DependencyManager.java:2061)
+	at org.apache.felix.scr.impl.manager.SingleComponentManager.invokeBindMethod(SingleComponentManager.java:443)
+	at org.apache.felix.scr.impl.manager.DependencyManager$MultipleDynamicCustomizer.addedService(DependencyManager.java:336)
+	at org.apache.felix.scr.impl.manager.DependencyManager$MultipleDynamicCustomizer.addedService(DependencyManager.java:304)
+	at org.apache.felix.scr.impl.manager.ServiceTracker$Tracked.customizerAdded(ServiceTracker.java:1232)
+	at org.apache.felix.scr.impl.manager.ServiceTracker$Tracked.customizerAdded(ServiceTracker.java:1152)
+	at org.apache.felix.scr.impl.manager.ServiceTracker$AbstractTracked.trackAdding(ServiceTracker.java:959)
+	at org.apache.felix.scr.impl.manager.ServiceTracker$AbstractTracked.track(ServiceTracker.java:895)
+	at org.apache.felix.scr.impl.manager.ServiceTracker$Tracked.serviceChanged(ServiceTracker.java:1184)
+	at org.apache.felix.scr.impl.BundleComponentActivator$ListenerInfo.serviceChanged(BundleComponentActivator.java:116)
+	at org.apache.felix.framework.EventDispatcher.invokeServiceListenerCallback(EventDispatcher.java:990)
+	at org.apache.felix.framework.EventDispatcher.fireEventImmediately(EventDispatcher.java:838)
+	at org.apache.felix.framework.EventDispatcher.fireServiceEvent(EventDispatcher.java:545)
+	at org.apache.felix.framework.Felix.fireServiceEvent(Felix.java:4863)
+	at org.apache.felix.framework.Felix.registerService(Felix.java:3834)
+	at org.apache.felix.framework.BundleContextImpl.registerService(BundleContextImpl.java:328)
+	at org.osgi.test.common.context.CloseableBundleContext.registerService(CloseableBundleContext.java:308)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at org.osgi.test.common.context.CloseableBundleContext.lambda$invoker$3(CloseableBundleContext.java:124)
+	at org.osgi.test.common.context.CloseableBundleContext.invoke(CloseableBundleContext.java:151)
+	at jdk.proxy8/jdk.proxy8.$Proxy19.registerService(Unknown Source)
+	at org.osgi.test.common.context.CloseableBundleContext.registerService(CloseableBundleContext.java:308)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at org.osgi.test.common.context.CloseableBundleContext.lambda$invoker$3(CloseableBundleContext.java:124)
+	at org.osgi.test.common.context.CloseableBundleContext.invoke(CloseableBundleContext.java:151)
+	at jdk.proxy8/jdk.proxy8.$Proxy19.registerService(Unknown Source)
+	at org.eclipse.fennec.emf.osgi.itest.EMFModelInfoTest.testFindEClassByClass(EMFModelInfoTest.java:82)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.SessionPerRequestLauncher.execute(SessionPerRequestLauncher.java:63)
+	at aQute.tester.junit.platform.Activator.test(Activator.java:458)
+	at aQute.tester.junit.platform.Activator.automatic(Activator.java:361)
+	at aQute.tester.junit.platform.Activator.run(Activator.java:224)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:539)
+	at aQute.launcher.Launcher.handleMainCallable(Launcher.java:464)
+	at aQute.launcher.Launcher.launch(Launcher.java:437)
+	at aQute.launcher.Launcher.run(Launcher.java:185)
+	at aQute.launcher.Launcher.main(Launcher.java:161)
+	at aQute.launcher.pre.EmbeddedLauncher.executeWithRunPath(EmbeddedLauncher.java:169)
+	at aQute.launcher.pre.EmbeddedLauncher.findAndExecute(EmbeddedLauncher.java:134)
+	at aQute.launcher.pre.EmbeddedLauncher.main(EmbeddedLauncher.java:51)
+]]></system-err>
+</testcase>
+<testcase name="testFindEClassByClassName(ServiceAware, ExtendedPackage, BundleContext)" classname="org.eclipse.fennec.emf.osgi.itest.EMFModelInfoTest" time="4.074">
+<system-out><![CDATA[
+______ personHirachy2
+[org.eclipse.emf.ecore.impl.EClassImpl@5cdd09b1 (name: BusinessPerson) (instanceClassName: null) (abstract: false, interface: false)]
+______
+
+______ personHirachy3
+[]
+______
+
+______ personHirachy 4
+[org.eclipse.emf.ecore.impl.EClassImpl@5cdd09b1 (name: BusinessPerson) (instanceClassName: null) (abstract: false, interface: false)]
+______
+
+______ personHirachy5
+[org.eclipse.emf.ecore.impl.EClassImpl@5cdd09b1 (name: BusinessPerson) (instanceClassName: null) (abstract: false, interface: false), org.eclipse.emf.ecore.impl.EClassImpl@33617539 (name: ExtendedPerson) (instanceClassName: null) (abstract: false, interface: false)]
+______
+]]></system-out>
+</testcase>
+<testcase name="testPropertiesMapTypeIsCorrect(ExtendedFactory, BasicPackage)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiGeneratedCodeTest" time="0.004">
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackageAndUnregisterProperties_Factory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.005">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackageAndUnregisterProperties_Factory(EMFOSGiIntegrationTest.java:806)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackage_FactoryWithModelName(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.127">
+<error message="Cannot invoke &quot;org.osgi.framework.ServiceReference.getProperty(String)&quot; because &quot;reference&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "org.osgi.framework.ServiceReference.getProperty(String)" because "reference" is null
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackage_FactoryWithModelName(EMFOSGiIntegrationTest.java:233)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></error>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackageAndUnregisterProperties(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.015">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackageAndUnregisterProperties(EMFOSGiIntegrationTest.java:872)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceFailNoEPackage(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.163">
+</testcase>
+<testcase name="testEPackageAndConfiguratorProperties_Factory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.005">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testEPackageAndConfiguratorProperties_Factory(EMFOSGiIntegrationTest.java:938)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredConfigurator_FactoryWithModelName(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.113">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredConfigurator_FactoryWithModelName(EMFOSGiIntegrationTest.java:300)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredManyChangeConfigName_FactoryWithModelName(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.011">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredManyChangeConfigName_FactoryWithModelName(EMFOSGiIntegrationTest.java:495)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackageResourceSet(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.012">
+<error message="Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)" type="org.eclipse.emf.ecore.resource.Resource$IOWrappedException"><![CDATA[org.eclipse.emf.ecore.resource.Resource$IOWrappedException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.handleErrors(XMLLoadImpl.java:77)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:185)
+	at org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl.doLoad(XMLResourceImpl.java:260)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1563)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackageResourceSet(EMFOSGiIntegrationTest.java:670)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+Caused by: org.eclipse.emf.ecore.xmi.PackageNotFoundException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getPackageForURI(XMLHandler.java:2653)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getFactoryForPrefix(XMLHandler.java:2486)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createObjectByType(XMLHandler.java:1363)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createTopObject(XMLHandler.java:1532)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.processElement(XMLHandler.java:1054)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.processElement(XMIHandler.java:78)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:1036)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:725)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.startElement(XMIHandler.java:190)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.startElement(AbstractSAXParser.java:518)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractXMLDocumentParser.emptyElement(AbstractXMLDocumentParser.java:183)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator.emptyElement(XMLDTDValidator.java:752)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanStartElement(XMLDocumentFragmentScannerImpl.java:1387)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$ContentDriver.scanRootElementHook(XMLDocumentScannerImpl.java:1292)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl$FragmentContentDriver.next(XMLDocumentFragmentScannerImpl.java:3079)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:836)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl.parse(SAXParserImpl.java:326)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:175)
+	... 32 more
+]]></error>
+</testcase>
+<testcase name="testLoadResourceFailNoEPackage_Factory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.004">
+</testcase>
+<testcase name="testLoadResourceRegisteredConfigurator_FactoryWithFeatures(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.126">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredConfigurator_FactoryWithFeatures(EMFOSGiIntegrationTest.java:372)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackage_Factory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.047">
+<error message="Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/fooxx.manual, 2, 146)" type="org.eclipse.emf.ecore.resource.Resource$IOWrappedException"><![CDATA[org.eclipse.emf.ecore.resource.Resource$IOWrappedException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/fooxx.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.handleErrors(XMLLoadImpl.java:77)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:185)
+	at org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl.doLoad(XMLResourceImpl.java:260)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1563)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackage_Factory(EMFOSGiIntegrationTest.java:204)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+Caused by: org.eclipse.emf.ecore.xmi.PackageNotFoundException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/fooxx.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getPackageForURI(XMLHandler.java:2653)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getFactoryForPrefix(XMLHandler.java:2486)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createObjectByType(XMLHandler.java:1363)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createTopObject(XMLHandler.java:1532)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.processElement(XMLHandler.java:1054)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.processElement(XMIHandler.java:78)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:1036)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:725)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.startElement(XMIHandler.java:190)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.startElement(AbstractSAXParser.java:518)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractXMLDocumentParser.emptyElement(AbstractXMLDocumentParser.java:183)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator.emptyElement(XMLDTDValidator.java:752)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanStartElement(XMLDocumentFragmentScannerImpl.java:1387)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$ContentDriver.scanRootElementHook(XMLDocumentScannerImpl.java:1292)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl$FragmentContentDriver.next(XMLDocumentFragmentScannerImpl.java:3079)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:836)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl.parse(SAXParserImpl.java:326)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:175)
+	... 32 more
+]]></error>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackageAndUnregister_Factory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.017">
+<error message="Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)" type="org.eclipse.emf.ecore.resource.Resource$IOWrappedException"><![CDATA[org.eclipse.emf.ecore.resource.Resource$IOWrappedException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.handleErrors(XMLLoadImpl.java:77)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:185)
+	at org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl.doLoad(XMLResourceImpl.java:260)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1563)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackageAndUnregister_Factory(EMFOSGiIntegrationTest.java:713)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+Caused by: org.eclipse.emf.ecore.xmi.PackageNotFoundException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getPackageForURI(XMLHandler.java:2653)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getFactoryForPrefix(XMLHandler.java:2486)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createObjectByType(XMLHandler.java:1363)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createTopObject(XMLHandler.java:1532)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.processElement(XMLHandler.java:1054)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.processElement(XMIHandler.java:78)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:1036)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:725)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.startElement(XMIHandler.java:190)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.startElement(AbstractSAXParser.java:518)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractXMLDocumentParser.emptyElement(AbstractXMLDocumentParser.java:183)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator.emptyElement(XMLDTDValidator.java:752)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanStartElement(XMLDocumentFragmentScannerImpl.java:1387)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$ContentDriver.scanRootElementHook(XMLDocumentScannerImpl.java:1292)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl$FragmentContentDriver.next(XMLDocumentFragmentScannerImpl.java:3079)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:836)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl.parse(SAXParserImpl.java:326)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:175)
+	... 32 more
+]]></error>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackageResourceSet_Factory(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.012">
+<error message="Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/person.manual, 2, 146)" type="org.eclipse.emf.ecore.resource.Resource$IOWrappedException"><![CDATA[org.eclipse.emf.ecore.resource.Resource$IOWrappedException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/person.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.handleErrors(XMLLoadImpl.java:77)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:185)
+	at org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl.doLoad(XMLResourceImpl.java:260)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1563)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackageResourceSet_Factory(EMFOSGiIntegrationTest.java:633)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+Caused by: org.eclipse.emf.ecore.xmi.PackageNotFoundException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/person.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getPackageForURI(XMLHandler.java:2653)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getFactoryForPrefix(XMLHandler.java:2486)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createObjectByType(XMLHandler.java:1363)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createTopObject(XMLHandler.java:1532)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.processElement(XMLHandler.java:1054)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.processElement(XMIHandler.java:78)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:1036)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:725)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.startElement(XMIHandler.java:190)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.startElement(AbstractSAXParser.java:518)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractXMLDocumentParser.emptyElement(AbstractXMLDocumentParser.java:183)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator.emptyElement(XMLDTDValidator.java:752)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanStartElement(XMLDocumentFragmentScannerImpl.java:1387)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$ContentDriver.scanRootElementHook(XMLDocumentScannerImpl.java:1292)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl$FragmentContentDriver.next(XMLDocumentFragmentScannerImpl.java:3079)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:836)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl.parse(SAXParserImpl.java:326)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:175)
+	... 32 more
+]]></error>
+</testcase>
+<testcase name="testEPackageAndConfiguratorProperties(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.008">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testEPackageAndConfiguratorProperties(EMFOSGiIntegrationTest.java:1036)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredConfiguratorManyConfigName_FactoryWithModelName(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.006">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredConfiguratorManyConfigName_FactoryWithModelName(EMFOSGiIntegrationTest.java:427)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackageAndUnregister(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.008">
+<error message="Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)" type="org.eclipse.emf.ecore.resource.Resource$IOWrappedException"><![CDATA[org.eclipse.emf.ecore.resource.Resource$IOWrappedException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.handleErrors(XMLLoadImpl.java:77)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:185)
+	at org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl.doLoad(XMLResourceImpl.java:260)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1563)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackageAndUnregister(EMFOSGiIntegrationTest.java:768)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+Caused by: org.eclipse.emf.ecore.xmi.PackageNotFoundException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/foo.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getPackageForURI(XMLHandler.java:2653)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getFactoryForPrefix(XMLHandler.java:2486)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createObjectByType(XMLHandler.java:1363)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createTopObject(XMLHandler.java:1532)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.processElement(XMLHandler.java:1054)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.processElement(XMIHandler.java:78)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:1036)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:725)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.startElement(XMIHandler.java:190)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.startElement(AbstractSAXParser.java:518)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractXMLDocumentParser.emptyElement(AbstractXMLDocumentParser.java:183)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator.emptyElement(XMLDTDValidator.java:752)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanStartElement(XMLDocumentFragmentScannerImpl.java:1387)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$ContentDriver.scanRootElementHook(XMLDocumentScannerImpl.java:1292)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl$FragmentContentDriver.next(XMLDocumentFragmentScannerImpl.java:3079)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:836)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl.parse(SAXParserImpl.java:326)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:175)
+	... 32 more
+]]></error>
+</testcase>
+<testcase name="testLoadResourceRegisteredEPackage(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest" time="0.008">
+<error message="Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/person.manual, 2, 146)" type="org.eclipse.emf.ecore.resource.Resource$IOWrappedException"><![CDATA[org.eclipse.emf.ecore.resource.Resource$IOWrappedException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/person.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.handleErrors(XMLLoadImpl.java:77)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:185)
+	at org.eclipse.emf.ecore.xmi.impl.XMLResourceImpl.doLoad(XMLResourceImpl.java:260)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1563)
+	at org.eclipse.fennec.emf.osgi.itest.EMFOSGiIntegrationTest.testLoadResourceRegisteredEPackage(EMFOSGiIntegrationTest.java:595)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+Caused by: org.eclipse.emf.ecore.xmi.PackageNotFoundException: Package with uri 'http://fennec.eclipse.org/example/model/manual/1.0' not found. (file:///N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.itest/person.manual, 2, 146)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getPackageForURI(XMLHandler.java:2653)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.getFactoryForPrefix(XMLHandler.java:2486)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createObjectByType(XMLHandler.java:1363)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.createTopObject(XMLHandler.java:1532)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.processElement(XMLHandler.java:1054)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.processElement(XMIHandler.java:78)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:1036)
+	at org.eclipse.emf.ecore.xmi.impl.XMLHandler.startElement(XMLHandler.java:725)
+	at org.eclipse.emf.ecore.xmi.impl.XMIHandler.startElement(XMIHandler.java:190)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.startElement(AbstractSAXParser.java:518)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractXMLDocumentParser.emptyElement(AbstractXMLDocumentParser.java:183)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator.emptyElement(XMLDTDValidator.java:752)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanStartElement(XMLDocumentFragmentScannerImpl.java:1387)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$ContentDriver.scanRootElementHook(XMLDocumentScannerImpl.java:1292)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl$FragmentContentDriver.next(XMLDocumentFragmentScannerImpl.java:3079)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl$PrologDriver.next(XMLDocumentScannerImpl.java:836)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.next(XMLDocumentScannerImpl.java:605)
+	at java.xml/com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(XMLDocumentFragmentScannerImpl.java:542)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:889)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XML11Configuration.parse(XML11Configuration.java:825)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.XMLParser.parse(XMLParser.java:141)
+	at java.xml/com.sun.org.apache.xerces.internal.parsers.AbstractSAXParser.parse(AbstractSAXParser.java:1224)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl$JAXPSAXParser.parse(SAXParserImpl.java:637)
+	at java.xml/com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl.parse(SAXParserImpl.java:326)
+	at org.eclipse.emf.ecore.xmi.impl.XMLLoadImpl.load(XMLLoadImpl.java:175)
+	... 32 more
+]]></error>
+</testcase>
+<testcase name="testDelegatingResourceFactoryRegistry(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFResourceFactoryWhiteboardTest" time="0.107">
+</testcase>
+<testcase name="testRegisterResourceFactoryInResourceSetFactory(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFResourceFactoryWhiteboardTest" time="0.006">
+</testcase>
+<testcase name="testRegisterResourceFactoryInRegistry(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFResourceFactoryWhiteboardTest" time="1.006">
+</testcase>
+<testcase name="testGeckoXMLResourceFactoryRegisteredInRegistry(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFResourceFactoryWhiteboardTest" time="0.005">
+</testcase>
+<testcase name="testRegisterSecondResourceFactoryInRegistry(ServiceAware, ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFResourceFactoryWhiteboardTest" time="0.006">
+</testcase>
+<testcase name="testGeckoXMLResourceFactoryRegistered(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.EMFResourceFactoryWhiteboardTest" time="0.004">
+</testcase>
+<testcase name="testDeactivateHughdataResourceSet(ServiceAware, BasicPackage, BasicFactory)" classname="org.eclipse.fennec.emf.osgi.itest.HughDataResourceSetIntegrationTest" time="0">
+<skipped><![CDATA[parent was skipped: class org.eclipse.fennec.emf.osgi.itest.HughDataResourceSetIntegrationTest is @Disabled]]></skipped>
+</testcase>
+<testcase name="testHughDataResourceSet(BasicPackage)" classname="org.eclipse.fennec.emf.osgi.itest.HughDataResourceSetIntegrationTest" time="0">
+<skipped><![CDATA[parent was skipped: class org.eclipse.fennec.emf.osgi.itest.HughDataResourceSetIntegrationTest is @Disabled]]></skipped>
+</testcase>
+<testcase name="testWrappedHughDataResourceSet(ServiceAware, BasicPackage)" classname="org.eclipse.fennec.emf.osgi.itest.HughDataResourceSetIntegrationTest" time="0">
+<skipped><![CDATA[parent was skipped: class org.eclipse.fennec.emf.osgi.itest.HughDataResourceSetIntegrationTest is @Disabled]]></skipped>
+</testcase>
+<testcase name="testResourceSetExists(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.IsolatedResourceSetFactoryIntegrationTest" time="1.016">
+<failure message="Expected exactly &lt;1&gt; match(es) but was &lt;0&gt;.
+
+Passed:
+-none-
+Not Passed:
+ServiceEvent: type &lt;1:REGISTERED&gt;, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=test, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@18a19e, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=108, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type &lt;1:REGISTERED&gt;, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=test, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@60a7e509, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=109, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Expected exactly <1> match(es) but was <0>.
+
+Passed:
+-none-
+Not Passed:
+ServiceEvent: type <1:REGISTERED>, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=test, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@18a19e, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=108, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type <1:REGISTERED>, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=test, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@60a7e509, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=109, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+
+	at org.eclipse.fennec.emf.osgi.itest.IsolatedResourceSetFactoryIntegrationTest.testResourceSetExists(IsolatedResourceSetFactoryIntegrationTest.java:125)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testResourceSetFactoryRegister(ServiceAware, ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.IsolatedResourceSetFactoryIntegrationTest" time="1.018">
+<failure message="Expected exactly &lt;1&gt; match(es) but was &lt;0&gt;.
+
+Passed:
+-none-
+Not Passed:
+ServiceEvent: type &lt;1:REGISTERED&gt;, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=manual, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@3965bdf9, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=110, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type &lt;4:UNREGISTERING&gt;, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=test, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@60a7e509, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=109, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type &lt;1:REGISTERED&gt;, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=manual, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@3c0e00a8, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=111, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type &lt;4:UNREGISTERING&gt;, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=test, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@18a19e, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=108, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Expected exactly <1> match(es) but was <0>.
+
+Passed:
+-none-
+Not Passed:
+ServiceEvent: type <1:REGISTERED>, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=manual, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@3965bdf9, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=110, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type <4:UNREGISTERING>, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=test, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@60a7e509, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=109, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type <1:REGISTERED>, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=manual, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@3c0e00a8, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=111, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+ServiceEvent: type <4:UNREGISTERING>, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=test, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@18a19e, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=108, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.emf.ecore.resource.ResourceSet
+      
+   ]
+]
+
+
+	at org.eclipse.fennec.emf.osgi.itest.IsolatedResourceSetFactoryIntegrationTest.testResourceSetFactoryRegister(IsolatedResourceSetFactoryIntegrationTest.java:159)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testResourceSetFactoryExists(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.IsolatedResourceSetFactoryIntegrationTest" time="1.006">
+<failure message="Expected exactly &lt;1&gt; match(es) but was &lt;0&gt;.
+
+Passed:
+-none-
+Not Passed:
+ServiceEvent: type &lt;4:UNREGISTERING&gt;, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=manual, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@3965bdf9, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=110, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+ServiceEvent: type &lt;1:REGISTERED&gt;, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=test, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@40ac6b76, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=112, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+ServiceEvent: type &lt;1:REGISTERED&gt;, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=test, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@7980cf2c, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=113, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+ServiceEvent: type &lt;4:UNREGISTERING&gt;, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=manual, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@3c0e00a8, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=111, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :&lt;serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]&gt;,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: &lt;ServiceEvent&gt; org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   &lt;$Proxy21&gt; [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: Expected exactly <1> match(es) but was <0>.
+
+Passed:
+-none-
+Not Passed:
+ServiceEvent: type <4:UNREGISTERING>, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=manual, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@3965bdf9, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=110, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+ServiceEvent: type <1:REGISTERED>, SR-objectClass: [org.eclipse.emf.ecore.EPackage$Registry]
+SR-Properties: {service.scope=bundle, service.pid=EPackageRegistry~test, rsf.name=test, service.bundleid=26, component.id=15, service.factoryPid=EPackageRegistry, objectClass=[Ljava.lang.String;@40ac6b76, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=112, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationEPackageRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.EPackage$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.EPackage$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.EPackage$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+ServiceEvent: type <1:REGISTERED>, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=test, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@7980cf2c, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=113, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✓] type matches mask 1:REGISTERED,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+ServiceEvent: type <4:UNREGISTERING>, SR-objectClass: [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+SR-Properties: {service.scope=bundle, service.pid=ResourceFactoryRegistry~test, rsf.name=manual, service.bundleid=26, component.id=16, service.factoryPid=ResourceFactoryRegistry, objectClass=[Ljava.lang.String;@3c0e00a8, osgi.ds.satisfying.condition.target=(osgi.condition.id=true), service.id=111, component.name=org.eclipse.fennec.emf.osgi.components.config.ConfigurationResourceFactoryRegistryComponent}
+Result:
+[✗] all of:[
+   [✗] type matches mask 1:REGISTERED but was UNREGISTERING,
+   [✗] all of:[
+      [✓] not :<serviceReference is null[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]>,
+      [✗] mapped
+   using: ServiceEvent to ServiceReference using ServiceEvent::getServiceReference
+   from: <ServiceEvent> org.osgi.framework.ServiceEvent[source=[org.eclipse.emf.ecore.resource.Resource$Factory$Registry]]
+   to:   <$Proxy21> [org.eclipse.emf.ecore.resource.Resource$Factory$Registry]
+   then checked:
+         [✗] has Objectclass org.eclipse.fennec.emf.osgi.ResourceSetFactory
+      
+   ]
+]
+
+
+	at org.eclipse.fennec.emf.osgi.itest.IsolatedResourceSetFactoryIntegrationTest.testResourceSetFactoryExists(IsolatedResourceSetFactoryIntegrationTest.java:94)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testResourceFactoryRegistryTracking(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="3.005">
+</testcase>
+<testcase name="testEPackageConfiguratorRegistrationTriggersListener(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="0.007">
+</testcase>
+<testcase name="testResourceSetFactoryReceivesEPackageConfiguratorUpdates(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="0.002">
+</testcase>
+<testcase name="testResourceSetFactoryServiceFiltering(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="2.006">
+</testcase>
+<testcase name="testMultipleEPackageRegistryServices(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="0.004">
+</testcase>
+<testcase name="testMultipleResourceSetFactoriesGetUpdated(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="8.017">
+</testcase>
+<testcase name="testRegistryTrackingServiceAvailable(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="0.002">
+</testcase>
+<testcase name="testStaticEPackageRegistryPropertyPropagation(ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest" time="0.003">
+<failure message="DefaultResourcesetFactory should advertise static EPackage 'staticTest' model capability. Current EMF_MODEL_NAME: [ecore] ==&gt; expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: DefaultResourcesetFactory should advertise static EPackage 'staticTest' model capability. Current EMF_MODEL_NAME: [ecore] ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at org.eclipse.fennec.emf.osgi.itest.RegistryTrackingServiceIntegrationTest.testStaticEPackageRegistryPropertyPropagation(RegistryTrackingServiceIntegrationTest.java:607)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testResourceSetCacheExists(ServiceAware, ServiceAware)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetCacheIntegrationTest" time="0.224">
+</testcase>
+<testcase name="testResourceSetConcurrencyNew(BasicPackage)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetConcurrencyTest" time="12.911">
+<system-out><![CDATA[Executing pure EMF thread-safe way 500 transactions in each of two thread with a wait timeout of 3ms took 2513ms
+That means an average processing time of 2027 microsecond / transaction
+Test number: 0 with 500 transactions and timeout of 3ms results in an error: false
+Executing pure EMF thread-safe way 500 transactions in each of two thread with a wait timeout of 3ms took 2399ms
+That means an average processing time of 1799 microsecond / transaction
+Test number: 1 with 500 transactions and timeout of 3ms results in an error: false
+Executing pure EMF thread-safe way 500 transactions in each of two thread with a wait timeout of 3ms took 2442ms
+That means an average processing time of 1884 microsecond / transaction
+Test number: 2 with 500 transactions and timeout of 3ms results in an error: false
+Executing pure EMF thread-safe way 500 transactions in each of two thread with a wait timeout of 3ms took 2687ms
+That means an average processing time of 2375 microsecond / transaction
+Test number: 3 with 500 transactions and timeout of 3ms results in an error: false
+Executing pure EMF thread-safe way 500 transactions in each of two thread with a wait timeout of 3ms took 2844ms
+That means an average processing time of 2688 microsecond / transaction
+Test number: 4 with 500 transactions and timeout of 3ms results in an error: false
+Error count was 0 / 5
+]]></system-out>
+</testcase>
+<testcase name="testResourceSetConcurrencyOld(BasicPackage)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetConcurrencyTest" time="0">
+<skipped><![CDATA[public void org.eclipse.fennec.emf.osgi.itest.ResourceSetConcurrencyTest.testResourceSetConcurrencyOld(org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage) throws java.io.IOException,java.net.URISyntaxException,java.lang.InterruptedException is @Disabled]]></skipped>
+</testcase>
+<testcase name="testResourceSetFactoryExists(ResourceSetFactory)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetFactoryIntegrationTest" time="0.001">
+</testcase>
+<testcase name="testResourceSetFactoryExists(ServiceAware, BasicPackage)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetFactoryIntegrationTest" time="0.002">
+<failure message="
+Expecting String[]:
+  [&quot;ecore&quot;]
+to contain:
+  [&quot;basic&quot;]
+but could not find the following string(s):
+  [&quot;basic&quot;]
+" type="java.lang.AssertionError"><![CDATA[java.lang.AssertionError: 
+Expecting String[]:
+  ["ecore"]
+to contain:
+  ["basic"]
+but could not find the following string(s):
+  ["basic"]
+
+	at org.eclipse.fennec.emf.osgi.itest.ResourceSetFactoryIntegrationTest.lambda$0(ResourceSetFactoryIntegrationTest.java:72)
+	at org.eclipse.fennec.emf.osgi.itest.ResourceSetFactoryIntegrationTest.testResourceSetFactoryExists(ResourceSetFactoryIntegrationTest.java:71)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testEPackageScoping(ResourceSetFactory)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetRegistriesIsolationTest" time="0.012">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.ResourceSetRegistriesIsolationTest.testEPackageScoping(ResourceSetRegistriesIsolationTest.java:93)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testEPackageScoping_Overwrite(ResourceSetFactory)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetRegistriesIsolationTest" time="0.005">
+<failure message="expected: &lt;true&gt; but was: &lt;false&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.eclipse.fennec.emf.osgi.itest.ResourceSetRegistriesIsolationTest.testEPackageScoping_Overwrite(ResourceSetRegistriesIsolationTest.java:125)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+<testcase name="testFactoryScoping(ResourceSetFactory)" classname="org.eclipse.fennec.emf.osgi.itest.ResourceSetRegistriesIsolationTest" time="0.004">
+<failure message="expected: &lt;false&gt; but was: &lt;true&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <false> but was: <true>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:31)
+	at org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:231)
+	at org.eclipse.fennec.emf.osgi.itest.ResourceSetRegistriesIsolationTest.testFactoryScoping(ResourceSetRegistriesIsolationTest.java:212)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at aQute.tester.bundle.engine.BundleDescriptor.executeChild(BundleDescriptor.java:49)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$executeBundle$7(BundleEngine.java:120)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.executeBundle(BundleEngine.java:120)
+	at aQute.tester.bundle.engine.BundleEngine.lambda$execute$5(BundleEngine.java:100)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.Iterator.forEachRemaining(Iterator.java:133)
+	at java.base/java.util.Spliterators$IteratorSpliterator.forEachRemaining(Spliterators.java:1845)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at aQute.tester.bundle.engine.BundleEngine.execute(BundleEngine.java:100)
+]]></failure>
+</testcase>
+</testsuite>

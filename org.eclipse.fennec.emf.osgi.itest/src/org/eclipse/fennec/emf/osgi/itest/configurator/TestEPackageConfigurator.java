@@ -13,9 +13,9 @@
  */
 package org.eclipse.fennec.emf.osgi.itest.configurator;
 
-import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
+import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -29,25 +29,27 @@ import org.osgi.service.component.annotations.Component;
 		feature = {"testPackageFeature", "testPF"},
 		protocol = {"tp1", "tp2"},
 		fileExtension = {"fetp1", "fetp2"})
-@Component(name = "TestEPackageConfigurator", enabled = false)
-public class TestEPackageConfigurator implements ResourceFactoryConfigurator {
+@Component(name = "TestEPackageConfigurator", enabled = false, property =  EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET)
+public class TestEPackageConfigurator implements EPackageConfigurator {
 
-	
 	/* 
 	 * (non-Javadoc)
-	 * @see org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator#configureResourceFactory(org.eclipse.emf.ecore.resource.Resource.Factory.Registry)
+	 * @see org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator#configureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
 	 */
 	@Override
-	public void configureResourceFactory(Registry registry) {
+	public void configureEPackage(org.eclipse.emf.ecore.EPackage.Registry arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 
-	
 	/* 
 	 * (non-Javadoc)
-	 * @see org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator#unconfigureResourceFactory(org.eclipse.emf.ecore.resource.Resource.Factory.Registry)
+	 * @see org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator#unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
 	 */
 	@Override
-	public void unconfigureResourceFactory(Registry registry) {
+	public void unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

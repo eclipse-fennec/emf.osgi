@@ -37,7 +37,6 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
 import org.eclipse.fennec.emf.osgi.extender.model.ModelNamespace;
@@ -387,10 +386,9 @@ public class EMFModelExtender {
 		final Bundle modelBundle = model.getBundleId() == -1 ? this.bundleContext.getBundle() : this.bundleContext.getBundle(Constants.SYSTEM_BUNDLE_LOCATION).getBundleContext().getBundle(model.getBundleId());
 		EPackage ePackage = model.getEPackage();
 		Dictionary<String,Object> properties = model.getProperties();
-		ModelExtenderConfigurator configurator = new ModelExtenderConfigurator(ePackage, null, null);
+		ModelExtenderConfigurator configurator = new ModelExtenderConfigurator(ePackage);
 
-		ServiceRegistration<?> modelConfigRegistration = modelBundle.getBundleContext().registerService(new String[]{EPackageConfigurator.class.getName(), 
-				ResourceFactoryConfigurator.class.getName()}, configurator, properties);
+		ServiceRegistration<?> modelConfigRegistration = modelBundle.getBundleContext().registerService(EPackageConfigurator.class.getName(), configurator, properties);
 		ServiceRegistration<EPackage> modelRegistration = modelBundle.getBundleContext().registerService(EPackage.class, ePackage, properties);
 		model.setModelConfigRegistration(modelConfigRegistration);
 		model.setModelRegistration(modelRegistration);
@@ -399,7 +397,7 @@ public class EMFModelExtender {
 		modelList.setLastInstalled(model);
 		return true;
 	}
-
+	
 	/**
 	 * Try to deactivate a configuration
 	 * Check policy and change count

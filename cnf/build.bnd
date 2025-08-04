@@ -56,8 +56,8 @@ mavenCentral: true
         
 -plugin.emf: \
 	aQute.bnd.repository.maven.provider.MavenBndRepository;\
-		releaseUrl			= "https://ci.eclipse.org/emf/job/maven-publish/lastSuccessfulBuild/artifact/releng/org.eclipse.emf.releng/publish/target/repository/final/";\
-		snapshotUrl			= "https://ci.eclipse.org/emf/job/maven-publish/lastSuccessfulBuild/artifact/releng/org.eclipse.emf.releng/publish/target/repository/final/";\
+		releaseUrl			= "https://repo.eclipse.org/content/repositories/emf-snapshots/";\
+		snapshotUrl			= "https://repo.eclipse.org/content/repositories/emf-snapshots/";\
 		index               = ${.}/eclipse_emf.maven;\
 		transitive          = false;\
 		readOnly            = true;\

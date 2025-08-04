@@ -57,7 +57,7 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 	@Activate
 	public DefaultEPackageRegistryComponent(BundleContext ctx) {
 		super(NAME, Collections.singletonMap("default.resourceset.epackage.registry", true));
-		registry = new EPackageRegistryImpl();
+		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
 	}
 
@@ -66,7 +66,7 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 	 * @param configurator the {@link EPackageConfigurator} to be registered
 	 * @param properties the service properties
 	 */
-	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + "))", unbind = "removeEPackageConfigurator")
+	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")", unbind = "removeEPackageConfigurator")
 	protected void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
 		synchronized (ePackageConfigurators) {
 			ePackageConfigurators.add(configurator);

@@ -29,7 +29,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage;
 import org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage;
@@ -186,7 +185,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 		ManualPackageConfigurator manualPackageConfigurator = new ManualPackageConfigurator();
 
 		ServiceRegistration<?> manualRegistration = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
+				new String[] { EPackageConfigurator.class.getName()},
 				manualPackageConfigurator, manualProperties);
 
 		Thread.sleep(4000);
@@ -217,7 +216,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 		ManualPackageConfigurator configurator2 = new ManualPackageConfigurator();
 		ServiceRegistration<?> reg2 = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
+				new String[] { EPackageConfigurator.class.getName()},
 				configurator2, manualProperties);
 
 		rsfRef = rsfAware.getServiceReference();

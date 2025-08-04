@@ -13,17 +13,19 @@
  */
 package org.eclipse.fennec.emf.osgi.components.config;
 
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_NAME;
-
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.Resource.Factory;
 import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.fennec.emf.osgi.RegistryPropertyListener;
+import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
@@ -33,10 +35,11 @@ import org.eclipse.fennec.emf.osgi.ecore.EcorePackagesRegistrator;
 import org.eclipse.fennec.emf.osgi.provider.DefaultResourceSetFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.annotation.versioning.ProviderType;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -59,14 +62,17 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 @Capability(
 		namespace = EMFNamespaces.EMF_NAMESPACE,
 		name = ResourceSetFactory.EMF_CAPABILITY_NAME,
-		version = VersionConstant.GECKOPROJECTS_EMF_VERSION
+		version = VersionConstant.FENNECPROJECTS_EMF_VERSION
 		)
 @ProviderType
-public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSetFactory {
+public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSetFactory implements RegistryPropertyListener {
 
 	private Dictionary<String, Object> properties;
-
-	private ComponentServiceObjects<Registry> resourceFactoryRegistryObjects;
+	private BundleContext cxt;
+	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
+	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> staticRegistry;
+	private ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference;
+	private RegistryTrackingService registryTracker;
 
 	/**
 	 * Creates a new instance.
@@ -81,16 +87,35 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	@Activate
 	public ConfigurationResourceSetFactoryComponent(ComponentContext ctx,
 			@Reference(name="resourceSetePackageRegistry", unbind = "unsetResourceSetPackageRegistry", target = "(" + EMFNamespaces.EMF_MODEL_SCOPE +"=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")")
-			EPackage.Registry registry,
+			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
 			@Reference(name="staticEPackageRegistry", unbind = "unsetStaticPackageRegistry", target = "(emf.default.epackage.registry=true)")
-			EPackage.Registry staticRegistry,
+			ServiceReference<EPackage.Registry> staticRegistry,
 			@Reference(name="resourceFactoryRegistry")
-			ComponentServiceObjects<Resource.Factory.Registry> resourceFactoryRegistryObjects
+			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference,
+			@Reference
+			RegistryTrackingService registryTracker
 			) {
-		this.resourceFactoryRegistryObjects = resourceFactoryRegistryObjects;
-		super.setEPackageRegistry(registry);
-		super.setResourceFactoryRegistry(resourceFactoryRegistryObjects.getService(), FrameworkUtil.asMap(resourceFactoryRegistryObjects.getServiceReference().getProperties()));
+		this.cxt = ctx.getBundleContext();
+		this.defaultResourceSetRegistry = defaultResourceSetRegistry;
+		this.staticRegistry = staticRegistry;
+		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
+		this.registryTracker = registryTracker;
+		
+		// Get the actual services and set up the factory
+		EPackage.Registry registry = cxt.getService(defaultResourceSetRegistry);
+		Resource.Factory.Registry resourceFactoryRegistry = cxt.getService(resourceFactoryRegistryReference);
+		
+		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
+		super.setEPackageRegistry(registry, FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
+		super.setResourceFactoryRegistry(resourceFactoryRegistry, FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
 		EcorePackagesRegistrator.start();
+		
+		// Register for property change notifications on the services we care about
+		Set<Long> trackedServiceIds = new HashSet<>();
+		trackedServiceIds.add((Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID));
+		trackedServiceIds.add((Long) staticRegistry.getProperty(Constants.SERVICE_ID));
+		trackedServiceIds.add((Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID));
+		registryTracker.registerListener(this, trackedServiceIds);
 	}
 	
 	/*
@@ -105,10 +130,9 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	 * @see org.gecko.emf.osgi.provider.DefaultResourceSetFactory#activate(org.osgi.service.component.ComponentContext)
 	 */
 	@Activate
-	@Override
 	public void activate(ComponentContext ctx) {
 		properties = ctx.getProperties();
-		registerServices(ctx);
+		doActivate(ctx.getBundleContext());
 	}
 	
 	/**
@@ -117,16 +141,39 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	@Override
 	@Deactivate
 	public void deactivate() {
+		registryTracker.unregisterListener(this);
 		super.deactivate();
-		Factory.Registry rfr = getResourceFactoryRegistry().get();
-		if (rfr != null) {
-			this.resourceFactoryRegistryObjects.ungetService(rfr);
+		if (cxt != null) {
+			cxt.ungetService(defaultResourceSetRegistry);
+			cxt.ungetService(staticRegistry);
+			cxt.ungetService(resourceFactoryRegistryReference);
 		}
 		EcorePackagesRegistrator.stop();
 	}
 
 	protected void unsetRegistry(org.eclipse.emf.ecore.EPackage.Registry registry) {
-		super.unsetEPackageRegistry(registry);
+		// Handle registry unset if needed
+	}
+	
+	// Implementation of RegistryPropertyListener interface
+	
+	@Override
+	public void onRegistryPropertiesChanged(long serviceId, String serviceName, Map<String, Object> newProperties) {
+		// Determine which registry changed and call appropriate parent method
+		if (serviceId == (Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID)) {
+			super.updateEPackageRegistry(newProperties);
+		} else if (serviceId == (Long) staticRegistry.getProperty(Constants.SERVICE_ID)) {
+			super.updateStaticEPackageRegistry(newProperties);
+		} else if (serviceId == (Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID)) {
+			super.modifiedResourceFactoryRegistry(newProperties);
+		}
+	}
+
+	@Override
+	public void onRegistryServiceRemoved(long serviceId, String serviceName) {
+		// Handle service removal if needed
+		// For now, the constructor-injected services should remain available
+		// until component deactivation, so this may not need special handling
 	}
 	
 	
@@ -138,12 +185,12 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	@Override
 	@Reference(policy=ReferencePolicy.STATIC, unbind="unsetResourceFactoryRegistry", updated = "modifiedResourceFactoryRegistry")
 	public void setResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-//		do nothing here
+//		do nothing here - registry is injected via constructor
 	}
 	
 	@Override
-	public void modifiedResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-		super.modifiedResourceFactoryRegistry(resourceFactoryRegistry, properties);
+	public void modifiedResourceFactoryRegistry(Map<String, Object> properties) {
+		super.modifiedResourceFactoryRegistry(properties);
 	}
 	
 	/**
@@ -153,7 +200,6 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	@Override
 	public void unsetResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
 		super.unsetResourceFactoryRegistry(resourceFactoryRegistry, properties);
-		this.resourceFactoryRegistryObjects.ungetService(resourceFactoryRegistry);
 	}
 
 	/**
@@ -161,10 +207,9 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	 * @param configurator the {@link EPackageConfigurator} to be registered
 	 * @param properties the service properties
 	 */
-	@Override
 	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")", updated = "modifyEPackageConfigurator", unbind = "removeEPackageConfigurator")
 	public void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		super.addEPackageConfigurator(configurator, properties);
+		// Handle EPackage configurator addition
 	}
 	
 	/**
@@ -173,7 +218,7 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	 * @param properties the service properties
 	 */
 	public void modifyEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		super.addEPackageConfigurator(configurator, properties);
+		// Handle EPackage configurator modification
 	}
 
 	/**
@@ -181,9 +226,8 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	 * @param configurator the configurator to be removed
 	 * @param properties the service properties
 	 */
-	@Override
 	public void removeEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		super.removeEPackageConfigurator(configurator, properties);
+		// Handle EPackage configurator removal
 	}
 
 	/**

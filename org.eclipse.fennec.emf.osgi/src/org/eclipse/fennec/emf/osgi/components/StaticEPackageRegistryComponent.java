@@ -54,12 +54,13 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	final Map<String, Object> registry;
 	private long serviceChangeCount = 0;
 
-	private ServiceRegistration<Registry> serviceRegistration;
+	private final ServiceRegistration<Registry> serviceRegistration;
 	
 	@Activate
 	public StaticEPackageRegistryComponent(BundleContext ctx) {
 		registry = new HashMap<>();
 		serviceRegistration = ctx.registerService(EPackage.Registry.class, this, getDictionary());
+		updateProperties();
 	}
 	
 	@Deactivate
@@ -85,16 +86,20 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	
 	private Map<String, Object> getProperties(EPackage ePackage) {
 		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(Constants.SERVICE_ID, Long.valueOf(ePackage.hashCode()));
 		properties.put(EMFNamespaces.EMF_MODEL_NAME, ePackage.getName());
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 		return properties;
 	}
 	
+	
 	/**
 	 * 
 	 */
 	private void updateProperties() {
-		serviceRegistration.setProperties(getDictionary());
+		if(serviceRegistration != null) {
+			serviceRegistration.setProperties(getDictionary());
+		}
 	}
 
 	/**
@@ -102,7 +107,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	 * @param configurator the {@link EPackageConfigurator} to be registered
 	 * @param properties the service properties
 	 */
-	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_STATIC + "))", unbind = "removeEPackageConfigurator")
+	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_STATIC + ")", unbind = "removeEPackageConfigurator")
 	protected void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
 		configurator.configureEPackage(this);
 	}

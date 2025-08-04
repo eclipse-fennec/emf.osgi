@@ -61,7 +61,7 @@ import aQute.bnd.service.generate.Generator;
 import aQute.bnd.service.generate.Options;
 import aQute.lib.io.IO;
 
-@ExternalPlugin(name = "fennecEMF", objectClass = Generator.class, version = VersionConstant.GECKOPROJECTS_EMF_VERSION)
+@ExternalPlugin(name = "fennecEMF", objectClass = Generator.class, version = VersionConstant.FENNECPROJECTS_EMF_VERSION)
 public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 
 	public static final String ORIGINAL_GEN_MODEL_PATH = "originalGenModelPath";
@@ -130,7 +130,7 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 				initializeLog(context.getBase(), context.get(PROP_LOGFILE));
 			}
 			
-			info("Running Eclipse Fennec EMF Codegen Version " + VersionConstant.GECKOPROJECTS_EMF_VERSION);
+			info("Running Eclipse Fennec EMF Codegen Version " + VersionConstant.FENNECPROJECTS_EMF_VERSION);
 			
 			String genFolder = context.get(PROP_OUTPUT);
 			File output = null;

@@ -13,9 +13,7 @@
  */
 package org.eclipse.fennec.emf.osgi.itest.configurator;
 
-import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 
 /**
@@ -23,22 +21,10 @@ import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
  * @author mark
  * @since 03.03.2018
  */
-public class TestConfigurator implements ResourceSetConfigurator, ResourceFactoryConfigurator {
+public class TestConfigurator implements ResourceSetConfigurator {
 
 	@Override
 	public void configureResourceSet(ResourceSet resourceSet) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void configureResourceFactory(Registry registry) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void unconfigureResourceFactory(Registry registry) {
 		// TODO Auto-generated method stub
 
 	}

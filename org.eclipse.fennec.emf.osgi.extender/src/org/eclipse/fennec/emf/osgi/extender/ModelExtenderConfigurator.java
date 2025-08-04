@@ -15,65 +15,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
-import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMLResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 
 /**
  * Implementation for Gecko EMF configurators, used by the extender.
  * @author Mark Hoffmann
  * @since 13.10.2022
  */
-public class ModelExtenderConfigurator implements EPackageConfigurator, ResourceFactoryConfigurator {
+public class ModelExtenderConfigurator implements EPackageConfigurator {
 	
 	private static Logger logger = Logger.getLogger(ModelExtenderConfigurator.class.getName());
 	private final EPackage ePackage;
-	private final String contentTypeIdentifier;
-	private final String fileExtension;
 
 	/**
 	 * Creates a new instance.
 	 */
-	public ModelExtenderConfigurator(EPackage ePackage, String contentTypeIdentifier, String fileExtension) {
+	public ModelExtenderConfigurator(EPackage ePackage) {
 		this.ePackage = ePackage;
-		this.contentTypeIdentifier = contentTypeIdentifier;
-		this.fileExtension = fileExtension;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.ResourceFactoryConfigurator#configureResourceFactory(org.eclipse.emf.ecore.resource.Resource.Factory.Registry)
-	 */
-	@Override
-	public void configureResourceFactory(Registry registry) {
-		ResourceFactoryImpl factory = new XMIResourceFactoryImpl();
-		if (contentTypeIdentifier != null) {
-			if (contentTypeIdentifier.equalsIgnoreCase("XML")) {
-				factory = new XMLResourceFactoryImpl();
-			}
-			registry.getContentTypeToFactoryMap().put(contentTypeIdentifier, factory);
-		}
-		if (fileExtension != null) {
-			registry.getExtensionToFactoryMap().put(fileExtension, factory);
-		}
-	}
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.ResourceFactoryConfigurator#unconfigureResourceFactory(org.eclipse.emf.ecore.resource.Resource.Factory.Registry)
-	 */
-	@Override
-	public void unconfigureResourceFactory(Registry registry) {
-		if (contentTypeIdentifier != null) {
-			registry.getExtensionToFactoryMap().remove(contentTypeIdentifier);
-		}
-		if (fileExtension != null) {
-			registry.getExtensionToFactoryMap().remove(fileExtension);
-		}
-	}
 
 	/* 
 	 * (non-Javadoc)

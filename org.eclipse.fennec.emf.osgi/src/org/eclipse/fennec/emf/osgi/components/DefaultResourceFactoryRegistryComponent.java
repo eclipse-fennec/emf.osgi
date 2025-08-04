@@ -52,7 +52,7 @@ import aQute.bnd.annotation.service.ServiceCapability;
 public class DefaultResourceFactoryRegistryComponent extends SelfRegisteringServiceComponent {
 
 	/** DEFAULT_RESOURCE_FACTORY_REGISTRY */
-	private static final String COMPONENT_NAME = "DefaultResourceFactoryRegistry";
+	public static final String COMPONENT_NAME = "DefaultResourceFactoryRegistry";
 	private static Logger logger = Logger.getLogger(DefaultResourceFactoryRegistryComponent.class.getName());
 	private final Registry registry;
 	/**

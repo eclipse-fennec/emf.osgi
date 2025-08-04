@@ -39,13 +39,13 @@ import org.eclipse.emf.ecore.resource.Resource.IOWrappedException;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.configurator.ResourceFactoryConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.example.model.manual.Foo;
 import org.eclipse.fennec.emf.osgi.example.model.manual.ManualFactory;
 import org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage;
 import org.eclipse.fennec.emf.osgi.example.model.manual.configuration.ManualPackageConfigurator;
+import org.eclipse.fennec.emf.osgi.example.model.manual.util.ManualResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.itest.configurator.TestConfigurator;
 import org.eclipse.fennec.emf.osgi.itest.configurator.TestResourceSetConfiguration;
 import org.junit.jupiter.api.Test;
@@ -158,7 +158,7 @@ public class EMFOSGiIntegrationTest {
 		}).isInstanceOf(IOWrappedException.class);
 
 	}
-
+	
 	/**
 	 * Trying to load an instance with a registered {@link EPackage}
 	 * 
@@ -169,9 +169,7 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackage_Factory(@InjectService ServiceAware<ResourceSetFactory> sa)
 			throws IOException, InvalidSyntaxException {
 
-		bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				new ManualPackageConfigurator(), new Hashtable<String, Object>());
+		ManualPackageConfigurator.registerManualPackage(bc, null);
 
 		ServiceReference<ResourceSetFactory> reference = sa.getServiceReference();
 		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
@@ -225,13 +223,11 @@ public class EMFOSGiIntegrationTest {
 		properties.put(EMF_MODEL_NAME, "manual");
 
 		MonitoringAssertion.executeAndObserve(() -> {
-			bc.registerService(
-					new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-					new ManualPackageConfigurator(), properties);
+					ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		}).untilNoMoreServiceEventWithin(100).assertWithTimeoutThat(1000)
 				.hasExactlyOneServiceEventRegisteredWith(EPackageConfigurator.class)
-				.hasExactlyOneServiceEventRegisteredWith(ResourceFactoryConfigurator.class);
+				.hasExactlyOneServiceEventRegisteredWith(Resource.Factory.class);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
@@ -284,13 +280,11 @@ public class EMFOSGiIntegrationTest {
 		MonitoringAssertion.executeAndObserve(() -> {
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
 			properties.put(EMF_MODEL_NAME, "manual");
-			bc.registerService(
-					new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-					new ManualPackageConfigurator(), properties);
+			ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		}).untilNoMoreServiceEventWithin(100).assertWithTimeoutThat(1000)
 				.hasExactlyOneServiceEventRegisteredWith(EPackageConfigurator.class)
-				.hasExactlyOneServiceEventRegisteredWith(ResourceFactoryConfigurator.class);
+				.hasExactlyOneServiceEventRegisteredWith(Resource.Factory.class);
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put(EMF_CONFIGURATOR_NAME, "myConfig");
@@ -352,13 +346,11 @@ public class EMFOSGiIntegrationTest {
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE, "myManualFeature");
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE + ".foo", "bar");
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE + ".fizz", "manualBuzz");
-			bc.registerService(
-					new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-					new ManualPackageConfigurator(), properties);
+			ManualPackageConfigurator.registerManualPackage(bc, properties);
 			
 		}).untilNoMoreServiceEventWithin(100).assertWithTimeoutThat(1000)
 		.hasExactlyOneServiceEventRegisteredWith(EPackageConfigurator.class)
-		.hasExactlyOneServiceEventRegisteredWith(ResourceFactoryConfigurator.class);
+		.hasExactlyOneServiceEventRegisteredWith(Resource.Factory.class);
 		
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put(EMF_CONFIGURATOR_NAME, "myConfig");
@@ -412,9 +404,7 @@ public class EMFOSGiIntegrationTest {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put(EMF_MODEL_NAME, "manual");
 
-		bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				new ManualPackageConfigurator(), properties);
+		ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		properties = new Hashtable<String, Object>();
 		String[] configs = new String[] { "myConfig", "mySecConfig" };
@@ -482,9 +472,7 @@ public class EMFOSGiIntegrationTest {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put(EMF_MODEL_NAME, "manual");
 		EPackageConfigurator testConfig = new ManualPackageConfigurator();
-		ServiceRegistration<?> reg1 = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				testConfig, properties);
+		ServiceRegistration<?> reg1 = ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		properties = new Hashtable<String, Object>();
 		String[] configs = new String[] { "myConfig", "mySecConfig" };
@@ -584,9 +572,7 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackage(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS) throws IOException {
 
-		bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				new ManualPackageConfigurator(), new Hashtable<String, Object>());
+		ManualPackageConfigurator.registerManualPackage(bc, null);
 
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
@@ -622,9 +608,7 @@ public class EMFOSGiIntegrationTest {
 	@Test
 	public void testLoadResourceRegisteredEPackageResourceSet_Factory(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF) throws IOException {
-		bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				new ManualPackageConfigurator(), new Hashtable<String, Object>());
+		ManualPackageConfigurator.registerManualPackage(bc, null);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
@@ -663,9 +647,7 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackageResourceSet(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS) throws IOException {
 
-		bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				new ManualPackageConfigurator(), new Hashtable<String, Object>());
+		ManualPackageConfigurator.registerManualPackage(bc, null);
 
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
@@ -705,11 +687,7 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF)
 			throws IOException, InterruptedException {
 
-		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
-
-		ServiceRegistration<?> reg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				configurator, new Hashtable<String, Object>());
+		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, null);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
@@ -761,14 +739,11 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackageAndUnregister(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS)
 			throws IOException, InterruptedException {
-		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
 		props.put(EMF_MODEL_NAME, ManualPackage.eNAME);
 		props.put(EMF_MODEL_NSURI, ManualPackage.eNS_URI);
 
-		ServiceRegistration<?> reg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				configurator, props);
+		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, props);
 
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
@@ -818,12 +793,9 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF) throws IOException {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
-		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
 
-		ServiceRegistration<?> reg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				configurator, properties);
-
+		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, properties);
+		ManualPackage manualPackage = ManualPackage.eINSTANCE;
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
 		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
@@ -887,11 +859,8 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS) throws IOException {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
 		properties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
-		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
 
-		ServiceRegistration<?> reg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				configurator, properties);
+		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
@@ -956,11 +925,8 @@ public class EMFOSGiIntegrationTest {
 		Dictionary<String, Object> epackageProperties = new Hashtable<String, Object>();
 		epackageProperties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
 		epackageProperties.put(EMF_MODEL_NSURI, ManualPackage.eNS_URI);
-		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
 
-		ServiceRegistration<?> sreg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				configurator, epackageProperties);
+		ServiceRegistration<?> sreg = ManualPackageConfigurator.registerManualPackage(bc, epackageProperties);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
@@ -989,7 +955,7 @@ public class EMFOSGiIntegrationTest {
 		TestConfigurator configurator2 = new TestConfigurator();
 
 		ServiceRegistration<?> sreg2 = bc.registerService(
-				new String[] { ResourceSetConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
+				new String[] { ResourceSetConfigurator.class.getName() },
 				configurator2, configProperties);
 		reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
@@ -1058,12 +1024,8 @@ public class EMFOSGiIntegrationTest {
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> epackageProperties = new Hashtable<String, Object>();
 		epackageProperties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
-		ManualPackageConfigurator configurator = new ManualPackageConfigurator();
 
-		ServiceRegistration<?> reg = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
-				configurator, epackageProperties);
-
+		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, epackageProperties);
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
 		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
@@ -1084,7 +1046,7 @@ public class EMFOSGiIntegrationTest {
 		TestConfigurator configurator2 = new TestConfigurator();
 
 		ServiceRegistration<?> reg2 = bc.registerService(
-				new String[] { ResourceSetConfigurator.class.getName(), ResourceFactoryConfigurator.class.getName() },
+				new String[] { ResourceSetConfigurator.class.getName()},
 				configurator2, configProperties);
 		reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);

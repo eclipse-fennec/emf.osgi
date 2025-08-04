@@ -10,14 +10,7 @@
 [INFO]     basePath: null
 [INFO]     buildPath:
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.metatype.annotations/1.4.1/org.osgi.service.metatype.annotations-1.4.1.jar
-[INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.annotation.versioning/1.1.2/org.osgi.annotation.versioning-1.1.2.jar
-[INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.component.annotations/1.5.1/org.osgi.service.component.annotations-1.5.1.jar
-[INFO]       Container: N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi/bin
-[INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.condition/1.0.0/org.osgi.service.condition-1.0.0.jar
-[INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.42.0/org.eclipse.emf.common-2.42.0.jar
-[INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore.xmi/2.38.0/org.eclipse.emf.ecore.xmi-2.38.0.jar
-[INFO]       Container: N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.api/generated/org.eclipse.fennec.emf.osgi.api.jar
-[INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.39.0/org.eclipse.emf.ecore-2.39.0.jar
+[INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.40.0-SNAPSHOT/org.eclipse.emf.ecore-2.40.0-SNAPSHOT.jar
 [INFO]         |->: model/Ecore.genmodel - model/Ecore.genmodel
 [INFO]         |->: model/ExtendedMetaData.ecore - model/ExtendedMetaData.ecore
 [INFO]         |->: model/XMLNamespace.ecore - model/XMLNamespace.ecore
@@ -27,6 +20,13 @@
 [INFO]         |->: model/Ecore.ecore - model/Ecore.ecore
 [INFO]         |->: model/DateConversionDelegateAnnotation.ecore - model/DateConversionDelegateAnnotation.ecore
 [INFO]         |->: model/EcoreAnnotation.ecore - model/EcoreAnnotation.ecore
+[INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.annotation.versioning/1.1.2/org.osgi.annotation.versioning-1.1.2.jar
+[INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.component.annotations/1.5.1/org.osgi.service.component.annotations-1.5.1.jar
+[INFO]       Container: N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi/bin
+[INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.service.condition/1.0.0/org.osgi.service.condition-1.0.0.jar
+[INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.42.0/org.eclipse.emf.common-2.42.0.jar
+[INFO]       Container: C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore.xmi/2.38.0/org.eclipse.emf.ecore.xmi-2.38.0.jar
+[INFO]       Container: N:/git/eclipse/fennec/osgi.emf/org.eclipse.fennec.emf.osgi.api/generated/org.eclipse.fennec.emf.osgi.api.jar
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.framework/1.10.0/org.osgi.framework-1.10.0.jar
 [INFO]       Container: C:/Users/ungei/.m2/repository/org/osgi/org.osgi.annotation.bundle/2.0.0/org.osgi.annotation.bundle-2.0.0.jar
 [INFO] Loading resource://org.eclipse.fennec.emf.osgi.example.model.manual/model/manual.genmodel
@@ -43,15 +43,8 @@
 [INFO] sanatized uri resource://org.eclipse.emf.ecore/model/Ecore.genmodel
 [INFO] bsn according to URI org.eclipse.emf.ecore
 [INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.service.metatype.annotations
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.annotation.versioning
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.service.component.annotations
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.fennec.emf.osgi
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.service.condition
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.emf.common
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.emf.ecore.xmi
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.fennec.emf.osgi.api
 [INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.emf.ecore
-[INFO] Match in C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.39.0/org.eclipse.emf.ecore-2.39.0.jar
+[INFO] Match in C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.40.0-SNAPSHOT/org.eclipse.emf.ecore-2.40.0-SNAPSHOT.jar
 [INFO] comparing URIs resource://org.eclipse.emf.ecore/model/Ecore.genmodel with the requested resource://org.eclipse.emf.ecore/model/Ecore.genmodel
 [INFO] Asked to handle resource://org.eclipse.fennec.emf.osgi.example.model.manual/../org.eclipse.emf.ecore/model/Ecore.ecore
 [INFO] Asked to handle resource://org.eclipse.fennec.emf.osgi.example.model.manual/../org.eclipse.emf.ecore/model/Ecore.ecore
@@ -59,15 +52,8 @@
 [INFO] sanatized uri resource://org.eclipse.emf.ecore/model/Ecore.ecore
 [INFO] bsn according to URI org.eclipse.emf.ecore
 [INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.service.metatype.annotations
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.annotation.versioning
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.service.component.annotations
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.fennec.emf.osgi
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.osgi.service.condition
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.emf.common
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.emf.ecore.xmi
-[INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.fennec.emf.osgi.api
 [INFO] Comparing org.eclipse.emf.ecore with container using getBSN() org.eclipse.emf.ecore
-[INFO] Match in C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.39.0/org.eclipse.emf.ecore-2.39.0.jar
+[INFO] Match in C:/Users/ungei/.m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.40.0-SNAPSHOT/org.eclipse.emf.ecore-2.40.0-SNAPSHOT.jar
 [INFO] comparing URIs resource://org.eclipse.emf.ecore/model/Ecore.genmodel with the requested resource://org.eclipse.emf.ecore/model/Ecore.ecore
 [INFO] comparing URIs resource://org.eclipse.emf.ecore/model/ExtendedMetaData.ecore with the requested resource://org.eclipse.emf.ecore/model/Ecore.ecore
 [INFO] comparing URIs resource://org.eclipse.emf.ecore/model/XMLNamespace.ecore with the requested resource://org.eclipse.emf.ecore/model/Ecore.ecore

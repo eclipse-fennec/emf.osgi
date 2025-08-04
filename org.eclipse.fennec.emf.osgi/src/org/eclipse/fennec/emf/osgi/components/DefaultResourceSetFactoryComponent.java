@@ -13,13 +13,17 @@
  */
 package org.eclipse.fennec.emf.osgi.components;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.Resource.Factory;
 import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.fennec.emf.osgi.RegistryPropertyListener;
+import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
@@ -28,9 +32,9 @@ import org.eclipse.fennec.emf.osgi.ecore.EcorePackagesRegistrator;
 import org.eclipse.fennec.emf.osgi.provider.DefaultResourceSetFactory;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -50,23 +54,22 @@ import aQute.bnd.annotation.service.ServiceCapability;
  * @author Mark Hoffmann
  * @since 28.06.2017
  */
-@Component(name="DefaultResourcesetFactory", enabled=true, immediate=true, service= {}, reference = {
-		@Reference(name="ResourceFactoryRegistry", policy=ReferencePolicy.STATIC, unbind="unsetResourceFactoryRegistry", updated = "modifiedResourceFactoryRegistry")
-})
+@Component(name="DefaultResourcesetFactory", enabled=true, immediate=true, service= {})
 @Capability(
 		namespace = EMFNamespaces.EMF_NAMESPACE,
 		name = ResourceSetFactory.EMF_CAPABILITY_NAME,
-		version = VersionConstant.GECKOPROJECTS_EMF_VERSION
+		version = VersionConstant.FENNECPROJECTS_EMF_VERSION
 		)
 @ServiceCapability(value = ResourceSet.class)
 @ServiceCapability(value = ResourceSetFactory.class)
-public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactory {
+public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactory implements RegistryPropertyListener {
 
 	
 	private ServiceReference<Registry> resourceFactoryRegistryReference;
 	private BundleContext cxt;
 	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
 	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> staticRegistry;
+	private RegistryTrackingService registryTracker;
 
 	/**
 	 * Called before component activation
@@ -74,22 +77,33 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	 */
 	@Activate
 	public DefaultResourceSetFactoryComponent(BundleContext ctx,
-			@Reference(name="resourceSetEPackageRegistry")
+			@Reference(name="resourceSetEPackageRegistry", target = "(default.resourceset.epackage.registry=true)")
 			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
-			@Reference(name="staticEPackageRegistry")
+			@Reference(name="staticEPackageRegistry", target = "(emf.default.epackage.registry=true)")
 			ServiceReference<EPackage.Registry> staticRegistry,
 			@Reference(name="resourceFactoryRegistry")
-			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference
+			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference,
+			@Reference
+			RegistryTrackingService registryTracker
 			) {
 		this.cxt = ctx;
 		this.defaultResourceSetRegistry = defaultResourceSetRegistry;
 		this.staticRegistry = staticRegistry;
 		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
+		this.registryTracker = registryTracker;
 		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setEPackageRegistry(ctx.getService(defaultResourceSetRegistry), FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(ctx.getService(resourceFactoryRegistryReference), FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
 		//TODO: Tut dat note, dass das so rumoxidiert?
 		EcorePackagesRegistrator.start();
+		
+		// Register for property change notifications on the services we care about
+		Set<Long> trackedServiceIds = new HashSet<>();
+		trackedServiceIds.add((Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID));
+		trackedServiceIds.add((Long) staticRegistry.getProperty(Constants.SERVICE_ID));
+		trackedServiceIds.add((Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID));
+		registryTracker.registerListener(this, trackedServiceIds);
+		
 		doActivate(cxt);
 	}
 	
@@ -99,71 +113,31 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	@Deactivate
 	@Override
 	public void deactivate() {
+		registryTracker.unregisterListener(this);
 		super.deactivate();
 		cxt.ungetService(resourceFactoryRegistryReference);
 		EcorePackagesRegistrator.stop();
 	}
 
-	/**
-	 * This is a bit of a hack. To make sure that we have the Registry as early as possible, we use constructor Injection. 
-	 * We want to know about the property updates as well, which is not possible for constructor injected references. 
-	 * We know that our Default registry is a singleton. Thus, we create a second Reference, that does nothing on set, 
-	 * but reacts to changes of the properties. Not nice, but it works.   
-	 */
-	@Reference(policy=ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY, unbind="unsetEPackageRegistryProperties", updated = "modifieEPackageRegistryProperties")
-	public void setEPackageRegistryProperties(Map<String, Object> properties) {
-//		Do nothing here
-	}
-
-	public void modifieEPackageRegistryProperties(Map<String, Object> properties) {
-//		Do nothing here
-	}
-
-	public void unsetEPackageRegistryProperties(Map<String, Object> properties) {
-//		Do nothing here
-	}
-
-	/**
-	 * This is a bit of a hack. To make sure that we have the Registry as early as possible, we use constructor Injection. 
-	 * We want to know about the property updates as well, which is not possible for constructor injected references. 
-	 * We know that our Default registry is a singleton. Thus, we create a second Reference, that does nothing on set, 
-	 * but reacts to changes of the properties. Not nice, but it works.   
-	 */
-	@Reference(policy=ReferencePolicy.DYNAMIC, cardinality = ReferenceCardinality.MANDATORY, unbind="unsetEPackageRegistryProperties", updated = "modifieEPackageRegistryProperties")
-	public void setStaticEPackageRegistryProperties(EPackage.Registry registry, Map<String, Object> properties) {
-//		Do nothing here
-	}
+	// Implementation of RegistryPropertyListener interface
 	
-	public void modifieStaticEPackageRegistryProperties(Map<String, Object> properties) {
-//		Do nothing here
-	}
-	
-	public void unsetStaticEPackageRegistryProperties(Map<String, Object> properties) {
-//		Do nothing here
-	}
-	
-
-	/**
-	 * This is a bit of a hack. To make sure that we have the Registry as early as possible, we use constructor Injection. 
-	 * We want to know about the property updates as well, which is not possible for constructor injected references. 
-	 * We know that our Default registry is a singleton. Thus, we create a second Reference, that does nothing on set, 
-	 * but reacts to changes of the properties. Not nice, but it works.   
-	 * @param resourceFactoryRegistry the resource factory to be injected
-	 */
 	@Override
-	@Reference(policy=ReferencePolicy.STATIC, unbind="unsetResourceFactoryRegistry", updated = "modifiedResourceFactoryRegistry")
-	public void setResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-//		Do nothing here
+	public void onRegistryPropertiesChanged(long serviceId, String serviceName, Map<String, Object> newProperties) {
+		// Determine which registry changed and call appropriate parent method
+		if (serviceId == (Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID)) {
+			super.updateEPackageRegistry(newProperties);
+		} else if (serviceId == (Long) staticRegistry.getProperty(Constants.SERVICE_ID)) {
+			super.updateStaticEPackageRegistry(newProperties);
+		} else if (serviceId == (Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID)) {
+			super.modifiedResourceFactoryRegistry(newProperties);
+		}
 	}
-	
-	/**
-	 * Removed the registry on shutdown
-	 * @param resourceFactoryRegistry the registry to be removed
-	 */
+
 	@Override
-	public void unsetResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-		super.unsetResourceFactoryRegistry(resourceFactoryRegistry, properties);
-		cxt.ungetService(resourceFactoryRegistryReference);
+	public void onRegistryServiceRemoved(long serviceId, String serviceName) {
+		// Handle service removal if needed
+		// For now, the constructor-injected services should remain available
+		// until component deactivation, so this may not need special handling
 	}
 
 	/**

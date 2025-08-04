@@ -45,6 +45,8 @@ public class <%=genPackage.getPrefix()%>ConfigurationComponent
 	 */
 	@<%=genModel.getImportedName("org.osgi.service.component.annotations.Activate")%>
 	public void activate(BundleContext ctx) {
+	
+		checkEMFEcore(ctx);
 		<%=genPackage.getPackageInterfaceName()%> ePackage = <%=genModel.getImportedName(genPackage.getQualifiedPackageClassName())%>.eINSTANCE;
 		
 <%if (genPackage.isLoadingInitialization()) {%>
@@ -64,6 +66,27 @@ public class <%=genPackage.getPrefix()%>ConfigurationComponent
 		registerEPackageService(ePackage, packageConfigurator, ctx);
 		registerEFactoryService(ePackage, packageConfigurator, ctx);
 		registerConditionService(packageConfigurator, ctx);
+	}
+	
+	/**
+	 * We have to make sure that org.eclipse.emf.ecore is started, so we don't run 
+	 * into start order issues due to the use of static access in EMF 
+	 * @param ctx the {@link BundleContext} to use
+	 */
+	private void checkEMFEcore(BundleContext ctx) {
+		<%=genModel.getImportedName("org.osgi.framework.Bundle")%>[] bundles = ctx.getBundles();
+		
+		for(Bundle bundle : bundles) {
+			if("org.eclipse.emf.ecore".equals(bundle.getSymbolicName())) {
+				try {
+					bundle.start();
+				} catch (<%=genModel.getImportedName("org.osgi.framework.BundleException")%> e) {
+					System.err.println("Could not start Bundle org.eclipse.emf.ecore, something seems seriously wrong: " + e.getMessage());
+					e.printStackTrace();
+				}
+				break;
+			}
+		}
 	}
 	
 	/**
