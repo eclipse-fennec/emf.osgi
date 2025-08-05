@@ -31,7 +31,6 @@ import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage;
-import org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage;
 import org.eclipse.fennec.emf.osgi.example.model.manual.configuration.ManualPackageConfigurator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -181,13 +180,9 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 		assertFalse(modelNameList.contains("manual2"));
 
 		Dictionary<String, Object> manualProperties = new Hashtable<String, Object>();
-		manualProperties.put(EMFNamespaces.EMF_MODEL_NAME, ManualPackage.eNAME);
-		ManualPackageConfigurator manualPackageConfigurator = new ManualPackageConfigurator();
+		manualProperties.put(EMFNamespaces.EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 
-		ServiceRegistration<?> manualRegistration = bc.registerService(
-				new String[] { EPackageConfigurator.class.getName()},
-				manualPackageConfigurator, manualProperties);
-
+		ServiceRegistration<?> manualRegistration = ManualPackageConfigurator.registerManualPackage(bc, manualProperties);
 		Thread.sleep(4000);
 		
 		rsfRef = rsAware.getServiceReference();

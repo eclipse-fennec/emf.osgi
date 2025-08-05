@@ -174,7 +174,6 @@ public class IsolatedResourceFactoryConfiguration {
 		Dictionary<String, Object> properties = getRegistryProperties(name);
 		properties.put(EPACKAGE_REGISTRY_TARGET, "(" + PROP_RESOURCE_SET_FACTORY_NAME + "=" + name + ")");
 		properties.put(RESOURCE_FACTORY_REGISTRY_TARGET, "(" + PROP_RESOURCE_SET_FACTORY_NAME + "=" + name + ")");
-		properties.put(EPACKAGE_TARGET, filter);
 		properties.put(RESOURCE_FACTORY_TARGET, filter);
 		return properties;
 	}

@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -31,9 +32,8 @@ import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.fennec.emf.osgi.RegistryPropertyListener;
 import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
-import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage;
+import org.eclipse.fennec.emf.osgi.example.model.manual.configuration.ManualPackageConfigurator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.osgi.framework.BundleContext;
@@ -75,7 +75,7 @@ public class RegistryTrackingServiceIntegrationTest {
     @Test
     void testEPackageConfiguratorRegistrationTriggersListener(
             @InjectService ServiceAware<RegistryTrackingService> trackingServiceAware,
-            @InjectService ServiceAware<EPackage.Registry> ePackageRegistryAware) throws InterruptedException {
+            @InjectService ServiceAware<EPackage.Registry> ePackageRegistryAware) throws InterruptedException, IOException {
         // Given - Get the RegistryTrackingService
         RegistryTrackingService trackingService = trackingServiceAware.getService();
         assertNotNull(trackingService, "RegistryTrackingService must be available");
@@ -112,14 +112,13 @@ public class RegistryTrackingServiceIntegrationTest {
         trackingService.registerListener(testListener, trackedServiceIds);
         
         // When - Register a new EPackageConfigurator service (simulating manual registration)
-        TestEPackageConfigurator configurator = new TestEPackageConfigurator();
         Dictionary<String, Object> configuratorProperties = new Hashtable<>();
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_NAME, "manual");
-        configuratorProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackage.eNS_URI);
+        configuratorProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
-        ServiceRegistration<EPackageConfigurator> configuratorRegistration = 
-            bundleContext.registerService(EPackageConfigurator.class, configurator, configuratorProperties);
+        ServiceRegistration<?> registration = 
+        		ManualPackageConfigurator.registerManualPackage(bundleContext, configuratorProperties);
         
         try {
             // Then - The listener should be triggered when the registry properties change
@@ -129,7 +128,7 @@ public class RegistryTrackingServiceIntegrationTest {
             if (!listenerTriggered) {
                 // If not triggered immediately, this could be due to service timing
                 // Let's check if the service was registered correctly
-                assertTrue(configuratorRegistration.getReference() != null, 
+                assertTrue(registration.getReference() != null, 
                     "EPackageConfigurator service should be registered");
                 
                 // Give more time for OSGi service processing
@@ -150,14 +149,13 @@ public class RegistryTrackingServiceIntegrationTest {
             
         } finally {
             // Clean up
-            configuratorRegistration.unregister();
             trackingService.unregisterListener(testListener);
         }
     }
 
     @Test
     void testMultipleEPackageRegistryServices(
-            @InjectService ServiceAware<RegistryTrackingService> trackingServiceAware) throws InterruptedException, InvalidSyntaxException {
+            @InjectService ServiceAware<RegistryTrackingService> trackingServiceAware) throws InterruptedException, InvalidSyntaxException, IOException {
         // Given - Get the RegistryTrackingService
         RegistryTrackingService trackingService = trackingServiceAware.getService();
         assertNotNull(trackingService, "RegistryTrackingService must be available");
@@ -194,14 +192,13 @@ public class RegistryTrackingServiceIntegrationTest {
         
         try {
             // When - Register an EPackageConfigurator that should affect one of the registries
-            TestEPackageConfigurator configurator = new TestEPackageConfigurator();
             Dictionary<String, Object> properties = new Hashtable<>();
             properties.put(EMFNamespaces.EMF_MODEL_NAME, "multiRegistryTest");
             properties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://multi.test/model");
             properties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
             
-            ServiceRegistration<EPackageConfigurator> registration = 
-                bundleContext.registerService(EPackageConfigurator.class, configurator, properties);
+            ServiceRegistration<?> registration = 
+            		ManualPackageConfigurator.registerManualPackage(bundleContext, properties);
             
             // Then - At least one notification should be received
             boolean notified = notificationLatch.await(5, TimeUnit.SECONDS);
@@ -212,9 +209,6 @@ public class RegistryTrackingServiceIntegrationTest {
                 assertTrue(allRegistryIds.contains(serviceId), 
                     "Notified service ID should be one of the tracked registries");
             }
-            
-            // Clean up
-            registration.unregister();
             
         } finally {
             trackingService.unregisterListener(testListener);
@@ -293,7 +287,7 @@ public class RegistryTrackingServiceIntegrationTest {
 
     @Test
     void testResourceSetFactoryReceivesEPackageConfiguratorUpdates(
-            @InjectService(filter = "(component.name=DefaultResourcesetFactory)") ServiceAware<ResourceSetFactory> resourceSetFactoryAware) throws InterruptedException, InvalidSyntaxException {
+            @InjectService(filter = "(component.name=DefaultResourcesetFactory)") ServiceAware<ResourceSetFactory> resourceSetFactoryAware) throws InterruptedException, InvalidSyntaxException, IOException {
         // Given - Get the DefaultResourcesetFactory service specifically
         ResourceSetFactory factory = resourceSetFactoryAware.getService();
         assertNotNull(factory, "DefaultResourcesetFactory service should be available");
@@ -305,71 +299,65 @@ public class RegistryTrackingServiceIntegrationTest {
         // Since OSGi service notifications are synchronous, we can check properties immediately after service registration
         
         // When - Register a new EPackageConfigurator that should update ResourceSetFactory properties
-        TestEPackageConfigurator configurator = new TestEPackageConfigurator();
         Dictionary<String, Object> configuratorProperties = new Hashtable<>();
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_NAME, "manual");
-        configuratorProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackage.eNS_URI);
+        configuratorProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
-        ServiceRegistration<EPackageConfigurator> configuratorRegistration = 
-            bundleContext.registerService(EPackageConfigurator.class, configurator, configuratorProperties);
+        ServiceRegistration<?> registration = 
+        		ManualPackageConfigurator.registerManualPackage(bundleContext, configuratorProperties);
         
-        try {
-            // Then - ResourceSetFactory should immediately have updated properties (synchronous OSGi notifications)
-            ServiceReference<ResourceSetFactory> factoryRef = resourceSetFactoryAware.getServiceReference();
-            Object modelNames = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
-            Object nsUris = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NSURI);
-            
-            // Verify that the ResourceSetFactory now advertises the new model capabilities
-            assertNotNull(modelNames, "DefaultResourcesetFactory should have EMF_MODEL_NAME property after EPackageConfigurator registration");
-            
-            boolean foundManualModel = false;
-            if (modelNames instanceof String[]) {
-                String[] modelNamesArray = (String[]) modelNames;
-                for (String modelName : modelNamesArray) {
-                    if ("manual".equals(modelName)) {
-                        foundManualModel = true;
+        // Then - ResourceSetFactory should immediately have updated properties (synchronous OSGi notifications)
+        ServiceReference<ResourceSetFactory> factoryRef = resourceSetFactoryAware.getServiceReference();
+        Object modelNames = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+        Object nsUris = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NSURI);
+        
+        // Verify that the ResourceSetFactory now advertises the new model capabilities
+        assertNotNull(modelNames, "DefaultResourcesetFactory should have EMF_MODEL_NAME property after EPackageConfigurator registration");
+        
+        boolean foundManualModel = false;
+        if (modelNames instanceof String[]) {
+            String[] modelNamesArray = (String[]) modelNames;
+            for (String modelName : modelNamesArray) {
+                if ("manual".equals(modelName)) {
+                    foundManualModel = true;
+                    break;
+                }
+            }
+        } else if (modelNames instanceof String) {
+            foundManualModel = "manual".equals(modelNames);
+        }
+        
+        assertTrue(foundManualModel, 
+            "DefaultResourcesetFactory should advertise 'manual' model capability. " +
+            "Current EMF_MODEL_NAME: " + java.util.Arrays.toString(
+                modelNames instanceof String[] ? (String[]) modelNames : new String[]{(String) modelNames}));
+        
+        if (nsUris != null) {
+            boolean foundManualUri = false;
+            if (nsUris instanceof String[]) {
+                String[] nsUrisArray = (String[]) nsUris;
+                for (String nsUri : nsUrisArray) {
+                    if (ManualPackageConfigurator.eNS_URI.equals(nsUri)) {
+                        foundManualUri = true;
                         break;
                     }
                 }
-            } else if (modelNames instanceof String) {
-                foundManualModel = "manual".equals(modelNames);
+            } else if (nsUris instanceof String) {
+                foundManualUri = ManualPackageConfigurator.eNS_URI.equals(nsUris);
             }
             
-            assertTrue(foundManualModel, 
-                "DefaultResourcesetFactory should advertise 'manual' model capability. " +
-                "Current EMF_MODEL_NAME: " + java.util.Arrays.toString(
-                    modelNames instanceof String[] ? (String[]) modelNames : new String[]{(String) modelNames}));
-            
-            if (nsUris != null) {
-                boolean foundManualUri = false;
-                if (nsUris instanceof String[]) {
-                    String[] nsUrisArray = (String[]) nsUris;
-                    for (String nsUri : nsUrisArray) {
-                        if (ManualPackage.eNS_URI.equals(nsUri)) {
-                            foundManualUri = true;
-                            break;
-                        }
-                    }
-                } else if (nsUris instanceof String) {
-                    foundManualUri = ManualPackage.eNS_URI.equals(nsUris);
-                }
-                
-                assertTrue(foundManualUri, 
-                    "DefaultResourcesetFactory should advertise ManualPackage NS URI. " +
-                    "Current EMF_MODEL_NSURI: " + java.util.Arrays.toString(
-                        nsUris instanceof String[] ? (String[]) nsUris : new String[]{(String) nsUris}));
-            }
-            
-        } finally {
-            // Clean up
-            configuratorRegistration.unregister();
+            assertTrue(foundManualUri, 
+                "DefaultResourcesetFactory should advertise ManualPackageConfigurator NS URI. " +
+                "Current EMF_MODEL_NSURI: " + java.util.Arrays.toString(
+                    nsUris instanceof String[] ? (String[]) nsUris : new String[]{(String) nsUris}));
         }
+            
     }
 
     @Test
     void testMultipleResourceSetFactoriesGetUpdated(
-            @InjectService(filter = "(component.name=DefaultResourcesetFactory)") ServiceAware<ResourceSetFactory> resourceSetFactoryAware) throws InterruptedException, InvalidSyntaxException {
+            @InjectService(filter = "(component.name=DefaultResourcesetFactory)") ServiceAware<ResourceSetFactory> resourceSetFactoryAware) throws InterruptedException, InvalidSyntaxException, IOException {
         // Given - Get the DefaultResourcesetFactory service specifically
         ResourceSetFactory factory = resourceSetFactoryAware.getService();
         assertNotNull(factory, "DefaultResourcesetFactory service should be available");
@@ -431,14 +419,13 @@ public class RegistryTrackingServiceIntegrationTest {
         multiFactoryMonitor.start();
         
         // When - Register EPackageConfigurator that affects resource set scope
-        TestEPackageConfigurator configurator = new TestEPackageConfigurator();
         Dictionary<String, Object> properties = new Hashtable<>();
         properties.put(EMFNamespaces.EMF_MODEL_NAME, "multiFactory");
         properties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://multifactory.test/model");
         properties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
-        ServiceRegistration<EPackageConfigurator> registration = 
-            bundleContext.registerService(EPackageConfigurator.class, configurator, properties);
+        ServiceRegistration<?> registration = 
+        		ManualPackageConfigurator.registerManualPackage(bundleContext, properties);
         
         try {
             // Then - At least one ResourceSetFactory should be updated
@@ -471,7 +458,7 @@ public class RegistryTrackingServiceIntegrationTest {
 
     @Test
     void testResourceSetFactoryServiceFiltering(
-            @InjectService(filter = "(component.name=DefaultResourcesetFactory)") ServiceAware<ResourceSetFactory> resourceSetFactoryAware) throws InterruptedException, InvalidSyntaxException {
+            @InjectService(filter = "(component.name=DefaultResourcesetFactory)") ServiceAware<ResourceSetFactory> resourceSetFactoryAware) throws InterruptedException, InvalidSyntaxException, IOException {
         // Given - Get the DefaultResourcesetFactory service specifically
         ResourceSetFactory factory = resourceSetFactoryAware.getService();
         assertNotNull(factory, "DefaultResourcesetFactory service should be available");
@@ -486,19 +473,15 @@ public class RegistryTrackingServiceIntegrationTest {
             bundleContext.getServiceReferences(ResourceSetFactory.class, filter);
         
         // When - Register a new EPackageConfigurator
-        TestEPackageConfigurator configurator = new TestEPackageConfigurator();
         Dictionary<String, Object> configuratorProps = new Hashtable<>();
         configuratorProps.put(EMFNamespaces.EMF_MODEL_NAME, "filterTest");
-        configuratorProps.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackage.eNS_URI);
+        configuratorProps.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
         configuratorProps.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
-        ServiceRegistration<EPackageConfigurator> registration = 
-            bundleContext.registerService(EPackageConfigurator.class, configurator, configuratorProps);
+        ServiceRegistration<?> registration = 
+        		ManualPackageConfigurator.registerManualPackage(bundleContext, configuratorProps);
         
         try {
-            // Give time for service property propagation
-            Thread.sleep(2000);
-            
             // Then - Check if we can find ResourceSetFactory with the new capability
             String specificFilter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=*filterTest*)";
             java.util.Collection<ServiceReference<ResourceSetFactory>> updatedFactoryRefs = 
@@ -638,22 +621,6 @@ public class RegistryTrackingServiceIntegrationTest {
         } finally {
             // Clean up - Remove the test EPackage from the static registry
             org.eclipse.emf.ecore.EPackage.Registry.INSTANCE.remove(testPackageNsUri);
-        }
-    }
-
-    /**
-     * Test EPackageConfigurator implementation for testing
-     */
-    private static class TestEPackageConfigurator implements EPackageConfigurator {
-        @Override
-        public void configureEPackage(EPackage.Registry registry) {
-            // Use ManualPackage for realistic manual registration testing
-            registry.put(ManualPackage.eNS_URI, ManualPackage.eINSTANCE);
-        }
-
-        @Override
-        public void unconfigureEPackage(EPackage.Registry registry) {
-            registry.remove(ManualPackage.eNS_URI);
         }
     }
 }

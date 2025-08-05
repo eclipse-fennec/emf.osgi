@@ -49,15 +49,9 @@ public class <%=genPackage.getPrefix()%>ConfigurationComponent
 		checkEMFEcore(ctx);
 		<%=genPackage.getPackageInterfaceName()%> ePackage = <%=genModel.getImportedName(genPackage.getQualifiedPackageClassName())%>.eINSTANCE;
 		
-<%if (genPackage.isLoadingInitialization()) {%>
-		// Intialize by is activated. This the package loads the included ecore of the package instead of having the generated code for the package.
-		// The references in the Literals interface are assigned lazy using the default registry. If The Bundle was stopped, the Component has been 
-		// deactivated and thus the model has been removed, but the Classes not unloaded. Long story short: If we don't do this, calls 
-		// on <%=genPackage.getPackageInterfaceName()%> references can cause NullPointerExceptions and a lot of questionmarks.
 		if(!EPackage.Registry.INSTANCE.containsKey(<%=genPackage.getPackageInterfaceName()%>.eNS_URI)){
 			EPackage.Registry.INSTANCE.put(<%=genPackage.getPackageInterfaceName()%>.eNS_URI, ePackage);
 		}
-<%}%>
 		
 		<%=genPackage.getPrefix()%>EPackageConfigurator packageConfigurator = registerEPackageConfiguratorService(ePackage, ctx);
 <%if (genPackage.getResource() != GenResourceKind.NONE_LITERAL) {%>

@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -41,11 +42,7 @@ import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.eclipse.fennec.emf.osgi.example.model.manual.Foo;
-import org.eclipse.fennec.emf.osgi.example.model.manual.ManualFactory;
-import org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage;
 import org.eclipse.fennec.emf.osgi.example.model.manual.configuration.ManualPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.example.model.manual.util.ManualResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.itest.configurator.TestConfigurator;
 import org.eclipse.fennec.emf.osgi.itest.configurator.TestResourceSetConfiguration;
 import org.junit.jupiter.api.Test;
@@ -91,7 +88,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains("manual"));
+		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
 
 		ResourceSetFactory factory = sa.getService();
 		assertNotNull(factory);
@@ -101,8 +98,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -131,10 +127,10 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains("manual"));
+		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
-		assertEquals(4, ((String[]) configNames).length);
+		assertEquals(3, ((String[]) configNames).length);
 
 		ResourceSet rs = sa.getService();
 		assertNotNull(rs);
@@ -142,8 +138,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -177,10 +172,10 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains("manual"));
+		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
-		assertEquals(4, ((String[]) configNames).length);
+		assertEquals(3, ((String[]) configNames).length);
 
 		assertNotNull(reference);
 		ResourceSetFactory factory = sa.getService();
@@ -191,8 +186,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -203,9 +197,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 	}
 
 	/**
@@ -220,7 +214,7 @@ public class EMFOSGiIntegrationTest {
 			throws IOException, InvalidSyntaxException {
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, "manual");
+		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 
 		MonitoringAssertion.executeAndObserve(() -> {
 					ManualPackageConfigurator.registerManualPackage(bc, properties);
@@ -235,10 +229,10 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
-		assertEquals(4, ((String[]) configNames).length);
+		assertEquals(3, ((String[]) configNames).length);
 
 		assertNotNull(reference);
 		ResourceSetFactory factory = serviceAwareRSF.getService();
@@ -249,8 +243,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -261,9 +254,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 	}
 
 	/**
@@ -279,7 +272,7 @@ public class EMFOSGiIntegrationTest {
 
 		MonitoringAssertion.executeAndObserve(() -> {
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put(EMF_MODEL_NAME, "manual");
+			properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 			ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		}).untilNoMoreServiceEventWithin(100).assertWithTimeoutThat(1000)
@@ -297,7 +290,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		List<String> configNameList = Arrays.asList((String[]) configNames);
@@ -312,8 +305,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -324,9 +316,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 	}
 	
 	/**
@@ -342,7 +334,7 @@ public class EMFOSGiIntegrationTest {
 		
 		MonitoringAssertion.executeAndObserve(() -> {
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put(EMF_MODEL_NAME, "manual");
+			properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE, "myManualFeature");
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE + ".foo", "bar");
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE + ".fizz", "manualBuzz");
@@ -369,7 +361,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		List<String> configNameList = Arrays.asList((String[]) configNames);
@@ -402,7 +394,7 @@ public class EMFOSGiIntegrationTest {
 			throws IOException, InvalidSyntaxException {
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, "manual");
+		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 
 		ManualPackageConfigurator.registerManualPackage(bc, properties);
 
@@ -424,7 +416,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		List<String> configNameList = Arrays.asList((String[]) configNames);
@@ -441,8 +433,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -453,9 +444,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 	}
 
 	/**
@@ -470,7 +461,7 @@ public class EMFOSGiIntegrationTest {
 			throws IOException, InvalidSyntaxException {
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, "manual");
+		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 		EPackageConfigurator testConfig = new ManualPackageConfigurator();
 		ServiceRegistration<?> reg1 = ManualPackageConfigurator.registerManualPackage(bc, properties);
 
@@ -492,7 +483,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		List<String> configNameList = Arrays.asList((String[]) configNames);
@@ -509,8 +500,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -521,9 +511,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		properties = new Hashtable<String, Object>();
 		properties.put(EMF_MODEL_NAME, "manual2");
@@ -582,8 +572,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -594,9 +583,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 	}
 
@@ -619,9 +608,8 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 
-		p.setValue("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -632,9 +620,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 	}
 
@@ -657,8 +645,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -669,9 +656,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 	}
 
@@ -699,8 +686,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
@@ -712,9 +698,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		reg.unregister();
 
@@ -740,8 +726,8 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS)
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put(EMF_MODEL_NAME, ManualPackage.eNAME);
-		props.put(EMF_MODEL_NSURI, ManualPackage.eNS_URI);
+		props.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		props.put(EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, props);
 
@@ -754,8 +740,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
@@ -767,9 +752,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		reg.unregister();
 		Thread.sleep(1000l);
@@ -792,10 +777,10 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackageAndUnregisterProperties_Factory(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF) throws IOException {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
+		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, properties);
-		ManualPackage manualPackage = ManualPackage.eINSTANCE;
+		EPackage manualPackage = ManualPackageConfigurator.eINSTANCE;
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
 		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
@@ -803,7 +788,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 
 		ResourceSetFactory factory = serviceAwareRSF.getService();
 		assertNotNull(factory);
@@ -813,9 +798,10 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
-
+		
+		
+		
+		EObject p  = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -826,9 +812,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = (EObject) testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		reg.unregister();
 
@@ -845,7 +831,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains("manual"));
+		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
 	}
 
 	/**
@@ -858,7 +844,7 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackageAndUnregisterProperties(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS) throws IOException {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
+		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, properties);
 
@@ -869,7 +855,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 
 		ResourceSet rs = serviceAwareRS.getService();
 		assertNotNull(rs);
@@ -877,8 +863,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -889,9 +874,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		reg.unregister();
 
@@ -908,7 +893,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains("manual"));
+		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
 	}
 
 	/**
@@ -923,8 +908,8 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF)
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> epackageProperties = new Hashtable<String, Object>();
-		epackageProperties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
-		epackageProperties.put(EMF_MODEL_NSURI, ManualPackage.eNS_URI);
+		epackageProperties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		epackageProperties.put(EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
 
 		ServiceRegistration<?> sreg = ManualPackageConfigurator.registerManualPackage(bc, epackageProperties);
 
@@ -935,19 +920,19 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 
 		Object modelUris = reference.getProperty(EMF_MODEL_NSURI);
 		assertNotNull(modelUris);
 		assertTrue(modelUris instanceof String[]);
 		List<String> modelUrisList = Arrays.asList((String[]) modelUris);
 		assertTrue(modelUrisList.contains(EcorePackage.eNS_URI));
-		assertTrue(modelUrisList.contains(ManualPackage.eNS_URI));
+		assertTrue(modelUrisList.contains(ManualPackageConfigurator.eNS_URI));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		assertTrue(configNames instanceof String[]);
 		List<String> configNameList = Arrays.asList((String[]) configNames);
-		assertEquals(4, configNameList.size());
+		assertEquals(3, configNameList.size());
 
 		Dictionary<String, Object> configProperties = new Hashtable<String, Object>();
 		configProperties.put(EMF_CONFIGURATOR_NAME, new String[]{"testConfigurator", "testResourceConfigurator"});
@@ -964,7 +949,7 @@ public class EMFOSGiIntegrationTest {
 		assertNotNull(configNames);
 		assertTrue(configNames instanceof String[]);
 		configNameList = Arrays.asList((String[]) configNames);
-		assertEquals(6, configNameList.size());
+		assertEquals(5, configNameList.size());
 		assertTrue(configNameList.contains("testConfigurator"));
 		assertTrue(configNameList.contains("testResourceConfigurator"));
 
@@ -976,8 +961,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -988,9 +972,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		sreg.unregister();
 		modelUris = reference.getProperty(EMF_MODEL_NAME);
@@ -998,7 +982,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelUris instanceof String[]);
 		modelUrisList = Arrays.asList((String[]) modelUris);
 		assertTrue(modelUrisList.contains("ecore"));
-		assertFalse(modelUrisList.contains("manual"));
+		assertFalse(modelUrisList.contains(ManualPackageConfigurator.eNAME));
 
 		sreg2.unregister();
 
@@ -1006,7 +990,7 @@ public class EMFOSGiIntegrationTest {
 		assertNotNull(configNames);
 		assertTrue(configNames instanceof String[]);
 		configNameList = Arrays.asList((String[]) configNames);
-		assertEquals(4, configNameList.size());
+		assertEquals(3, configNameList.size());
 		assertFalse(configNameList.contains("testConfigurator"));
 		assertFalse(configNameList.contains("testResourceConfigurator"));
 	}
@@ -1023,7 +1007,7 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS)
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> epackageProperties = new Hashtable<String, Object>();
-		epackageProperties.put(EMF_MODEL_NAME, ManualPackage.eNAME);
+		epackageProperties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, epackageProperties);
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
@@ -1033,12 +1017,12 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual"));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		assertTrue(configNames instanceof String[]);
 		List<String> configNameList = Arrays.asList((String[]) configNames);
-		assertEquals(4, configNameList.size());
+		assertEquals(3, configNameList.size());
 
 		Dictionary<String, Object> configProperties = new Hashtable<String, Object>();
 		configProperties.put(EMF_CONFIGURATOR_NAME, new String[]{"testConfigurator", "testResourceConfigurator"});
@@ -1055,7 +1039,7 @@ public class EMFOSGiIntegrationTest {
 		assertNotNull(configNames);
 		assertTrue(configNames instanceof String[]);
 		configNameList = Arrays.asList((String[]) configNames);
-		assertEquals(6, configNameList.size());
+		assertEquals(5, configNameList.size());
 		assertTrue(configNameList.contains("testConfigurator"));
 		assertTrue(configNameList.contains("testResourceConfigurator"));
 
@@ -1065,8 +1049,7 @@ public class EMFOSGiIntegrationTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		Foo p = ManualFactory.eINSTANCE.createFoo();
-		p.setValue("Emil");
+		EObject p = ManualPackageConfigurator.createFoo("Emil");
 		testSaveResource.getContents().add(p);
 		testSaveResource.save(baos, null);
 
@@ -1077,9 +1060,9 @@ public class EMFOSGiIntegrationTest {
 		assertEquals(0, testLoadResource.getContents().size());
 		testLoadResource.load(bais, null);
 		assertEquals(1, testLoadResource.getContents().size());
-		Foo result = (Foo) testLoadResource.getContents().get(0);
+		EObject result = testLoadResource.getContents().get(0);
 		assertNotNull(result);
-		assertEquals("Emil", result.getValue());
+		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		reg.unregister();
 
@@ -1088,7 +1071,7 @@ public class EMFOSGiIntegrationTest {
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains("manual"));
+		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
 
 		reg2.unregister();
 
@@ -1096,7 +1079,7 @@ public class EMFOSGiIntegrationTest {
 		assertNotNull(configNames);
 		assertTrue(configNames instanceof String[]);
 		configNameList = Arrays.asList((String[]) configNames);
-		assertEquals(4, configNameList.size());
+		assertEquals(3, configNameList.size());
 		assertFalse(configNameList.contains("testConfigurator"));
 		assertFalse(configNameList.contains("testResourceConfigurator"));
 	}

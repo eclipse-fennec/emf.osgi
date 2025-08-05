@@ -86,7 +86,7 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	 */
 	@Activate
 	public ConfigurationResourceSetFactoryComponent(ComponentContext ctx,
-			@Reference(name="resourceSetePackageRegistry", unbind = "unsetResourceSetPackageRegistry", target = "(" + EMFNamespaces.EMF_MODEL_SCOPE +"=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")")
+			@Reference(name="ePackageRegistry", unbind = "unsetResourceSetPackageRegistry", target = "(" + EMFNamespaces.EMF_MODEL_SCOPE +"=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")")
 			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
 			@Reference(name="staticEPackageRegistry", unbind = "unsetStaticPackageRegistry", target = "(emf.default.epackage.registry=true)")
 			ServiceReference<EPackage.Registry> staticRegistry,
@@ -176,60 +176,6 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 		// until component deactivation, so this may not need special handling
 	}
 	
-	
-
-	/**
-	 * Inject a {@link Registry} for resource factories
-	 * @param resourceFactoryRegistry the resource factory to be injected
-	 */
-	@Override
-	@Reference(policy=ReferencePolicy.STATIC, unbind="unsetResourceFactoryRegistry", updated = "modifiedResourceFactoryRegistry")
-	public void setResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-//		do nothing here - registry is injected via constructor
-	}
-	
-	@Override
-	public void modifiedResourceFactoryRegistry(Map<String, Object> properties) {
-		super.modifiedResourceFactoryRegistry(properties);
-	}
-	
-	/**
-	 * Removed the registry on shutdown
-	 * @param resourceFactoryRegistry the registry to be removed
-	 */
-	@Override
-	public void unsetResourceFactoryRegistry(Resource.Factory.Registry resourceFactoryRegistry, Map<String, Object> properties) {
-		super.unsetResourceFactoryRegistry(resourceFactoryRegistry, properties);
-	}
-
-	/**
-	 * Injects {@link EPackageConfigurator}, to register a new {@link EPackage}
-	 * @param configurator the {@link EPackageConfigurator} to be registered
-	 * @param properties the service properties
-	 */
-	@Reference(name="ePackageConfigurator", policy=ReferencePolicy.DYNAMIC, cardinality=ReferenceCardinality.MULTIPLE, target="(" + EMFNamespaces.EMF_MODEL_SCOPE + "=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")", updated = "modifyEPackageConfigurator", unbind = "removeEPackageConfigurator")
-	public void addEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		// Handle EPackage configurator addition
-	}
-	
-	/**
-	 * Injects {@link EPackageConfigurator}, to update a new {@link EPackage}
-	 * @param configurator the {@link EPackageConfigurator} to be updated
-	 * @param properties the service properties
-	 */
-	public void modifyEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		// Handle EPackage configurator modification
-	}
-
-	/**
-	 * Removes a {@link EPackageConfigurator} from the registry and unconfigures it
-	 * @param configurator the configurator to be removed
-	 * @param properties the service properties
-	 */
-	public void removeEPackageConfigurator(EPackageConfigurator configurator, Map<String, Object> properties) {
-		// Handle EPackage configurator removal
-	}
-
 	/**
 	 * Adds new {@link ResourceSetConfigurator} to this factory
 	 * @param resourceSetConfigurator the new configurator to be added

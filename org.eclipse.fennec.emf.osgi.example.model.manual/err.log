@@ -1,4 +1,4 @@
-java.net.MalformedURLException: Cannot invoke "String.length()" because "spec" is null
+java.net.MalformedURLException
 	at java.base/java.net.URL.<init>(URL.java:806)
 	at java.base/java.net.URL.<init>(URL.java:654)
 	at java.base/java.net.URL.<init>(URL.java:590)
@@ -53,6 +53,4 @@ java.net.MalformedURLException: Cannot invoke "String.length()" because "spec" i
 	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:207)
 	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:300)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
-Caused by: java.lang.NullPointerException: Cannot invoke "String.length()" because "spec" is null
-	at java.base/java.net.URL.<init>(URL.java:712)
-	... 53 more
+Caused by: java.lang.NullPointerException

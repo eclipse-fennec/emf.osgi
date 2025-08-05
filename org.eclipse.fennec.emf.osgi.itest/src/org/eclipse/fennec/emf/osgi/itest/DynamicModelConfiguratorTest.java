@@ -39,7 +39,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.example.model.basic.Person;
-import org.eclipse.fennec.emf.osgi.example.model.manual.ManualPackage;
+import org.eclipse.fennec.emf.osgi.example.model.manual.configuration.ManualPackageConfigurator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -128,7 +128,7 @@ public class DynamicModelConfiguratorTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(ManualPackage.eNS_URI);
+		EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(ManualPackageConfigurator.eNS_URI);
 		EClassifier fooClassifier = ePackage.getEClassifier("Foo");
 		assertInstanceOf(EClass.class, fooClassifier);
 		EClass fooClass = (EClass) fooClassifier;
@@ -207,7 +207,7 @@ public class DynamicModelConfiguratorTest {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		Resource testSaveResource = rs.createResource(uri);
 		assertNotNull(testSaveResource);
-		EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(ManualPackage.eNS_URI);
+		EPackage ePackage = EPackage.Registry.INSTANCE.getEPackage(ManualPackageConfigurator.eNS_URI);
 		EClassifier fooClassifier = ePackage.getEClassifier("Foo");
 		assertInstanceOf(EClass.class, fooClassifier);
 		EClass fooClass = (EClass) fooClassifier;
