@@ -23,6 +23,8 @@ header:
     - '**/package-info.java'
     - '**/packageinfo'
     - '**/module-info.java'
+    - '**/*.puml'
+    - '**/*.json'
     - '**/*.log'
     - '**/*.txt'
     - '**/*.bnd'
