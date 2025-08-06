@@ -57,7 +57,7 @@ public class EMFModelExtenderTest {
 	}
 	
 	@Test
-	public void simpleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<ResourceSet> rsAware) {
+	public void simpleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<ResourceSet> rsAware) {
 		ResourceSet rs = rsAware.getService();
 		assertNotNull(rs);
 		EFactory eFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
@@ -72,7 +72,7 @@ public class EMFModelExtenderTest {
 	}
 	
 	@Test
-	public void simpleTestEPackage(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
+	public void simpleTestEPackage(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
 		assertNotNull(epackageAware);
 		EPackage ePackage = epackageAware.getService();
 		assertNotNull(ePackage);
@@ -84,7 +84,7 @@ public class EMFModelExtenderTest {
 	}
 	
 	@Test
-	public void simpleTestEPackageRegistrationProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
+	public void simpleTestEPackageRegistrationProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
 		assertNotNull(epackageAware);
 		assertThat(epackageAware.isEmpty()).isFalse();
 		DictionaryAssert.assertThat(epackageAware.getServiceReference().getProperties()).containsKey(EMFNamespaces.EMF_MODEL_REGISTRATION)	
@@ -92,7 +92,7 @@ public class EMFModelExtenderTest {
 	}
 	
 	@Test
-	public void simpleMultipleFolders(@InjectService(filter = "(&(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)(" + EMFNamespaces.EMF_MODEL_NAME + "=foobar))") ServiceAware<ResourceSet> rsAware) {
+	public void simpleMultipleFolders(@InjectService(filter = "(&(" + EMFNamespaces.EMF_NAME + "=manual)(" + EMFNamespaces.EMF_NAME + "=foobar))") ServiceAware<ResourceSet> rsAware) {
 		ResourceSet rs = rsAware.getService();
 		assertNotNull(rs);
 		EFactory manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
@@ -118,7 +118,7 @@ public class EMFModelExtenderTest {
 	}
 	
 	@Test
-	public void simpleMultipleFoldersEPackage(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<EPackage> manualAware, @InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=foobar)") ServiceAware<EPackage> fooAware) {
+	public void simpleMultipleFoldersEPackage(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> manualAware, @InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=foobar)") ServiceAware<EPackage> fooAware) {
 		EPackage manualPackage = manualAware.getService();
 		assertNotNull(manualPackage);
 		// Foo class exists
@@ -152,10 +152,10 @@ public class EMFModelExtenderTest {
 			String foo = (String) reference.getProperty("foo");
 			switch (foo) {
 			case "bar":
-				assertEquals("manual", reference.getProperty(EMFNamespaces.EMF_MODEL_NAME));
+				assertEquals("manual", reference.getProperty(EMFNamespaces.EMF_NAME));
 				break;
 			case "baz":
-				assertEquals("foobar", reference.getProperty(EMFNamespaces.EMF_MODEL_NAME));
+				assertEquals("foobar", reference.getProperty(EMFNamespaces.EMF_NAME));
 				break;
 			default:
 				fail("Unecpected value");

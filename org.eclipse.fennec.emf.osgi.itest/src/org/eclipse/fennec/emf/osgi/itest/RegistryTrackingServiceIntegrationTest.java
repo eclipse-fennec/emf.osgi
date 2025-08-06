@@ -113,7 +113,7 @@ public class RegistryTrackingServiceIntegrationTest {
         
         // When - Register a new EPackageConfigurator service (simulating manual registration)
         Dictionary<String, Object> configuratorProperties = new Hashtable<>();
-        configuratorProperties.put(EMFNamespaces.EMF_MODEL_NAME, "manual");
+        configuratorProperties.put(EMFNamespaces.EMF_NAME, "manual");
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
@@ -193,7 +193,7 @@ public class RegistryTrackingServiceIntegrationTest {
         try {
             // When - Register an EPackageConfigurator that should affect one of the registries
             Dictionary<String, Object> properties = new Hashtable<>();
-            properties.put(EMFNamespaces.EMF_MODEL_NAME, "multiRegistryTest");
+            properties.put(EMFNamespaces.EMF_NAME, "multiRegistryTest");
             properties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://multi.test/model");
             properties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
             
@@ -300,7 +300,7 @@ public class RegistryTrackingServiceIntegrationTest {
         
         // When - Register a new EPackageConfigurator that should update ResourceSetFactory properties
         Dictionary<String, Object> configuratorProperties = new Hashtable<>();
-        configuratorProperties.put(EMFNamespaces.EMF_MODEL_NAME, "manual");
+        configuratorProperties.put(EMFNamespaces.EMF_NAME, "manual");
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
         configuratorProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
@@ -309,7 +309,7 @@ public class RegistryTrackingServiceIntegrationTest {
         
         // Then - ResourceSetFactory should immediately have updated properties (synchronous OSGi notifications)
         ServiceReference<ResourceSetFactory> factoryRef = resourceSetFactoryAware.getServiceReference();
-        Object modelNames = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+        Object modelNames = factoryRef.getProperty(EMFNamespaces.EMF_NAME);
         Object nsUris = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NSURI);
         
         // Verify that the ResourceSetFactory now advertises the new model capabilities
@@ -400,8 +400,8 @@ public class RegistryTrackingServiceIntegrationTest {
                         
                         if (initialRef != null) {
                             // Compare properties to detect changes
-                            Object currentModels = currentRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
-                            Object initialModels = initialRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+                            Object currentModels = currentRef.getProperty(EMFNamespaces.EMF_NAME);
+                            Object initialModels = initialRef.getProperty(EMFNamespaces.EMF_NAME);
                             
                             if (currentModels != null && !currentModels.equals(initialModels)) {
                                 updatedFactory.set(currentRef);
@@ -420,7 +420,7 @@ public class RegistryTrackingServiceIntegrationTest {
         
         // When - Register EPackageConfigurator that affects resource set scope
         Dictionary<String, Object> properties = new Hashtable<>();
-        properties.put(EMFNamespaces.EMF_MODEL_NAME, "multiFactory");
+        properties.put(EMFNamespaces.EMF_NAME, "multiFactory");
         properties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://multifactory.test/model");
         properties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
@@ -439,7 +439,7 @@ public class RegistryTrackingServiceIntegrationTest {
                 String updatedComponentName = (String) updated.getProperty("component.name");
                 assertEquals("DefaultResourcesetFactory", updatedComponentName, "Updated service should still be DefaultResourcesetFactory");
                 
-                Object updatedModels = updated.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+                Object updatedModels = updated.getProperty(EMFNamespaces.EMF_NAME);
                 if (updatedModels != null) {
                     assertTrue(updatedModels.toString().contains("multiFactory"), 
                         "Updated DefaultResourcesetFactory should include new model name");
@@ -468,13 +468,13 @@ public class RegistryTrackingServiceIntegrationTest {
         assertEquals("DefaultResourcesetFactory", componentName, "Should be using DefaultResourcesetFactory component");
         
         // Look for ResourceSetFactory services with specific capabilities
-        String filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=*)";
+        String filter = "(" + EMFNamespaces.EMF_NAME + "=*)";
         java.util.Collection<ServiceReference<ResourceSetFactory>> factoryRefs = 
             bundleContext.getServiceReferences(ResourceSetFactory.class, filter);
         
         // When - Register a new EPackageConfigurator
         Dictionary<String, Object> configuratorProps = new Hashtable<>();
-        configuratorProps.put(EMFNamespaces.EMF_MODEL_NAME, "filterTest");
+        configuratorProps.put(EMFNamespaces.EMF_NAME, "filterTest");
         configuratorProps.put(EMFNamespaces.EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
         configuratorProps.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
         
@@ -483,7 +483,7 @@ public class RegistryTrackingServiceIntegrationTest {
         
         try {
             // Then - Check if we can find ResourceSetFactory with the new capability
-            String specificFilter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=*filterTest*)";
+            String specificFilter = "(" + EMFNamespaces.EMF_NAME + "=*filterTest*)";
             java.util.Collection<ServiceReference<ResourceSetFactory>> updatedFactoryRefs = 
                 bundleContext.getServiceReferences(ResourceSetFactory.class, specificFilter);
             
@@ -493,7 +493,7 @@ public class RegistryTrackingServiceIntegrationTest {
             
             // Check if the DefaultResourcesetFactory now includes our registered model
             ServiceReference<ResourceSetFactory> defaultFactoryRef = resourceSetFactoryAware.getServiceReference();
-            Object modelNames = defaultFactoryRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+            Object modelNames = defaultFactoryRef.getProperty(EMFNamespaces.EMF_NAME);
             
             if (modelNames != null) {
                 boolean foundFilterTestModel = false;
@@ -521,7 +521,7 @@ public class RegistryTrackingServiceIntegrationTest {
                     bundleContext.getServiceReferences(ResourceSetFactory.class, null);
                 
                 for (ServiceReference<ResourceSetFactory> ref : allFactories) {
-                    Object factoryModelNames = ref.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+                    Object factoryModelNames = ref.getProperty(EMFNamespaces.EMF_NAME);
                     String factoryComponentName = (String) ref.getProperty("component.name");
                     System.out.println("Factory component: " + factoryComponentName + 
                         ", EMF_MODEL_NAME: " + (factoryModelNames != null ? 
@@ -569,7 +569,7 @@ public class RegistryTrackingServiceIntegrationTest {
         try {
             // Then - The DefaultResourcesetFactory should immediately reflect the static registry change
             ServiceReference<ResourceSetFactory> factoryRef = resourceSetFactoryAware.getServiceReference();
-            Object modelNames = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+            Object modelNames = factoryRef.getProperty(EMFNamespaces.EMF_NAME);
             Object nsUris = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_NSURI);
             
             // Verify that the ResourceSetFactory now advertises the static EPackage

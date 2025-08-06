@@ -66,8 +66,8 @@ public class ResourceSetFactoryIntegrationTest {
 		ServiceReference<Condition> reference = condition.getServiceReference();
 		assertThat(reference).isNotNull();
 
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-				.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+				.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 				.isInstanceOfSatisfying(String[].class, arr -> {
 					assertThat(arr).contains(BasicPackage.eNAME);
 				});

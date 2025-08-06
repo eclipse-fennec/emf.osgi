@@ -14,8 +14,8 @@
 package org.eclipse.fennec.emf.osgi.itest;
 
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_CONFIGURATOR_NAME;
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_NSURI;
+import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -83,7 +83,7 @@ public class EMFOSGiIntegrationTest {
 		ServiceReference<ResourceSetFactory> reference = sa.getServiceReference();
 		assertNotNull(reference);
 
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -122,7 +122,7 @@ public class EMFOSGiIntegrationTest {
 
 		ServiceReference<ResourceSet> reference = sa.getServiceReference();
 		assertNotNull(reference);
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -167,12 +167,12 @@ public class EMFOSGiIntegrationTest {
 		ManualPackageConfigurator.registerManualPackage(bc, null);
 
 		ServiceReference<ResourceSetFactory> reference = sa.getServiceReference();
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertFalse(modelNameList.contains(ManualPackageConfigurator.eNAME));
+		assertTrue(modelNameList.contains(ManualPackageConfigurator.eNAME));
 		Object configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		assertEquals(3, ((String[]) configNames).length);
@@ -210,11 +210,11 @@ public class EMFOSGiIntegrationTest {
 	 */
 	@Test
 	public void testLoadResourceRegisteredEPackage_FactoryWithModelName(
-			@InjectService(filter = "(" + EMF_MODEL_NAME + "=manual)", cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF)
+			@InjectService(filter = "(" + EMF_NAME + "=manual)", cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF)
 			throws IOException, InvalidSyntaxException {
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 
 		MonitoringAssertion.executeAndObserve(() -> {
 					ManualPackageConfigurator.registerManualPackage(bc, properties);
@@ -224,7 +224,7 @@ public class EMFOSGiIntegrationTest {
 				.hasExactlyOneServiceEventRegisteredWith(Resource.Factory.class);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -272,7 +272,7 @@ public class EMFOSGiIntegrationTest {
 
 		MonitoringAssertion.executeAndObserve(() -> {
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+			properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 			ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		}).untilNoMoreServiceEventWithin(100).assertWithTimeoutThat(1000)
@@ -285,7 +285,7 @@ public class EMFOSGiIntegrationTest {
 				properties);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -334,7 +334,7 @@ public class EMFOSGiIntegrationTest {
 		
 		MonitoringAssertion.executeAndObserve(() -> {
 			Dictionary<String, Object> properties = new Hashtable<String, Object>();
-			properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+			properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE, "myManualFeature");
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE + ".foo", "bar");
 			properties.put(EMFNamespaces.EMF_MODEL_FEATURE + ".fizz", "manualBuzz");
@@ -356,7 +356,7 @@ public class EMFOSGiIntegrationTest {
 		ResourceSetFactory factory = serviceAwareRSF.getService();
 		assertNotNull(factory);
 		
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -394,7 +394,7 @@ public class EMFOSGiIntegrationTest {
 			throws IOException, InvalidSyntaxException {
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 
 		ManualPackageConfigurator.registerManualPackage(bc, properties);
 
@@ -411,7 +411,7 @@ public class EMFOSGiIntegrationTest {
 				properties);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -461,7 +461,7 @@ public class EMFOSGiIntegrationTest {
 			throws IOException, InvalidSyntaxException {
 
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 		EPackageConfigurator testConfig = new ManualPackageConfigurator();
 		ServiceRegistration<?> reg1 = ManualPackageConfigurator.registerManualPackage(bc, properties);
 
@@ -478,7 +478,7 @@ public class EMFOSGiIntegrationTest {
 				properties);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -515,35 +515,16 @@ public class EMFOSGiIntegrationTest {
 		assertNotNull(result);
 		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
-		properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, "manual2");
-		reg1.setProperties(properties);
-
-		reference = serviceAwareRSF.getServiceReference();
-		modelNames = reference.getProperty(EMF_MODEL_NAME);
-		assertNotNull(modelNames);
-		assertTrue(modelNames instanceof String[]);
-		modelNameList = Arrays.asList((String[]) modelNames);
-		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual2"));
-		configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
-		assertNotNull(configNames);
-		configNameList = Arrays.asList((String[]) configNames);
-		assertTrue(configNameList.contains("myConfig"));
-		assertTrue(configNameList.contains("mySecConfig"));
-		assertTrue(configNameList.contains("myThirdConfig"));
-
 		configs = new String[] { "myConfig", "mySecConfig", "hallo" };
 		properties.put(EMF_CONFIGURATOR_NAME, configs);
 		reg2.setProperties(properties);
 
 		reference = serviceAwareRSF.getServiceReference();
-		modelNames = reference.getProperty(EMF_MODEL_NAME);
+		modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
 		assertTrue(modelNameList.contains("ecore"));
-		assertTrue(modelNameList.contains("manual2"));
 		configNames = reference.getProperty(EMF_CONFIGURATOR_NAME);
 		assertNotNull(configNames);
 		configNameList = Arrays.asList((String[]) configNames);
@@ -726,7 +707,7 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS)
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> props = new Hashtable<String, Object>();
-		props.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		props.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 		props.put(EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, props);
@@ -777,13 +758,13 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackageAndUnregisterProperties_Factory(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF) throws IOException {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, properties);
 		EPackage manualPackage = ManualPackageConfigurator.eINSTANCE;
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -826,7 +807,7 @@ public class EMFOSGiIntegrationTest {
 			testLoadResource2.load(bais, null);
 		}).isInstanceOf(IOWrappedException.class);
 
-		modelNames = reference.getProperty(EMF_MODEL_NAME);
+		modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -844,13 +825,13 @@ public class EMFOSGiIntegrationTest {
 	public void testLoadResourceRegisteredEPackageAndUnregisterProperties(
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS) throws IOException {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		properties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, properties);
 
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -888,7 +869,7 @@ public class EMFOSGiIntegrationTest {
 			testLoadResource2.load(bais, null);
 		}).isInstanceOf(IOWrappedException.class);
 
-		modelNames = reference.getProperty(EMF_MODEL_NAME);
+		modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -908,14 +889,14 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSetFactory> serviceAwareRSF)
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> epackageProperties = new Hashtable<String, Object>();
-		epackageProperties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		epackageProperties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 		epackageProperties.put(EMF_MODEL_NSURI, ManualPackageConfigurator.eNS_URI);
 
 		ServiceRegistration<?> sreg = ManualPackageConfigurator.registerManualPackage(bc, epackageProperties);
 
 		ServiceReference<ResourceSetFactory> reference = serviceAwareRSF.getServiceReference();
 		assertNotNull(reference);
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -977,7 +958,7 @@ public class EMFOSGiIntegrationTest {
 		assertEquals("Emil", ManualPackageConfigurator.getValue(result));
 
 		sreg.unregister();
-		modelUris = reference.getProperty(EMF_MODEL_NAME);
+		modelUris = reference.getProperty(EMF_NAME);
 		assertNotNull(modelUris);
 		assertTrue(modelUris instanceof String[]);
 		modelUrisList = Arrays.asList((String[]) modelUris);
@@ -1007,12 +988,12 @@ public class EMFOSGiIntegrationTest {
 			@InjectService(cardinality = 0) ServiceAware<ResourceSet> serviceAwareRS)
 			throws IOException, InterruptedException {
 		Dictionary<String, Object> epackageProperties = new Hashtable<String, Object>();
-		epackageProperties.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		epackageProperties.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> reg = ManualPackageConfigurator.registerManualPackage(bc, epackageProperties);
 		ServiceReference<ResourceSet> reference = serviceAwareRS.getServiceReference();
 		assertNotNull(reference);
-		Object modelNames = reference.getProperty(EMF_MODEL_NAME);
+		Object modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -1066,7 +1047,7 @@ public class EMFOSGiIntegrationTest {
 
 		reg.unregister();
 
-		modelNames = reference.getProperty(EMF_MODEL_NAME);
+		modelNames = reference.getProperty(EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);

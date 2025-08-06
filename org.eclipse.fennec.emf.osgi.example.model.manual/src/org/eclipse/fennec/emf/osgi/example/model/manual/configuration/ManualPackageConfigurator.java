@@ -13,7 +13,7 @@
  */
 package org.eclipse.fennec.emf.osgi.example.model.manual.configuration;
 
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_NAME;
+import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_NAME;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +46,7 @@ public class ManualPackageConfigurator implements EPackageConfigurator {
 
 	public static ServiceRegistration<?>  registerManualPackage(BundleContext bc, Dictionary<String, Object> properties) throws IOException {
 		Map<String, Object> propertiesToUse =  new HashMap<String, Object>();
-		propertiesToUse.put(EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		propertiesToUse.put(EMF_NAME, ManualPackageConfigurator.eNAME);
 		propertiesToUse.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
 		if(properties != null) {
 			propertiesToUse.putAll(FrameworkUtil.asMap(properties));
@@ -61,6 +61,23 @@ public class ManualPackageConfigurator implements EPackageConfigurator {
 				new String[] { Resource.Factory.class.getName()},
 				new ManualResourceFactoryImpl(), props);
 		return packageRegistration;
+	}
+	
+
+	public static ServiceRegistration<?>  registerManualPackageFactory(BundleContext bc, Dictionary<String, Object> properties) throws IOException {
+		Map<String, Object> propertiesToUse =  new HashMap<String, Object>();
+		propertiesToUse.put(EMF_NAME, ManualPackageConfigurator.eNAME);
+		propertiesToUse.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET);
+		if(properties != null) {
+			propertiesToUse.putAll(FrameworkUtil.asMap(properties));
+		}
+		Dictionary<String, String> props = new Hashtable<>();
+		props.put(EMFNamespaces.EMF_MODEL_FILE_EXT, "manual");
+		props.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "manual#1.0");
+		ServiceRegistration<?> registerService = bc.registerService(
+				new String[] { Resource.Factory.class.getName()},
+				new ManualResourceFactoryImpl(), props);
+		return registerService;
 	}
 	
 	/**

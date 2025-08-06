@@ -86,9 +86,9 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	 */
 	@Activate
 	public ConfigurationResourceSetFactoryComponent(ComponentContext ctx,
-			@Reference(name="ePackageRegistry", unbind = "unsetResourceSetPackageRegistry", target = "(" + EMFNamespaces.EMF_MODEL_SCOPE +"=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")")
+			@Reference(name="ePackageRegistry", target = "(" + EMFNamespaces.EMF_MODEL_SCOPE +"=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")")
 			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
-			@Reference(name="staticEPackageRegistry", unbind = "unsetStaticPackageRegistry", target = "(emf.default.epackage.registry=true)")
+			@Reference(name="staticEPackageRegistry", target = "(emf.default.epackage.registry=true)")
 			ServiceReference<EPackage.Registry> staticRegistry,
 			@Reference(name="resourceFactoryRegistry")
 			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference,
@@ -101,14 +101,16 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
 		this.registryTracker = registryTracker;
 		
+		EcorePackagesRegistrator.start();
+
+		
 		// Get the actual services and set up the factory
 		EPackage.Registry registry = cxt.getService(defaultResourceSetRegistry);
 		Resource.Factory.Registry resourceFactoryRegistry = cxt.getService(resourceFactoryRegistryReference);
 		
-		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
+		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(staticRegistry.getProperties()));
 		super.setEPackageRegistry(registry, FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(resourceFactoryRegistry, FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
-		EcorePackagesRegistrator.start();
 		
 		// Register for property change notifications on the services we care about
 		Set<Long> trackedServiceIds = new HashSet<>();

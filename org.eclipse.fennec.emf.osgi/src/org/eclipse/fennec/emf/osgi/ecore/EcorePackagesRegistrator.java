@@ -89,7 +89,7 @@ public class EcorePackagesRegistrator {
 	 */
 	public static Dictionary<String, Object> getServiceProperties(EPackage ePackage, String[] fileExt, String contentType, Version version) {
 		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put(EMFNamespaces.EMF_MODEL_NAME, ePackage.getName());
+		properties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 		properties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_PROVIDED);
 		if(fileExt != null) {

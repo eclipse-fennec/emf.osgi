@@ -47,7 +47,7 @@ public class EMFNamespaces {
 	// Attribute PREFIX for the EMF model
 //	public static final String EMF_MODEL_PREFIX = "emf.model.";
 	// Attribute name for the EMF model name
-	public static final String EMF_MODEL_NAME = EMF_PREFIX + "name";
+	public static final String EMF_NAME = EMF_PREFIX + "name";
 	// The Scope to target a specific EPackage Registry
 	public static final String EMF_MODEL_SCOPE = EMF_PREFIX + "model.scope";
 	public static final String EMF_MODEL_SCOPE_STATIC = "static";

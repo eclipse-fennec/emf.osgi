@@ -107,7 +107,7 @@ public class RegistryTrackingServiceComponentTest {
         Long serviceId = 100L;
         Map<String, Object> properties = new HashMap<>();
         properties.put(Constants.SERVICE_ID, serviceId);
-        properties.put(EMFNamespaces.EMF_MODEL_NAME, "testModel");
+        properties.put(EMFNamespaces.EMF_NAME, "testModel");
         properties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://test.example/model");
         
         when(mockEPackageRegistryRef.getProperty(Constants.SERVICE_ID)).thenReturn(serviceId);
@@ -122,7 +122,7 @@ public class RegistryTrackingServiceComponentTest {
         
         Map<String, Object> retrievedProperties = trackingService.getServiceProperties(serviceId);
         assertNotNull(retrievedProperties);
-        assertEquals("testModel", retrievedProperties.get(EMFNamespaces.EMF_MODEL_NAME));
+        assertEquals("testModel", retrievedProperties.get(EMFNamespaces.EMF_NAME));
         assertEquals("http://test.example/model", retrievedProperties.get(EMFNamespaces.EMF_MODEL_NSURI));
     }
 
@@ -135,11 +135,11 @@ public class RegistryTrackingServiceComponentTest {
         
         Map<String, Object> initialProperties = new HashMap<>();
         initialProperties.put(Constants.SERVICE_ID, serviceId);
-        initialProperties.put(EMFNamespaces.EMF_MODEL_NAME, "initialModel");
+        initialProperties.put(EMFNamespaces.EMF_NAME, "initialModel");
         
         Map<String, Object> updatedProperties = new HashMap<>();
         updatedProperties.put(Constants.SERVICE_ID, serviceId);
-        updatedProperties.put(EMFNamespaces.EMF_MODEL_NAME, "updatedModel");
+        updatedProperties.put(EMFNamespaces.EMF_NAME, "updatedModel");
         updatedProperties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://updated.example/model");
         
         when(mockEPackageRegistryRef.getProperty(Constants.SERVICE_ID)).thenReturn(serviceId);
@@ -162,7 +162,7 @@ public class RegistryTrackingServiceComponentTest {
         );
         
         Map<String, Object> capturedProperties = propertiesCaptor.getValue();
-        assertEquals("updatedModel", capturedProperties.get(EMFNamespaces.EMF_MODEL_NAME));
+        assertEquals("updatedModel", capturedProperties.get(EMFNamespaces.EMF_NAME));
         assertEquals("http://updated.example/model", capturedProperties.get(EMFNamespaces.EMF_MODEL_NSURI));
     }
 
@@ -175,7 +175,7 @@ public class RegistryTrackingServiceComponentTest {
         
         Map<String, Object> properties = new HashMap<>();
         properties.put(Constants.SERVICE_ID, serviceId);
-        properties.put(EMFNamespaces.EMF_MODEL_NAME, "testModel");
+        properties.put(EMFNamespaces.EMF_NAME, "testModel");
         
         when(mockEPackageRegistryRef.getProperty(Constants.SERVICE_ID)).thenReturn(serviceId);
         when(mockEPackageRegistryRef.getProperties()).thenReturn(createDictionary(properties));

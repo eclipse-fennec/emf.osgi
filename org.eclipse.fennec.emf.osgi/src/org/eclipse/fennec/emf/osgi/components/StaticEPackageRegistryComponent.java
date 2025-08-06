@@ -26,6 +26,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap;
+import org.eclipse.fennec.emf.osgi.helper.MapChangeListener;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertyContext;
 import org.osgi.annotation.versioning.ProviderType;
@@ -42,7 +44,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 /**
- * An implementation of the Main  {@link EPackage} registry that replaces the static registry.t
+ * An implementation of the Main  {@link EPackage} registry that replaces the static registry.
+ * Uses {@link DelegatingHashMap} with change listeners to automatically update service properties
+ * when EPackages are added or removed.
  */
 @Component(name = StaticEPackageRegistryComponent.NAME, service = {})
 @ProviderType
@@ -51,16 +55,40 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	/** DEFAULT_E_PACKAGE_REGISTRY */
 	public static final String NAME = "StaticEPackageRegistryComponent";
 
-	final Map<String, Object> registry;
+	final DelegatingHashMap<String, Object> registry;
 	private long serviceChangeCount = 0;
 
 	private final ServiceRegistration<Registry> serviceRegistration;
 	
 	@Activate
 	public StaticEPackageRegistryComponent(BundleContext ctx) {
-		registry = new HashMap<>();
+		// Create registry with EMF's static registry as delegate
+		registry = new DelegatingHashMap<>();
+		
+		// Add change listener to automatically update service properties
+		registry.addMapChangeListener(new MapChangeListener<String, Object>() {
+			@Override
+			public void entryAdded(String key, Object value) {
+				updateProperties();
+			}
+
+			@Override
+			public void entryRemoved(String key, Object value) {
+				updateProperties();
+			}
+
+			@Override
+			public void entryUpdated(String key, Object oldValue, Object newValue) {
+				updateProperties();
+			}
+
+			@Override
+			public void mapCleared() {
+				updateProperties();
+			}
+		});
+		
 		serviceRegistration = ctx.registerService(EPackage.Registry.class, this, getDictionary());
-		updateProperties();
 	}
 	
 	@Deactivate
@@ -87,7 +115,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	private Map<String, Object> getProperties(EPackage ePackage) {
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(Constants.SERVICE_ID, Long.valueOf(ePackage.hashCode()));
-		properties.put(EMFNamespaces.EMF_MODEL_NAME, ePackage.getName());
+		properties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 		return properties;
 	}
@@ -210,9 +238,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	 */
 	@Override
 	public Object put(String key, Object value) {
-		Object response = registry.put(key, value);
-		updateProperties();
-		return response;
+		return registry.put(key, value);
 	}
 
 	/* 
@@ -221,9 +247,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	 */
 	@Override
 	public Object remove(Object key) {
-		Object response = registry.remove(key);
-		updateProperties();
-		return response;
+		return registry.remove(key);
 	}
 
 	/* 
@@ -233,7 +257,6 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	@Override
 	public void putAll(Map<? extends String, ? extends Object> m) {
 		registry.putAll(m);
-		updateProperties();
 	}
 
 	/* 
@@ -243,7 +266,6 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	@Override
 	public void clear() {
 		registry.clear();
-		updateProperties();
 	}
 
 	/* 

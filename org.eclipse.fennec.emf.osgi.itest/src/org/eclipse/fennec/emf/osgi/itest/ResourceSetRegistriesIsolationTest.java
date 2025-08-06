@@ -124,7 +124,7 @@ public class ResourceSetRegistriesIsolationTest {
 		rs1.getPackageRegistry().put(ManualPackageConfigurator.eNS_URI, BasicPackage.eINSTANCE);
 		
 		assertInstanceOf(BasicPackage.class, rs1.getPackageRegistry().getEPackage(ManualPackageConfigurator.eNS_URI));
-		assertInstanceOf(ManualPackageConfigurator.class, rs2.getPackageRegistry().getEPackage(ManualPackageConfigurator.eNS_URI));
+		assertInstanceOf(EPackage.class, rs2.getPackageRegistry().getEPackage(ManualPackageConfigurator.eNS_URI));
 
 		rs1.getPackageRegistry().remove(ManualPackageConfigurator.eNS_URI);
 		
@@ -172,7 +172,7 @@ public class ResourceSetRegistriesIsolationTest {
 		
 		
 		//Now register the service and look if it adds
-		ServiceRegistration<?> registration = ManualPackageConfigurator.registerManualPackage(bc, null);
+		ServiceRegistration<?> registration = ManualPackageConfigurator.registerManualPackageFactory(bc, null);
 		
 		assertInstanceOf(ManualResourceFactoryImpl.class, rs1.getResourceFactoryRegistry().getProtocolToFactoryMap().get("xxx"));
 		assertInstanceOf(ManualResourceFactoryImpl.class, rs1.getResourceFactoryRegistry().getContentTypeToFactoryMap().get("xxx"));

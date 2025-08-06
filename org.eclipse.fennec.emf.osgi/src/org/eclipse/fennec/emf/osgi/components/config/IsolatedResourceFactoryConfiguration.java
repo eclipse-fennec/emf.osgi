@@ -14,10 +14,9 @@
 package org.eclipse.fennec.emf.osgi.components.config;
 
 import static java.util.Objects.isNull;
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_NAME;
+import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EPACKAGE_REGISTRY_CONFIG_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EPACKAGE_REGISTRY_TARGET;
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EPACKAGE_TARGET;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.ISOLATED_RESOURCE_SET_FACTORY_CONFIG_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.PROP_MODEL_TARGET_FILTER;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.PROP_RESOURCE_SET_FACTORY_NAME;
@@ -33,6 +32,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -73,9 +73,9 @@ public class IsolatedResourceFactoryConfiguration {
 		String filter = getFilter(properties);
 		try {
 			eprConfig = configAdmin.getFactoryConfiguration(EPACKAGE_REGISTRY_CONFIG_NAME, name, "?");
-			eprConfig.update(getRegistryProperties(name));
+			eprConfig.update(getEPackageRegistryProperties(name, filter));
 			rfConfig = configAdmin.getFactoryConfiguration(RESOURCE_FACTORY_CONFIG_NAME, name, "?");
-			rfConfig.update(getRegistryProperties(name));
+			rfConfig.update(getRegistryProperties(name, filter));
 			rsfConfig = configAdmin.getFactoryConfiguration(RESOURCE_SET_FACTORY_CONFIG_NAME, name, "?");
 			rsfConfig.update(getResourceSetFactoryProperties(name, filter));
 		} catch (IOException e) {
@@ -94,11 +94,11 @@ public class IsolatedResourceFactoryConfiguration {
 			if (eprConfig == null) {
 				eprConfig = configAdmin.getFactoryConfiguration(EPACKAGE_REGISTRY_CONFIG_NAME, name, "?");
 			}
-			eprConfig.updateIfDifferent(getRegistryProperties(name));
+			eprConfig.updateIfDifferent(getRegistryProperties(name, filter));
 			if (rfConfig == null) {
 				rfConfig = configAdmin.getFactoryConfiguration(RESOURCE_FACTORY_CONFIG_NAME, name, "?");
 			}
-			rfConfig.updateIfDifferent(getRegistryProperties(name));
+			rfConfig.updateIfDifferent(getRegistryProperties(name, filter));
 			if (rsfConfig == null) {
 				rsfConfig = configAdmin.getFactoryConfiguration(RESOURCE_SET_FACTORY_CONFIG_NAME, name, "?");
 			}
@@ -142,9 +142,9 @@ public class IsolatedResourceFactoryConfiguration {
 	private String getFilter(Map<String, Object> properties) throws ConfigurationException {
 		String filterString = (String) properties.get(PROP_MODEL_TARGET_FILTER);
 		if (isNull(filterString)) {
-			filterString = "(" + EMF_MODEL_NAME + "=*)";
+			filterString = "(" + EMF_NAME + "=*)";
 		}
-		filterString = "(&(!(" + EMF_MODEL_NAME + "=ecore))" + filterString + ")";
+		filterString = "(&(!(" + EMF_NAME + "=ecore))" + filterString + ")";
 		try {
 			FrameworkUtil.createFilter(filterString);
 		} catch (InvalidSyntaxException e1) {
@@ -154,11 +154,23 @@ public class IsolatedResourceFactoryConfiguration {
 	}
 	
 	/**
+	 * Returns the EPackageRegistry properties
+	 * @param name the name of the new registry
+	 * @return the properties
+	 */
+	private Dictionary<String, Object> getEPackageRegistryProperties(String name, String filter) {
+		Dictionary<String, Object> properties = new Hashtable<>();
+		properties.put(PROP_RESOURCE_SET_FACTORY_NAME, name);
+		properties.put(EMFNamespaces.EPACKAGE_TARGET, filter);
+		return properties;
+
+	}
+	/**
 	 * Returns the registry properties
 	 * @param name the name of the new registry
 	 * @return the properties
 	 */
-	private Dictionary<String, Object> getRegistryProperties(String name) {
+	private Dictionary<String, Object> getRegistryProperties(String name, String filter) {
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(PROP_RESOURCE_SET_FACTORY_NAME, name);
 		return properties;
@@ -171,10 +183,9 @@ public class IsolatedResourceFactoryConfiguration {
 	 * @return the properties
 	 */
 	private Dictionary<String, Object> getResourceSetFactoryProperties(String name, String filter) {
-		Dictionary<String, Object> properties = getRegistryProperties(name);
+		Dictionary<String, Object> properties = getRegistryProperties(name, filter);
 		properties.put(EPACKAGE_REGISTRY_TARGET, "(" + PROP_RESOURCE_SET_FACTORY_NAME + "=" + name + ")");
 		properties.put(RESOURCE_FACTORY_REGISTRY_TARGET, "(" + PROP_RESOURCE_SET_FACTORY_NAME + "=" + name + ")");
-		properties.put(RESOURCE_FACTORY_TARGET, filter);
 		return properties;
 	}
 

@@ -91,7 +91,7 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 		this.staticRegistry = staticRegistry;
 		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
 		this.registryTracker = registryTracker;
-		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
+		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(staticRegistry.getProperties()));
 		super.setEPackageRegistry(ctx.getService(defaultResourceSetRegistry), FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(ctx.getService(resourceFactoryRegistryReference), FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
 		//TODO: Tut dat note, dass das so rumoxidiert?

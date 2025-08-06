@@ -20,19 +20,38 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A {@link Map} implementation that holds an internal {@link HashMap} to store its data together with a delegate.
  * All reading operations will delegate on the delegate instance if no results are found internally.
+ * <p>
+ * This implementation supports change listeners that are notified when modifications are made to the map.
+ * Listeners are called for add, update, remove, and clear operations. Only changes to the internal map
+ * trigger notifications - changes to the delegate map do not generate events.
+ * <p>
+ * The listener mechanism is thread-safe and robust - if one listener throws an exception, other listeners
+ * will still be notified of the change.
  * 
+ * @param <K> the type of keys maintained by this map
+ * @param <V> the type of mapped values
  * @author Juergen Albert
  * @since 25 Nov 2022
+ * @see MapChangeListener
  */
 public class DelegatingHashMap<K, V> implements Map<K, V> {
 
 	private Map<K, V> delegate;
 	private Map<K, V> main;
+	private final List<MapChangeListener<K, V>> listeners = new CopyOnWriteArrayList<>();
 
+	/**
+	 * Creates a new instance.
+	 */
+	public DelegatingHashMap() {
+		this(new HashMap<>());
+		
+	}
 	/**
 	 * Creates a new instance.
 	 */
@@ -130,7 +149,13 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 	 */
 	@Override
 	public V put(K key, V value) {
-		return main.put(key, value);
+		V oldValue = main.put(key, value);
+		if (oldValue == null) {
+			notifyEntryAdded(key, value);
+		} else {
+			notifyEntryUpdated(key, oldValue, value);
+		}
+		return oldValue;
 	}
 
 	/* 
@@ -139,7 +164,13 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 	 */
 	@Override
 	public V remove(Object key) {
-		return main.remove(key);
+		V removedValue = main.remove(key);
+		if (removedValue != null) {
+			@SuppressWarnings("unchecked")
+			K typedKey = (K) key;
+			notifyEntryRemoved(typedKey, removedValue);
+		}
+		return removedValue;
 	}
 
 	/* 
@@ -148,7 +179,9 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 	 */
 	@Override
 	public void putAll(Map<? extends K, ? extends V> m) {
-		main.putAll(m);
+		for (Map.Entry<? extends K, ? extends V> entry : m.entrySet()) {
+			put(entry.getKey(), entry.getValue());
+		}
 	}
 
 	/* 
@@ -157,6 +190,69 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 	 */
 	@Override
 	public void clear() {
-		main.clear();
+		if (!main.isEmpty()) {
+			main.clear();
+			notifyMapCleared();
+		}
+	}
+
+	/**
+	 * Adds a listener to be notified of map changes.
+	 * 
+	 * @param listener the listener to add
+	 */
+	public void addMapChangeListener(MapChangeListener<K, V> listener) {
+		if (listener != null) {
+			listeners.add(listener);
+		}
+	}
+
+	/**
+	 * Removes a listener from being notified of map changes.
+	 * 
+	 * @param listener the listener to remove
+	 */
+	public void removeMapChangeListener(MapChangeListener<K, V> listener) {
+		listeners.remove(listener);
+	}
+
+	private void notifyEntryAdded(K key, V value) {
+		for (MapChangeListener<K, V> listener : listeners) {
+			try {
+				listener.entryAdded(key, value);
+			} catch (Exception e) {
+				// Continue with other listeners even if one fails
+			}
+		}
+	}
+
+	private void notifyEntryRemoved(K key, V value) {
+		for (MapChangeListener<K, V> listener : listeners) {
+			try {
+				listener.entryRemoved(key, value);
+			} catch (Exception e) {
+				// Continue with other listeners even if one fails
+			}
+		}
+	}
+
+	private void notifyEntryUpdated(K key, V oldValue, V newValue) {
+		for (MapChangeListener<K, V> listener : listeners) {
+			try {
+				listener.entryUpdated(key, oldValue, newValue);
+			} catch (Exception e) {
+				// Continue with other listeners even if one fails
+			}
+		}
+	}
+
+	private void notifyMapCleared() {
+		for (MapChangeListener<K, V> listener : listeners) {
+			try {
+				listener.mapCleared();
+			} catch (Exception e) {
+				// Continue with other listeners even if one fails
+			}
+		}
 	}
 }

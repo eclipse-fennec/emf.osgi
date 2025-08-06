@@ -80,7 +80,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put("rsf.name", "test");
-		properties.put("rsf.model.target.filter", "(" + EMFNamespaces.EMF_MODEL_NAME + "=*)");
+		properties.put("rsf.model.target.filter", "(" + EMFNamespaces.EMF_NAME + "=*)");
 		
 		AtomicReference<Configuration> cr = new AtomicReference<>();
 		MonitoringAssertion.executeAndObserve(() -> {
@@ -111,7 +111,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put("rsf.name", "test");
-		properties.put("rsf.model.target.filter", "(" + EMFNamespaces.EMF_MODEL_NAME + "=*)");
+		properties.put("rsf.model.target.filter", "(" + EMFNamespaces.EMF_NAME + "=*)");
 
 		AtomicReference<Configuration> cr = new AtomicReference<>();
 		MonitoringAssertion.executeAndObserve(() -> {
@@ -145,7 +145,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(EMFNamespaces.PROP_RESOURCE_SET_FACTORY_NAME, "manual");
-		properties.put(EMFNamespaces.PROP_MODEL_TARGET_FILTER, "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)");
+		properties.put(EMFNamespaces.PROP_MODEL_TARGET_FILTER, "(" + EMFNamespaces.EMF_NAME + "=manual)");
 
 		AtomicReference<Configuration> cr = new AtomicReference<>();
 		MonitoringAssertion.executeAndObserve(() -> {
@@ -162,7 +162,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 
 		ServiceReference<?> rsfRef = rsfAware.getServiceReference();
-		Object modelNames = rsfRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+		Object modelNames = rsfRef.getProperty(EMFNamespaces.EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		List<String> modelNameList = Arrays.asList((String[]) modelNames);
@@ -171,7 +171,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 		assertFalse(modelNameList.contains("manual2"));
 
 		ServiceReference<?> rsRef = rsAware.getServiceReference();
-		modelNames = rsRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+		modelNames = rsRef.getProperty(EMFNamespaces.EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -180,13 +180,13 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 		assertFalse(modelNameList.contains("manual2"));
 
 		Dictionary<String, Object> manualProperties = new Hashtable<String, Object>();
-		manualProperties.put(EMFNamespaces.EMF_MODEL_NAME, ManualPackageConfigurator.eNAME);
+		manualProperties.put(EMFNamespaces.EMF_NAME, ManualPackageConfigurator.eNAME);
 
 		ServiceRegistration<?> manualRegistration = ManualPackageConfigurator.registerManualPackage(bc, manualProperties);
 		Thread.sleep(4000);
 		
 		rsfRef = rsAware.getServiceReference();
-		modelNames = rsfRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+		modelNames = rsfRef.getProperty(EMFNamespaces.EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -195,7 +195,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 		assertFalse(modelNameList.contains("manual2"));
 
 		rsRef = rsfAware.getServiceReference();
-		modelNames = rsRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+		modelNames = rsRef.getProperty(EMFNamespaces.EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -204,7 +204,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 		assertFalse(modelNameList.contains("manual2"));
 
 		manualProperties = new Hashtable<String, Object>();
-		manualProperties.put(EMFNamespaces.EMF_MODEL_NAME, BasicPackage.eNAME + "2");
+		manualProperties.put(EMFNamespaces.EMF_NAME, BasicPackage.eNAME + "2");
 		/*
 		 * No change expected because target filter does not match
 		 */
@@ -215,7 +215,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 				configurator2, manualProperties);
 
 		rsfRef = rsfAware.getServiceReference();
-		modelNames = rsfRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+		modelNames = rsfRef.getProperty(EMFNamespaces.EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -225,7 +225,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 		rsRef = rsAware.getServiceReference();
 		;
-		modelNames = rsRef.getProperty(EMFNamespaces.EMF_MODEL_NAME);
+		modelNames = rsRef.getProperty(EMFNamespaces.EMF_NAME);
 		assertNotNull(modelNames);
 		assertTrue(modelNames instanceof String[]);
 		modelNameList = Arrays.asList((String[]) modelNames);
@@ -238,7 +238,7 @@ public class IsolatedResourceSetFactoryIntegrationTest {
 
 		MonitoringAssertion.executeAndObserve(() -> {
 			cr.get().delete();
-		}).untilNoMoreServiceEventWithin(1000).assertWithTimeoutThat(1000)
+		}).untilNoMoreServiceEventWithin(2000).assertWithTimeoutThat(2000)
 				.hasExactlyOneServiceEventUnregisteringWith(ResourceSet.class)
 				.hasExactlyOneServiceEventUnregisteringWith(ResourceSetFactory.class)
 				.hasExactlyOneServiceEventUnregisteringWith(Resource.Factory.Registry.class)

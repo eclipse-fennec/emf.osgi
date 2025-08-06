@@ -73,7 +73,7 @@ public class DynamicModelConfiguratorTest {
 	 */
 	@Test
 	public void testCreateDynamicModel(
-			@InjectService(cardinality = 1) ServiceAware<ResourceSetFactory> resourceSetFactory, @InjectService(cardinality = 0, filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<EPackage> manualAware
+			@InjectService(cardinality = 1) ServiceAware<ResourceSetFactory> resourceSetFactory, @InjectService(cardinality = 0, filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> manualAware
 		) throws Exception {
 
 		assertThat(manualAware.isEmpty()).isTrue();
@@ -81,8 +81,8 @@ public class DynamicModelConfiguratorTest {
 		ServiceReference<ResourceSetFactory> reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-				.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+				.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 				.isInstanceOfSatisfying(String[].class, arr -> {
 					assertThat(arr).contains("ecore");
 					assertThat(arr).doesNotContain("manual");
@@ -111,8 +111,8 @@ public class DynamicModelConfiguratorTest {
 		reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-				.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+				.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 				.isInstanceOfSatisfying(String[].class, arr -> {
 					assertThat(arr).contains("ecore", "manual");
 				});
@@ -168,8 +168,8 @@ public class DynamicModelConfiguratorTest {
 		ServiceReference<ResourceSetFactory> reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-				.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+				.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 				.isInstanceOfSatisfying(String[].class, arr -> {
 					assertThat(arr).contains("ecore");
 					assertThat(arr).doesNotContain("manual");
@@ -194,8 +194,8 @@ public class DynamicModelConfiguratorTest {
 		reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-				.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+				.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 				.isInstanceOfSatisfying(String[].class, arr -> {
 					assertThat(arr).contains("ecore", "manual");
 				});
@@ -256,8 +256,8 @@ public class DynamicModelConfiguratorTest {
 		ServiceReference<ResourceSetFactory> reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 		
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-		.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+		.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 		.isInstanceOfSatisfying(String[].class, arr -> {
 			assertThat(arr).contains("ecore");
 			assertThat(arr).doesNotContain("manual");
@@ -282,8 +282,8 @@ public class DynamicModelConfiguratorTest {
 		reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 		
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-		.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+		.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 		.isInstanceOfSatisfying(String[].class, arr -> {
 			assertThat(arr).contains("ecore", "manual");
 		});
@@ -304,8 +304,8 @@ public class DynamicModelConfiguratorTest {
 		reference = resourceSetFactory.getServiceReference();
 		assertThat(reference).isNotNull();
 		
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-		.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+		.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 		.isInstanceOfSatisfying(String[].class, arr -> {
 			assertThat(arr).contains("ecore", "manual2");
 			assertThat(arr).doesNotContain("manual");
@@ -318,8 +318,8 @@ public class DynamicModelConfiguratorTest {
 		}).untilNoMoreServiceEventModifiedWithin(1000, ResourceSetFactory.class).assertWithTimeoutThat(10000)
 		.isNotTimedOut().hasAtLeastOneServiceEventModifiedWith(ResourceSetFactory.class);
 		
-		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_MODEL_NAME)
-		.extractingByKey(EMFNamespaces.EMF_MODEL_NAME).isNotNull()
+		DictionaryAssert.assertThat(reference.getProperties()).containsKey(EMFNamespaces.EMF_NAME)
+		.extractingByKey(EMFNamespaces.EMF_NAME).isNotNull()
 		.isInstanceOfSatisfying(String[].class, arr -> {
 			assertThat(arr).contains("ecore");
 			assertThat(arr).doesNotContain("manual2");

@@ -92,7 +92,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 	 * @param registry the {@link EPackage} registry to set
 	 */
 	protected void setStaticEPackageRegistryProperties(Map<String, Object> properties) {
-		getPropertyContext().removeSubContext(properties);
+		getPropertyContext().addSubContext(properties);
 		updateRegistrationProperties();
 	}
 	
@@ -224,12 +224,6 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 	 * @param ctx the component context
 	 */
 	protected void doActivate(BundleContext ctx) {
-		packageRegistry.putAll(EPackage.Registry.INSTANCE);
-		Factory.Registry rfr = resourceFactoryRegistry.get();
-		Objects.requireNonNull(rfr);
-		rfr.getExtensionToFactoryMap().putAll(Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap());
-		rfr.getContentTypeToFactoryMap().putAll(Resource.Factory.Registry.INSTANCE.getContentTypeToFactoryMap());
-		rfr.getProtocolToFactoryMap().putAll(Resource.Factory.Registry.INSTANCE.getProtocolToFactoryMap());
 		registerServices(ctx);
 	}
 

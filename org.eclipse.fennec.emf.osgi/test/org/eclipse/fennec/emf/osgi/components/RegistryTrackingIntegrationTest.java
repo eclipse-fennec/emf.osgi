@@ -95,7 +95,7 @@ public class RegistryTrackingIntegrationTest {
         // Then - Simulate a manual EPackageConfigurator being registered, which updates the registry properties
         Dictionary<String, Object> updatedProperties = new Hashtable<>();
         updatedProperties.put(Constants.SERVICE_ID, ePackageRegistryServiceId);
-        updatedProperties.put(EMFNamespaces.EMF_MODEL_NAME, modelName);
+        updatedProperties.put(EMFNamespaces.EMF_NAME, modelName);
         updatedProperties.put(EMFNamespaces.EMF_MODEL_NSURI, nsUri);
         updatedProperties.put("emf.model.scope", "resourceset");
         updatedProperties.put("manual.configurator.registered", "true");
@@ -114,7 +114,7 @@ public class RegistryTrackingIntegrationTest {
         // Verify the captured properties contain the expected manual configurator information
         Map<String, Object> receivedProperties = capturedProperties.get();
         assertNotNull(receivedProperties, "Should have received property change notification");
-        assertEquals(modelName, receivedProperties.get(EMFNamespaces.EMF_MODEL_NAME));
+        assertEquals(modelName, receivedProperties.get(EMFNamespaces.EMF_NAME));
         assertEquals(nsUri, receivedProperties.get(EMFNamespaces.EMF_MODEL_NSURI));
         assertEquals("resourceset", receivedProperties.get("emf.model.scope"));
         assertEquals("true", receivedProperties.get("manual.configurator.registered"));
@@ -170,7 +170,7 @@ public class RegistryTrackingIntegrationTest {
         
         Dictionary<String, Object> properties = new Hashtable<>();
         properties.put(Constants.SERVICE_ID, serviceId);
-        properties.put(EMFNamespaces.EMF_MODEL_NAME, modelName);
+        properties.put(EMFNamespaces.EMF_NAME, modelName);
         properties.put(EMFNamespaces.EMF_MODEL_NSURI, nsUri);
         
         when(mockRef.getProperty(Constants.SERVICE_ID)).thenReturn(serviceId);

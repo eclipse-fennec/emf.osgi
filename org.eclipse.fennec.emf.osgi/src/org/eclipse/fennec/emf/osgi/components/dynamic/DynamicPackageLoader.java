@@ -54,7 +54,7 @@ import aQute.bnd.annotation.service.ServiceCapability;
  * A URL can be configured, where a ecore is expected. The {@link EPackage} will then be loaded and together with a {@link EPackageConfigurator} registered for further use. 
  * Only the first EPackage is registered.
  * 
- * The {@link EPackage} and {@link EPackageConfigurator} will be registered with the properties {@link EMFNamespaces#EMF_MODEL_NAME} and {@link EMFNamespaces#EMF_MODEL_NSURI}. 
+ * The {@link EPackage} and {@link EPackageConfigurator} will be registered with the properties {@link EMFNamespaces#EMF_NAME} and {@link EMFNamespaces#EMF_MODEL_NSURI}. 
  * Additional properties can be defined with the prefix "additional.*". The prefix will be cut before used as registering properties.   
  * 
  * @author Juergen Albert
@@ -160,7 +160,7 @@ public class DynamicPackageLoader{
 		requireNonNull(properties);
 		
 		Dictionary<String, Object> props = new Hashtable<>();
-		props.put(EMFNamespaces.EMF_MODEL_NAME, dynamicPackage.getName());
+		props.put(EMFNamespaces.EMF_NAME, dynamicPackage.getName());
 		props.put(EMFNamespaces.EMF_MODEL_NSURI, dynamicPackage.getNsURI());
 		props.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_DYNAMIC);
 		if (config.feature().length > 0) {

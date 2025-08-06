@@ -26,6 +26,7 @@ import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -59,6 +60,11 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 		super(NAME, Collections.singletonMap("default.resourceset.epackage.registry", true));
 		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
+	}
+	
+	@Deactivate
+	public void deactivate() {
+		doDeactivate();
 	}
 
 	/**

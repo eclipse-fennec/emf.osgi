@@ -105,17 +105,17 @@ public class ServicePropertyContextTest {
 		Set<String> modelNames = new HashSet<>();
 		modelNames.add("one");
 		modelNames.add("two");
-		map.put(EMFNamespaces.EMF_MODEL_NAME, modelNames);
+		map.put(EMFNamespaces.EMF_NAME, modelNames);
 		
 		spc.updateServiceProperties(map);
 		assertEquals(2, spc.getProperties(false).size());
 		verifyExistingKeys(spc.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(spc.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(spc.getProperties(false), EMFNamespaces.EMF_NAME, "one", "two");
 		
 		spc2 = ServicePropertyContext.create(map);
 		assertEquals(2, spc2.getProperties(false).size());
 		verifyExistingKeys(spc2.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(spc2.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(spc2.getProperties(false), EMFNamespaces.EMF_NAME, "one", "two");
 	}
 	
 	@Test
@@ -167,13 +167,13 @@ public class ServicePropertyContextTest {
 		Set<String> modelNames = new HashSet<>();
 		modelNames.add("one");
 		modelNames.add("two");
-		map.put(EMFNamespaces.EMF_MODEL_NAME, modelNames);
+		map.put(EMFNamespaces.EMF_NAME, modelNames);
 		map.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, Collections.singleton("test"));
 		
 		ServicePropertyContext ctx = ServicePropertyContext.create(map);
 		assertEquals(2, ctx.getProperties(false).size());
 		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "two");
 		
 		assertThrows(NullPointerException.class, ()->ctx.addSubContext(null));
 		assertThrows(IllegalStateException.class, ()->ctx.addSubContext(Collections.emptyMap()));
@@ -183,7 +183,7 @@ public class ServicePropertyContextTest {
 		Set<String> subModelNames = new HashSet<>();
 		subModelNames.add("one");
 		subModelNames.add("three");
-		subMap.put(EMFNamespaces.EMF_MODEL_NAME, subModelNames);
+		subMap.put(EMFNamespaces.EMF_NAME, subModelNames);
 		subMap.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, Collections.singleton("toast"));
 		subMap.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, Collections.singleton("application/toast"));
 		
@@ -191,12 +191,12 @@ public class ServicePropertyContextTest {
 		assertNotNull(subCtx);
 		assertEquals(3, subCtx.getProperties(false).size());
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		assertEquals(2, ctx.getProperties(false).size());
 		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "two");
 		
 		assertThrows(NullPointerException.class, ()->ctx.removeSubContext(null));
 		assertThrows(IllegalStateException.class, ()->ctx.removeSubContext(Collections.emptyMap()));
@@ -212,12 +212,12 @@ public class ServicePropertyContextTest {
 		assertNotNull(subCtx);
 		assertEquals(3, subCtx.getProperties(false).size());
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 
 		assertEquals(2, ctx.getProperties(false).size());
 		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "two");
 
 		subMap.put(Constants.SERVICE_ID, Long.valueOf(2));
 		subCtx = ctx.removeSubContext(subMap);
@@ -225,7 +225,7 @@ public class ServicePropertyContextTest {
 		
 		assertEquals(2, ctx.getProperties(false).size());
 		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(ctx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "two");
 	}
 	
 	@Test
@@ -235,7 +235,7 @@ public class ServicePropertyContextTest {
 		Set<String> modelNames = new HashSet<>();
 		modelNames.add("one");
 		modelNames.add("two");
-		map.put(EMFNamespaces.EMF_MODEL_NAME, modelNames);
+		map.put(EMFNamespaces.EMF_NAME, modelNames);
 		map.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, Collections.singleton("test"));
 		
 		ServicePropertyContext ctx = ServicePropertyContext.create();
@@ -246,7 +246,7 @@ public class ServicePropertyContextTest {
 		Set<String> subModelNames = new HashSet<>();
 		subModelNames.add("one");
 		subModelNames.add("three");
-		subMap.put(EMFNamespaces.EMF_MODEL_NAME, subModelNames);
+		subMap.put(EMFNamespaces.EMF_NAME, subModelNames);
 		subMap.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, Collections.singleton("toast"));
 		subMap.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, Collections.singleton("application/toast"));
 		
@@ -254,14 +254,14 @@ public class ServicePropertyContextTest {
 		assertNotNull(subCtx);
 		assertEquals(3, subCtx.getProperties(false).size());
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		assertTrue(ctx.getProperties(false).isEmpty());
 		
 		assertEquals(3, ctx.getProperties(true).size());
 		verifyExistingKeys(ctx.getProperties(true), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(ctx.getProperties(true), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(ctx.getProperties(true), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(ctx.getProperties(true), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		subMap.put(Constants.SERVICE_ID, Long.valueOf(2));
@@ -269,7 +269,7 @@ public class ServicePropertyContextTest {
 		assertNotNull(subCtx);
 		assertEquals(3, subCtx.getProperties(false).size());
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		assertTrue(ctx.getProperties(false).isEmpty());
@@ -284,21 +284,21 @@ public class ServicePropertyContextTest {
 		Set<String> modelNames = new HashSet<>();
 		modelNames.add("one");
 		modelNames.add("two");
-		map.put(EMFNamespaces.EMF_MODEL_NAME, modelNames);
+		map.put(EMFNamespaces.EMF_NAME, modelNames);
 		map.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, Collections.singleton("test"));
 		
 		ServicePropertyContext ctx = ServicePropertyContext.create(map);
 		Map<String, Object> mergedResult = ctx.getProperties(true);
 		assertEquals(2, mergedResult.size());
 		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_NAME, "one", "two");
 		
 		Map<String, Object> subMap = new HashMap<>();
 		subMap.put(Constants.SERVICE_ID, Long.valueOf(2));
 		Set<String> subModelNames = new HashSet<>();
 		subModelNames.add("one");
 		subModelNames.add("three");
-		subMap.put(EMFNamespaces.EMF_MODEL_NAME, subModelNames);
+		subMap.put(EMFNamespaces.EMF_NAME, subModelNames);
 		subMap.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, Collections.singleton("toast"));
 		subMap.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, Collections.singleton("application/toast"));
 		
@@ -306,13 +306,13 @@ public class ServicePropertyContextTest {
 		assertNotNull(subCtx);
 		assertEquals(3, subCtx.getProperties(false).size());
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		mergedResult = ctx.getProperties(true);
 		assertEquals(3, mergedResult.size());
 		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast", "test");
-		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_MODEL_NAME, "one", "two", "three");
+		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_NAME, "one", "two", "three");
 		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		subMap = new HashMap<>();
@@ -323,7 +323,7 @@ public class ServicePropertyContextTest {
 		mergedResult = ctx.getProperties(true);
 		assertEquals(3, mergedResult.size());
 		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast", "test");
-		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_MODEL_NAME, "one", "two", "three");
+		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_NAME, "one", "two", "three");
 		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		subMap = new HashMap<>();
@@ -331,13 +331,13 @@ public class ServicePropertyContextTest {
 		subCtx = ctx.removeSubContext(subMap);
 		assertEquals(3, subCtx.getProperties(false).size());
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_CONFIGURATOR_NAME, "toast");
-		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_NAME, "one", "three");
+		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_NAME, "one", "three");
 		verifyExistingKeys(subCtx.getProperties(false), EMFNamespaces.EMF_MODEL_CONTENT_TYPE, "application/toast");
 		
 		mergedResult = ctx.getProperties(true);
 		assertEquals(2, mergedResult.size());
 		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_CONFIGURATOR_NAME, "test");
-		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_MODEL_NAME, "one", "two");
+		verifyExistingKeys(mergedResult, EMFNamespaces.EMF_NAME, "one", "two");
 	}
 	
 	@Test

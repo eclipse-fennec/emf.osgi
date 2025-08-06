@@ -86,7 +86,7 @@ public class EMFModelExtenderRestartTest {
 	}
 	
 	@Test
-	public void stopBundleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<ResourceSet> rsAware, @InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<EPackage> ePackageAware) {
+	public void stopBundleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<ResourceSet> rsAware, @InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> ePackageAware) {
 		ResourceSet rs = rsAware.getService();
 		assertNotNull(rs);
 		EPackage ePackageService = ePackageAware.getService();
@@ -104,7 +104,7 @@ public class EMFModelExtenderRestartTest {
 		
 		Collection<ServiceReference<EPackageConfigurator>> configurators = Collections.emptyList();
 		try {
-			configurators = ctx.getServiceReferences(EPackageConfigurator.class, "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)");
+			configurators = ctx.getServiceReferences(EPackageConfigurator.class, "(" + EMFNamespaces.EMF_NAME + "=manual)");
 		} catch (InvalidSyntaxException e1) {
 			fail("Invalid filter");
 		}
@@ -132,7 +132,7 @@ public class EMFModelExtenderRestartTest {
 	}
 	
 	@Test
-	public void restartBundleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<ResourceSet> rsAware, @InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)") ServiceAware<EPackage> ePackageAware) {
+	public void restartBundleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<ResourceSet> rsAware, @InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> ePackageAware) {
 		ResourceSet rs = rsAware.getService();
 		assertNotNull(rs);
 		EPackage ePackageService = ePackageAware.getService();
@@ -150,7 +150,7 @@ public class EMFModelExtenderRestartTest {
 		
 		Collection<ServiceReference<EPackageConfigurator>> configurators = Collections.emptyList();
 		try {
-			configurators = ctx.getServiceReferences(EPackageConfigurator.class, "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)");
+			configurators = ctx.getServiceReferences(EPackageConfigurator.class, "(" + EMFNamespaces.EMF_NAME + "=manual)");
 		} catch (InvalidSyntaxException e1) {
 			fail("Invalid filter");
 		}
@@ -190,7 +190,7 @@ public class EMFModelExtenderRestartTest {
 		assertFalse(rsAware.isEmpty());
 		assertFalse(ePackageAware.isEmpty());
 		try {
-			configurators = ctx.getServiceReferences(EPackageConfigurator.class, "(" + EMFNamespaces.EMF_MODEL_NAME + "=manual)");
+			configurators = ctx.getServiceReferences(EPackageConfigurator.class, "(" + EMFNamespaces.EMF_NAME + "=manual)");
 		} catch (InvalidSyntaxException e1) {
 			fail("Invalid filter");
 		}

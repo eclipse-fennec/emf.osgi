@@ -34,7 +34,7 @@ public class BasicModelPropertiesTest {
 
 	
 	@Test
-	public void simpleTestEPackageRegistrationProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_MODEL_NAME + "=basic)") ServiceAware<EPackage> epackageAware) {
+	public void simpleTestEPackageRegistrationProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=basic)") ServiceAware<EPackage> epackageAware) {
 		assertNotNull(epackageAware);
 		assertThat(epackageAware.isEmpty()).isFalse();
 		DictionaryAssert.assertThat(epackageAware.getServiceReference().getProperties()).containsKey(EMFNamespaces.EMF_MODEL_REGISTRATION)	
