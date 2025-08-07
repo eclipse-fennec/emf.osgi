@@ -4,6 +4,9 @@ plugins {
   id 'java'
 }
 
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
 // We need to define a repository for the root project, otherwise Jacoco dependencies cannot be resolved
 repositories {
   mavenCentral()

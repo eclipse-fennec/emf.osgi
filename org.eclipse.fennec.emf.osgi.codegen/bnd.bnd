@@ -43,11 +43,13 @@ javac.target: 17
 -includeresource.resource: \
 	/=resources,\
 	templates
+	#org.eclipse.jdt.core!/org/eclipse/jdt/internal/compiler/parser
 	
 -privatepackage.add: \
 	org.eclipse.core.runtime;-split-package:=merge-first,\
 	org.eclipse.core.internal.*;-split-package:=merge-first,\
 	org.eclipse.emf.*,\
+	org.eclipse.jdt.internal.compiler.parser.*
 
 -conditionalpackage: \
 	org.osgi.*,\

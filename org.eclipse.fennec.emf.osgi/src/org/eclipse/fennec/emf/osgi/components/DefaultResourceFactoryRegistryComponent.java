@@ -62,7 +62,7 @@ public class DefaultResourceFactoryRegistryComponent extends SelfRegisteringServ
 	public DefaultResourceFactoryRegistryComponent(BundleContext ctx,
 			@Reference(name="ePackageRegistry")
 			EPackage.Registry packageRegistry) {
-		super(COMPONENT_NAME, Collections.emptyMap());
+		super(ctx, COMPONENT_NAME, Collections.emptyMap());
 		registry = new ResourceFactoryRegistryImpl();
 		registerService(ctx, Registry.class, registry);
 		addFactory(new GeckoXMLResourceFactory(packageRegistry), GeckoXMLResourceFactory.PROPERTIES);

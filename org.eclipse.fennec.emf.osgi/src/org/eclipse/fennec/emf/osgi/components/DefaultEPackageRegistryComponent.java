@@ -23,7 +23,9 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.versioning.ProviderType;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -57,10 +59,11 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 	 */
 	@Activate
 	public DefaultEPackageRegistryComponent(BundleContext ctx) {
-		super(NAME, Collections.singletonMap("default.resourceset.epackage.registry", true));
+		super(ctx, NAME, Collections.singletonMap("default.resourceset.epackage.registry", true));
 		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
 	}
+	
 	
 	@Deactivate
 	public void deactivate() {

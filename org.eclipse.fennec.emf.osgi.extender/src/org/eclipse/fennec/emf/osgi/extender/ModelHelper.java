@@ -208,6 +208,9 @@ public class ModelHelper {
 				serviceProperties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 				serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, nsUri);
 				serviceProperties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
+				if(!properties.containsKey(EMFNamespaces.EMF_MODEL_SCOPE)) {
+					serviceProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_STATIC);
+				}
 				return new Model(ePackage, url, serviceProperties, bundleId);
 			}
 			return null;

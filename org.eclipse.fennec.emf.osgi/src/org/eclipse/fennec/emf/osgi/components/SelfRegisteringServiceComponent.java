@@ -18,8 +18,11 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertyContext;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
 
@@ -39,12 +42,34 @@ public abstract class SelfRegisteringServiceComponent {
 	/**
 	 * Creates a new instance.
 	 */
-	public SelfRegisteringServiceComponent(String componentName, Map<String, Object> defaultProperties) {
+	public SelfRegisteringServiceComponent(BundleContext ctx, String componentName, Map<String, Object> defaultProperties) {
 		super();
+		checkEMFEcore(ctx);
 		this.componentName = componentName;
 		Objects.requireNonNull(defaultProperties);
 		this.defaultProperties = defaultProperties;
 		this.propertyContext = ServicePropertyContext.create();
+	}
+	
+	/**
+	 * We have to make sure that org.eclipse.emf.ecore is started, so we don't run 
+	 * into start order issues due to the use of static access in EMF 
+	 * @param ctx the {@link BundleContext} to use
+	 */
+	private void checkEMFEcore(BundleContext ctx) {
+		Bundle[] bundles = ctx.getBundles();
+		
+		for(Bundle bundle : bundles) {
+			if("org.eclipse.emf.ecore".equals(bundle.getSymbolicName())) {
+				try {
+					bundle.start();
+				} catch (BundleException e) {
+					System.err.println("Could not start Bundle org.eclipse.emf.ecore, something seems seriously wrong: " + e.getMessage());
+					e.printStackTrace();
+				}
+				break;
+			}
+		}
 	}
 
 	protected <T> void registerService(BundleContext ctx, Class<T> clazz, T service) {

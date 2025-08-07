@@ -69,7 +69,7 @@ public class ConfigurationEPackageRegistryComponent extends SelfRegisteringServi
 	 */
 	@Activate
 	public ConfigurationEPackageRegistryComponent(BundleContext ctx, Map<String, Object> properties) {
-		super((String) properties.get(PROP_RESOURCE_SET_FACTORY_NAME), properties);
+		super(ctx, (String) properties.get(PROP_RESOURCE_SET_FACTORY_NAME), properties);
 		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
 	}
