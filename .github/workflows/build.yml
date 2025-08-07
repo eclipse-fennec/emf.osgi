@@ -1,26 +1,17 @@
 name: CI Build
 on:
   push:
-    paths-ignore:
-    - 'docs/**'
-    - '.github/**/*docs*'
-    - '.github/**/*codeql*'
-    - '.github/*.yml'
+    branches-ignore:
+      # This build should run on all pushes EXCEPT main and snapshot branches.
+      - main
+      - snapshot
   pull_request:
-    paths-ignore:
-    - 'docs/**'
-    - '.github/**/*docs*'
-    - '.github/**/*codeql*'
-    - '.github/*.yml'
+    # This build should run for all pull requests.
+    branches:
+    - '*' # Run on all branches for pull requests.
 
 env:
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
   LC_ALL: en_US.UTF-8
-  GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-  GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-  OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-  OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
   GRADLE_OPTS: >-
     -Dorg.gradle.parallel=true
 
@@ -29,61 +20,23 @@ defaults:
     shell: bash
 
 jobs:
-  Build_Matrix:
-    if: ${{ ((github.ref == 'nope')) }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
-        java: [ 17 ]
-        runner: [ 'xvfb-run --auto-servernum {0}' ]
-    name: JDK${{ matrix.java }} ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+  build:
+    name: Gradle Build
+    runs-on: ubuntu-latest
     steps:
     - name: Git Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Gradle Wrapper Validation
-      uses: gradle/wrapper-validation-action@v1
-    - name: Set up Java ${{ matrix.java }}
-      uses: actions/setup-java@v3
+      uses: gradle/actions/wrapper-validation@v4
+    - name: Set up Java
+      uses: actions/setup-java@v4
       with:
         distribution: "temurin"
         cache: "gradle"
-        java-version: ${{ matrix.java }}
+        java-version: 21
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
     - name: Gradle version
       run: ./gradlew --no-daemon --version
     - name: Build with Gradle
-      run: ./gradlew build
-    - name: Test with Gradle
-      run: ./gradlew testOSGi
-    - name: Upload Test Reports
-      if: ${{ always() && ((steps.build.outcome == 'success') || (steps.build.outcome == 'failure')) }}
-      uses: actions/upload-artifact@v3
-      with:
-        name: JDK${{ matrix.java }}_${{ matrix.os }}-test-reports
-        path: |
-          */generated/test-reports/*/TEST-*.xml
-  Release:
-    runs-on: ubuntu-latest
-    if: ${{ ((github.ref == 'refs/heads/main' || github.ref == 'refs/heads/snapshot')) }}
-    steps:
-    - name: Git Checkout
-      uses: actions/checkout@v3
-    - name: Gradle Wrapper Validation
-      uses: gradle/wrapper-validation-action@v1
-    - name: Set up Java 17
-      uses: actions/setup-java@v3
-      with:
-        distribution: "adopt "
-        cache: "gradle"
-        java-version: 17
-    - name: Grant execute permission for gradlew
-      run: chmod +x ./gradlew
-    - name: Gradle version
-      run: ./gradlew --no-daemon --version
-    - name: BND Properties
-      run: ./gradlew bndproperties
-    - name: Release to Sonartype
-      run: ./gradlew clean build release --stacktrace
-
+      run: ./gradlew build --info
