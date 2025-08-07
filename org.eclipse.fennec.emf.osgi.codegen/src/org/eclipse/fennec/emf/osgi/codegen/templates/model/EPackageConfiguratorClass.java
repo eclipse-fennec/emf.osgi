@@ -33,7 +33,7 @@ public class EPackageConfiguratorClass
   protected final String TEXT_16 = "<String, Object> getServiceProperties() {" + NL + "\t\t";
   protected final String TEXT_17 = "<String, Object> properties = new ";
   protected final String TEXT_18 = "<String, Object>();" + NL + "\t\tproperties.put(";
-  protected final String TEXT_19 = ".EMF_MODEL_NAME, ";
+  protected final String TEXT_19 = ".EMF_NAME, ";
   protected final String TEXT_20 = ".eNAME);" + NL + "\t\tproperties.put(";
   protected final String TEXT_21 = ".EMF_MODEL_NSURI, ";
   protected final String TEXT_22 = ".eNS_URI);" + NL + "\t\tproperties.put(";

@@ -19,7 +19,8 @@ javac.target: 1.8
 -require-bnd: "(version>=7.0.0)"
 
 -library: \
- 	geckoOSGi-Test
+ 	geckoOSGi-Test,\
+ 	fennec
 
 github-project: emf.osgi
 github-group: eclipse-fennec

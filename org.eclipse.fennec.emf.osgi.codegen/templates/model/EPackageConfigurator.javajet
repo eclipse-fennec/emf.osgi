@@ -55,7 +55,7 @@ public class <%=genPackage.getPrefix()%>EPackageConfigurator implements EPackage
 	 */
 	public <%=genModel.getImportedName("java.util.Map")%><String, Object> getServiceProperties() {
 		<%=genModel.getImportedName("java.util.Map")%><String, Object> properties = new <%=genModel.getImportedName("java.util.HashMap")%><String, Object>();
-		properties.put(<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.constants.EMFNamespaces")%>.EMF_MODEL_NAME, <%=genPackage.getPackageInterfaceName()%>.eNAME);
+		properties.put(<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.constants.EMFNamespaces")%>.EMF_NAME, <%=genPackage.getPackageInterfaceName()%>.eNAME);
 		properties.put(<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.constants.EMFNamespaces")%>.EMF_MODEL_NSURI, <%=genPackage.getPackageInterfaceName()%>.eNS_URI);
 		properties.put(<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.constants.EMFNamespaces")%>.EMF_MODEL_REGISTRATION, <%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.constants.EMFNamespaces")%>.MODEL_REGISTRATION_PROVIDED);
 		properties.put(<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.constants.EMFNamespaces")%>.EMF_MODEL_FILE_EXT, "<%=genPackage.getFileExtension()%>");
