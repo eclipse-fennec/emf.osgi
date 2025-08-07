@@ -13,7 +13,7 @@ pluginManagement {
     }
     mavenCentral()
     gradlePluginPortal()
-    rootProject.name="org.gecko.emf"
+    rootProject.name="org.eclipse.fennec.osgi.emf"
   }
 }
 plugins {

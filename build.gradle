@@ -1,11 +1,12 @@
 plugins {
-  id "org.sonarqube" version "3.5.0.2730"
-  id "jacoco"
-  id "java"
+  id "org.sonarqube" version "6.2.0.5505"
+  id 'jacoco'
+  id 'java'
 }
 
+// We need to define a repository for the root project, otherwise Jacoco dependencies cannot be resolved
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 subprojects {
@@ -23,16 +24,15 @@ subprojects {
     
 }
 
+// Sonar setup
 sonarqube {
   properties {
-    property "sonar.projectName", "Gecko EMF"
-    property "sonar.projectKey", "geckoprojects-org_org.geckoprojects.emf"
-    property "sonar.organization", "geckoprojects-org"
+    property "sonar.projectName", "fennec.osgi.emf"
+    property "sonar.projectKey", "eclipse-fennec-fennec..osgi.emf"
+    property "sonar.organization", "eclipse-fennec"
     property "sonar.host.url", "https://sonarcloud.io"
     property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
-    property "sonar.source", "src"
-    property "sonar.test", "test"
-    property "sonar.exclusions", "org.osgi.test.assertj.monitoring/**/*.java, org.gecko.emf.osgi.example.model.basic/**/*.java, org.gecko.emf.osgi.example.model.extended/**/*.java, org.gecko.emf.osgi.example.model.extender/**/*.java, org.gecko.emf.osgi.example.model.manual/**/*.java, org.gecko.emf.osgi.example.model.basic/**/*.java, org.gecko.emf.osgi.bnd.library/**/*.java, org.gecko.emf.osgi.bnd.library.project/**/*.java, org.gecko.emf.osgi.bnd.templates.project/**/*.java, org.gecko.emf.osgi.codegen/**/templates/model/*.java, org.gecko.emf.osgi.itest/**/*.java, org.gecko.emf.osgi.extender.itest/**/*.java, org.gecko.emf.osgi.codegen/**/*.java"
+    //property "sonar.exclusions", "org.eclipse.fennec.project/**/*.java, org.eclipse.fennec.other.project/**/*.java"
   }
 }
 
@@ -47,15 +47,14 @@ task codeCoverageReport(type: JacocoReport) {
         sourceSets it.sourceSets.main
     }
 
-    // Generate xml reposrt for tools like sonar and html for humans
+    // Generate xml reports for tools like sonar and html for humans
     reports {
-        xml.enabled true
-        html.enabled true
-        csv.enabled false
+        xml.required = true
+        html.required = true
+        csv.required = false
     }
 }
 
 tasks.named("sonar") {
     dependsOn(codeCoverageReport)
 }
-
