@@ -24,8 +24,8 @@ import java.util.List;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.BeforeEach;
@@ -141,10 +141,10 @@ public class EMFModelExtenderTest {
 	public void simpleMultiplePropertiesFolders01(@InjectService(filter = "(|(foo=bar)(foo=baz))") ServiceAware<EPackageConfigurator> configAware) {
 		List<ServiceReference<EPackageConfigurator>> references = configAware.getServiceReferences();
 		assertEquals(2, references.size());
-		ResourceSet rs = new ResourceSetImpl();
-		EFactory manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
+		EPackage.Registry registry = new EPackageRegistryImpl();
+		EFactory manualFactory = registry.getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
 		assertNull(manualFactory);
-		EFactory foobarFactory = rs.getPackageRegistry().getEFactory("http://foo.bar");
+		EFactory foobarFactory = registry.getEFactory("http://foo.bar");
 		assertNull(foobarFactory);
 		
 		for (ServiceReference<EPackageConfigurator> reference : references) {
@@ -161,9 +161,9 @@ public class EMFModelExtenderTest {
 				fail("Unecpected value");
 				break;
 			}
-			ctx.getService(reference).configureEPackage(rs.getPackageRegistry());
+			ctx.getService(reference).configureEPackage(registry);
 		}
-		manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
+		manualFactory = registry.getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
 		assertNotNull(manualFactory);
 		EPackage manualPackage = manualFactory.getEPackage();
 		assertNotNull(manualPackage);
@@ -173,7 +173,7 @@ public class EMFModelExtenderTest {
 		// Bar class does not exist in this package
 		EClass manualBar = (EClass) manualPackage.getEClassifier("Bar");
 		assertNull(manualBar);
-		foobarFactory = rs.getPackageRegistry().getEFactory("http://foo.bar");
+		foobarFactory = registry.getEFactory("http://foo.bar");
 		assertNotNull(foobarFactory);
 		EPackage foobarPackage = foobarFactory.getEPackage();
 		assertNotNull(foobarPackage);
@@ -189,17 +189,17 @@ public class EMFModelExtenderTest {
 	public void simpleMultiplePropertiesFolders02(@InjectService(filter = "(test=me)") ServiceAware<EPackageConfigurator> configAware) {
 		List<ServiceReference<EPackageConfigurator>> references = configAware.getServiceReferences();
 		assertEquals(2, references.size());
-		ResourceSet rs = new ResourceSetImpl();
-		EFactory manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
+		EPackage.Registry registry = new EPackageRegistryImpl();
+		EFactory manualFactory = registry.getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
 		assertNull(manualFactory);
-		EFactory foobarFactory = rs.getPackageRegistry().getEFactory("http://foo.bar");
+		EFactory foobarFactory = registry.getEFactory("http://foo.bar");
 		assertNull(foobarFactory);
 		
 		List<EPackageConfigurator> configurators = configAware.getServices();
 		for (EPackageConfigurator configurator : configurators) {
-			configurator.configureEPackage(rs.getPackageRegistry());
+			configurator.configureEPackage(registry);
 		}
-		manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
+		manualFactory = registry.getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
 		assertNotNull(manualFactory);
 		EPackage manualPackage = manualFactory.getEPackage();
 		assertNotNull(manualPackage);
@@ -209,7 +209,7 @@ public class EMFModelExtenderTest {
 		// Bar class does not exist in this package
 		EClass manualBar = (EClass) manualPackage.getEClassifier("Bar");
 		assertNull(manualBar);
-		foobarFactory = rs.getPackageRegistry().getEFactory("http://foo.bar");
+		foobarFactory = registry.getEFactory("http://foo.bar");
 		assertNotNull(foobarFactory);
 		EPackage foobarPackage = foobarFactory.getEPackage();
 		assertNotNull(foobarPackage);
@@ -225,20 +225,20 @@ public class EMFModelExtenderTest {
 	public void simpleMultiplePropertiesFile(@InjectService(filter = "(toast=me)") ServiceAware<EPackageConfigurator> configAware) {
 		List<ServiceReference<EPackageConfigurator>> references = configAware.getServiceReferences();
 		assertEquals(1, references.size());
-		ResourceSet rs = new ResourceSetImpl();
-		EFactory toastFactory = rs.getPackageRegistry().getEFactory("http://foo.bar/toast");
+		EPackage.Registry registry = new EPackageRegistryImpl();
+		EFactory toastFactory = registry.getEFactory("http://foo.bar/toast");
 		assertNull(toastFactory);
 		
 		List<EPackageConfigurator> configurators = configAware.getServices();
 		for (EPackageConfigurator configurator : configurators) {
-			configurator.configureEPackage(rs.getPackageRegistry());
+			configurator.configureEPackage(registry);
 		}
-		EFactory manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
+		EFactory manualFactory = registry.getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
 		assertNull(manualFactory);
-		EFactory foobarFactory = rs.getPackageRegistry().getEFactory("http://foo.bar");
+		EFactory foobarFactory = registry.getEFactory("http://foo.bar");
 		assertNull(foobarFactory);
 		
-		toastFactory = rs.getPackageRegistry().getEFactory("http://foo.bar/toast");
+		toastFactory = registry.getEFactory("http://foo.bar/toast");
 		assertNotNull(toastFactory);
 		EPackage toastPackage = toastFactory.getEPackage();
 		assertNotNull(toastPackage);
@@ -260,20 +260,20 @@ public class EMFModelExtenderTest {
 	public void simpleMultiplePropertiesFileEPackage(@InjectService(filter = "(toast=me)") ServiceAware<EPackage> epackageAware) {
 		List<ServiceReference<EPackage>> references = epackageAware.getServiceReferences();
 		assertEquals(1, references.size());
-		ResourceSet rs = new ResourceSetImpl();
-		EFactory toastFactory = rs.getPackageRegistry().getEFactory("http://foo.bar/toast");
+		EPackage.Registry registry = new EPackageRegistryImpl();
+		EFactory toastFactory = registry.getEFactory("http://foo.bar/toast");
 		assertNull(toastFactory);
 		
 		List<EPackage> epackages = epackageAware.getServices();
 		for (EPackage epackage : epackages) {
-			rs.getPackageRegistry().put(epackage.getNsURI(), epackage);
+			registry.put(epackage.getNsURI(), epackage);
 		}
-		EFactory manualFactory = rs.getPackageRegistry().getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
+		EFactory manualFactory = registry.getEFactory("http://fennec.eclipse.org/example/model/manual/1.0");
 		assertNull(manualFactory);
-		EFactory foobarFactory = rs.getPackageRegistry().getEFactory("http://foo.bar");
+		EFactory foobarFactory = registry.getEFactory("http://foo.bar");
 		assertNull(foobarFactory);
 		
-		toastFactory = rs.getPackageRegistry().getEFactory("http://foo.bar/toast");
+		toastFactory = registry.getEFactory("http://foo.bar/toast");
 		assertNotNull(toastFactory);
 		EPackage toastPackage = toastFactory.getEPackage();
 		assertNotNull(toastPackage);

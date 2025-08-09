@@ -7,7 +7,7 @@
 Require-Capability: \
 	osgi.extender;\
 	filter:="(osgi.extender=emf.model)";\
-	models:List<String>="/model;foo=bar;test=me,OSGI-INF/model;test=me;foo=baz,/toast/toast.ecore;toast=me;foo=toast"
+	models:List<String>="/model;foo=bar;test=me,OSGI-INF/model;test=me;foo=baz,/toast/toast.ecore;toast=me;foo=toast;emf.model.scope=test"
 Bundle-Name: EMF Model Extender Sample Model
 Bundle-Description: Eclipse Fennec EMF OSGi Model Extender Sample Model
 
