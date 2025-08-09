@@ -1,10 +1,7 @@
 -runrequires: \
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.extender.itest',\
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.example.model.extender',\
-	bnd.identity;id='org.eclipse.fennec.emf.osgi.component',\
-	bnd.identity;id='org.apache.felix.gogo.command',\
-	bnd.identity;id='org.apache.felix.gogo.runtime',\
-	bnd.identity;id='org.apache.felix.gogo.shell'
+	bnd.identity;id='org.eclipse.fennec.emf.osgi.component'
 	
 -library: enableOSGi-Test
 
