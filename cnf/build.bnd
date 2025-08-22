@@ -27,6 +27,10 @@ github-group: eclipse-fennec
 
 mavenCentral: true
 
+# Connection settings
+-connection-settings: \
+	${workspace}/cnf/releng/sonatype-settings.xml
+
 #-baseline: *
 
 -groupid: org.eclipse.fennec.osgi.emf
