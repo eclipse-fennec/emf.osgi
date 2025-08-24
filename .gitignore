@@ -22,7 +22,6 @@ Archive
 /*/bin/
 /*/bin_test/
 /*/generated/
-/*/src-gen/
 
 # Log files
 *.log
