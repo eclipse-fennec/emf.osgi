@@ -53,7 +53,7 @@ header:
     - 'LICENSE'
     - 'Jenkinsfile'
     - 'NOTICE'
-	- 'DEPENDENCIES'
+    - 'DEPENDENCIES'
     - '.gitattributes'
     - '.github/**'
     - '.gitignore'
