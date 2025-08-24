@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the Eclipse Fennec EMF OSGi project (formerly GeckoEMF) - a framework that enables Eclipse Modeling Framework (EMF) to work in pure OSGi environments without Eclipse PDE dependencies. The project provides OSGi service-based access to EMF ResourceSets, EPackages, and ResourceFactories.
 
-**⚠️ Note: The project is currently undergoing refactoring and may not compile at this time.**
+**⚠️ Note: This project has been transitioned from GeckoEMF to Eclipse Fennec EMF OSGi. Some references and URLs in documentation may still reflect the former project name.**
 
 ## Build System
 
@@ -21,7 +21,13 @@ The project uses a hybrid Gradle + BND workspace setup:
 Individual module builds use BND:
 - Each module has a `bnd.bnd` file for OSGi bundle configuration
 - Generated artifacts go to `generated/` directories
-- Java source/target is 1.8
+- Java source/target is 17 (defined in `cnf/build.bnd`)
+
+### OSGi Integration Testing
+- OSGi runtime tests use `.bndrun` files for configuration (e.g., `test.bndrun`)
+- **Run single module's OSGi tests**: `./gradlew :module-name:testOSGi`
+- Test execution uses Felix framework with JUnit 5 and OSGi Test Framework
+- Jacoco coverage includes both unit tests (`generated/jacoco/test.exec`) and OSGi tests (`generated/tmp/testOSGi/generated/jacoco.exec`)
 
 ## Architecture Overview
 

@@ -128,10 +128,10 @@ else
   REPO_KEY=$(echo "$JSON_OUTPUT" | jp -u "repositories[0].key || ''")
 fi
 
-# If no REPO_KEY was found, exit the script (successfully)
+# If no REPO_KEY was found, exit the script (with failure)
 if [ -z "$REPO_KEY" ]; then
   echo "No repositories found with the specified criteria for GROUP_ID '$GROUP_ID', cannot proceed with upload."
-  exit 0
+  exit 1
 fi
 
 echo "First repository key for '$GROUP_ID' found: $REPO_KEY"

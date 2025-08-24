@@ -1,11 +1,11 @@
-name: CI Build
+name: Snapshot Build
 on:
   push:
-    # This release should only happen on pushes to the snapshot or main branches.
+    # This snapshot build should only happen on pushes to the snapshot branch.
     branches:
-      - main
+      - snapshot
   pull_request:
-    # This release should NOT happen on pull requests.
+    # This snapshot build should NOT happen on pull requests.
     # Therefore, we explicitly exclude all branches for pull requests.
     branches-ignore:
       - '*'
@@ -20,8 +20,8 @@ defaults:
     shell: bash
 
 jobs:
-  build:
-    name: Gradle Release Build
+  snapshot:
+    name: Gradle Snapshot Build
     runs-on: ubuntu-latest
     env:
       CS_PASSWORD: ${{secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD}}
@@ -29,7 +29,7 @@ jobs:
       GPG_PASSPHRASE: ${{secrets.GPG_PASSPHRASE}}
       GPG_KEY_ID: ${{secrets.GPG_KEY_ID}}
       GPG_PRIVATE_KEY: ${{secrets.GPG_PRIVATE_KEY}}
-      DO_RELEASE: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
+      DO_RELEASE: false
     steps:
     - name: Git Checkout
       uses: actions/checkout@v4
@@ -59,7 +59,3 @@ jobs:
       run: |
         rm -rf ~/.gnupg
       shell: bash
-    - name: Grant execute permission for stage script
-      run: chmod +x ./.github/scripts/stage.sh
-    - name: Create Staging Repository
-      run: ./.github/scripts/stage.sh org.eclipse.fennec

@@ -16,6 +16,7 @@ subprojects {
 
     //  Apply plugin: 'jacoco' to all submodules JUnit tests are generated as generated/jacoco/test.exec
     apply plugin: 'jacoco'
+    apply plugin: 'java'
     // We need to define a repository, otherwise Jacoco dependencies cannot be resolved
     repositories {
         mavenCentral()
@@ -23,6 +24,14 @@ subprojects {
     // Allow gradle to enable JUnit support in submodules
     test {
         useJUnitPlatform()
+    }
+    
+    // Add JUnit dependencies for modules that have Gradle tests
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+        testImplementation 'org.junit.platform:junit-platform-launcher:1.13.4'
+        testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
+        testImplementation 'org.assertj:assertj-core:3.26.3'
     }
     
 }

@@ -1,14 +1,36 @@
+# Backup and temp files
 *.bak
+.*.swp
+.to
+.DS_Store
+
+# Eclipse metadata
 /.metadata/
 /.recommenders/
 Archive
-.DS_Store
-.*.swp
+
+# Build systems
 /.gradle/
-/reports/
-/generated/
-.to
-/cnf/cache/
 /build/
-generated/
-bin/
+
+# BND workspace
+/cnf/cache/
+/cnf/build/
+/reports/
+
+# Module-level build artifacts (applied globally)
+/*/bin/
+/*/bin_test/
+/*/generated/
+/*/src-gen/
+
+# Log files
+*.log
+/*/err.log
+/*/out.log
+/*/*.log
+
+# Root level build artifacts
+/generated/
+/bin/
+/bin_test/
