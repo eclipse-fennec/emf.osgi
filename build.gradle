@@ -26,14 +26,6 @@ subprojects {
         useJUnitPlatform()
     }
     
-    // Add JUnit dependencies for modules that have Gradle tests
-    dependencies {
-        testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
-        testImplementation 'org.junit.platform:junit-platform-launcher:1.13.4'
-        testImplementation 'org.mockito:mockito-junit-jupiter:4.11.0'
-        testImplementation 'org.assertj:assertj-core:3.26.3'
-    }
-    
 }
 
 // Sonar setup
