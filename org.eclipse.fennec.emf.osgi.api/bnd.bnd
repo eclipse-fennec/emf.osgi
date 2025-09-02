@@ -6,10 +6,10 @@
 
 src=${^src},src-gen
 #populates the VersionConstant class, with the current geckoEMF Version 
-#-generate:   \
-#    src-version/**.java; \
-#        output='src-gen/' ; \
-#        generate='javagen -o src-gen src-version/'
+-generate:   \
+    src-version/**.java; \
+        output='src-gen/' ; \
+        generate='javagen -o src-gen src-version/'
         
 # Add proper JPMS module-info
 -jpms-module-info: 

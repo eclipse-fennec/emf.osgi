@@ -2,7 +2,7 @@
 
 # EMF for pure OSGi
 
-## GeckoEMF
+## FennecEMF
 
 EMF is one of the most powerful MDSD tools. Unfortunately it comes with strong ties to Eclipse and Equinox, because it uses Extension Points. It can be used in Java SE and other OSGi frameworks, but it usually requires a lot of manual work to register EPackages, ResoureFactories etc.
 
@@ -221,8 +221,8 @@ Bundle-Version: 1.0.0.SNAPSHOT
 
 ## Links
 
-* [Documentation](https://github.com/geckoprojects-org/org.gecko.emf)
-* [Source Code](https://github.com/geckoprojects-org/org.gecko.emf) (clone with `scm:git:git@github.com:geckoprojects-org/org.gecko.emf.git`)
+* [Documentation](https://https://github.com/eclipse-fennec/emf.osgi)
+* [Source Code](https://https://github.com/eclipse-fennec/emf.osgi) (clone with `scm:git:git@github.com:geckoprojects-org/org.gecko.emf.git`)
 
 
 ## Developers
