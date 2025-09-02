@@ -1,0 +1,11 @@
+-resourceonly: true
+-includeresource: resources
+Provide-Capability: \
+	${gecko-base}
+
+gecko-base:\
+    bnd.library;\
+        bnd.library     = enable-emf; \
+        version			= 1.0.0;\
+        path            = template
+Bundle-Name: EMF OSGi Project Library

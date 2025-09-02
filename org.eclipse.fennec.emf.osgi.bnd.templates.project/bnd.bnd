@@ -1,0 +1,27 @@
+Bundle-Name: EMF OSGi BND Project Templates
+Bundle-Description: Bndtools project templates for EMF OSGi  
+
+-includeresource: resources
+-resourceonly: true
+ 
+category: ccc/Gecko OSGi Standard Templates
+category-launch: ccc/Gecko bndrun Templates
+
+dataurl: data:image/gif;base64
+
+gecko-icon: ${dataurl},${base64;icons/gecko.ico}
+ 
+project-template-emf-model:\
+	org.bndtools.template; org.bndtools.template=project;\
+		name=Gecko EMF Model;\
+		category=${category};\
+		ranking:Double=1001;\
+		dir=templates/emf-model;\
+		icon="${gecko-icon}";\
+		help=emf-model-help.xml;\
+		engine=mustache;\
+		metaType=emf-model-metatype.xml;\
+		collect=geckoEMF
+ 
+Provide-Capability: \
+	${project-template-emf-model}

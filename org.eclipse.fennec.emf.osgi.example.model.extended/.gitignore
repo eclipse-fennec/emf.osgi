@@ -1,0 +1,6 @@
+/bin/
+/generated/
+/bin_test/
+/src-gen/
+/err.log
+/out.log

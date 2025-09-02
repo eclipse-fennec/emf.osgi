@@ -1,0 +1,15 @@
+-resourceonly: true
+-include: ${.}/buildpath.bnd	
+mavendeps: ${sjoin;\n; ${template;-maven-dependencies;${@}}}
+
+-includeresource: {resources}
+	
+Provide-Capability: \
+	${gecko-base}
+
+gecko-base:\
+    bnd.library;\
+        bnd.library     = geckoEMF; \
+        path            = template
+Bundle-Name: EMF OSGi Bndtools Workspace Library
+Bundle-Description: EMF OSGi Bndtools Workspace Library

@@ -1,0 +1,14 @@
+javac.source: 17
+javac.target: 17
+
+-testpath: \
+	slf4j.api;version=latest,\
+	org.osgi.service.repository;version=latest,\
+	slf4j.simple;version=latest,\
+	biz.aQute.bnd.util;version=latest,\
+	biz.aQute.bndlib;version=latest,\
+	biz.aQute.repository;version=latest,\
+	org.osgi.util.promise,\
+	org.osgi.util.function,\
+	org.eclipse.fennec.emf.osgi.codegen;version=snapshot,\
+	aQute.libg

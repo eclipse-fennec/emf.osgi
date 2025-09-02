@@ -1,0 +1,23 @@
+#src=${^src},src-gen
+
+-buildpath: \
+	org.eclipse.fennec.emf.osgi;version=project,\
+	org.eclipse.emf.ecore,\
+	org.eclipse.emf.common,\
+	org.osgi.annotation.bundle,\
+	org.osgi.annotation.versioning,\
+	org.eclipse.emf.ecore.xmi,\
+	org.osgi.service.component.annotations,\
+	org.osgi.framework,\
+	org.osgi.service.condition;version=latest,\
+	org.eclipse.fennec.emf.osgi.api
+-includeresource: model=model
+
+	
+-dependson: org.eclipse.fennec.emf.osgi.codegen
+
+#-generate:\
+#	model/manual.genmodel;\
+#		generate="fennecEMF  1>out.log 2>err.log";\
+#		genmodel=model/manual.genmodel;\
+#		output=src-gen

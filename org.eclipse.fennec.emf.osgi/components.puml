@@ -1,0 +1,42 @@
+@startuml
+interface UriMapProvider [[java:org.eclipse.fennec.emf.osgi.UriMapProvider]] {
+}
+interface ResourceSetCache [[java:org.eclipse.fennec.emf.osgi.ResourceSetCache]] {
+}
+interface UriHandlerProvider [[java:org.eclipse.fennec.emf.osgi.UriHandlerProvider]] {
+}
+interface HughDataResourceSet [[java:org.eclipse.fennec.emf.osgi.HughDataResourceSet]] {
+}
+interface ResourceSet {
+}
+ResourceSet <|-- HughDataResourceSet
+interface ResourceSetFactory [[java:org.eclipse.fennec.emf.osgi.ResourceSetFactory]] {
+}
+interface Detachable [[java:org.eclipse.fennec.emf.osgi.Detachable]] {
+}
+interface EPackageConfigurator [[java:org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator]] {
+}
+interface ResourceSetConfigurator [[java:org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator]] {
+}
+class "DelegatingHashMap<K,V>" as DelegatingHashMap_K_V_ [[java:org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap]] {
+	-delegate: Map<K,V>
+	-main: Map<K,V>
+	+DelegatingHashMap(delegate: Map<K,V>)
+	+size(): int
+	+isEmpty(): boolean
+	+containsKey(key: Object): boolean
+	+containsValue(value: Object): boolean
+	+entrySet(): Set<Entry<K,V>>
+	+get(key: Object): V
+	+values(): Collection<V>
+	+keySet(): Set<K>
+	+put(key: K, value: V): V
+	+remove(key: Object): V
+	+putAll(m: Map<? extends K,? extends V>): void
+	+clear(): void
+}
+interface "Map<K,V>" as Map_K_V_ {
+}
+Map_K_V_ <|.. DelegatingHashMap_K_V_
+i
+@enduml
