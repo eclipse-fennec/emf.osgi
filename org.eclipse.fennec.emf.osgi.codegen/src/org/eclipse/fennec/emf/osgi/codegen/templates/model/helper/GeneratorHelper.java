@@ -41,9 +41,9 @@ public class GeneratorHelper {
 	}
 
 	/**
-	 * This method assumes that the relative paths between the genmodel and the ecore will be similar in the resulting bundle. 
+	 * This method assumes that the relative paths between the genmodel and the ecore will be similar in the resulting bundle.
 	 * It thus determines a the ecore path relative to the bundleGenmodelPath.
-	 * 
+	 *
 	 * @param bundleGenModelPath
 	 * @param originalEcoreUri
 	 * @param originalGenModelUri
@@ -59,5 +59,4 @@ public class GeneratorHelper {
 		return finalEcore;
 	}
 
-	
 }

@@ -487,50 +487,88 @@ public class PackageClass
     
 	URI genModelURI = genModel.eResource().getURI();
     String propModelFolder = (String) props.get(GeckoEmfGenerator.INCLUDE_GEN_MODEL_FOLDER);
+
+    // Read configuration properties for annotation parameters (default to true for backward compatibility)
+    boolean includeGenModel = !Boolean.FALSE.equals(props.get("includeGenModelAttr"));
+    boolean includeEcore = !Boolean.FALSE.equals(props.get("includeEcoreAttr"));
+    boolean includeEcoreSourceLocations = !Boolean.FALSE.equals(props.get("includeEcoreSourceLocationsAttr"));
+
+    // Compute relativeGenmodelPath only if genModel attribute should be included
     String relativeGenmodelPath = null;
-    if(propModelFolder != null){
-    	relativeGenmodelPath = propModelFolder + "/" + genModelURI.lastSegment();
+    if (includeGenModel) {
+        if(propModelFolder != null){
+            relativeGenmodelPath = propModelFolder + "/" + genModelURI.lastSegment();
+        } else {
+            relativeGenmodelPath = genModelURI.deresolve(genModelURI.trimSegments(genModelURI.segmentCount() - 3).appendSegment("")).toString();
+        }
+    }
+
+    URI genModelPathUri = null;
+    if (relativeGenmodelPath != null) {
+        genModelPathUri = URI.createFileURI(relativeGenmodelPath);
     } else {
-    	relativeGenmodelPath = genModelURI.deresolve(genModelURI.trimSegments(genModelURI.segmentCount() - 3).appendSegment("")).toString();
+        // Need genModelPathUri for ecore computation even if genModel attr is excluded
+        String tempPath = null;
+        if(propModelFolder != null){
+            tempPath = propModelFolder + "/" + genModelURI.lastSegment();
+        } else {
+            tempPath = genModelURI.deresolve(genModelURI.trimSegments(genModelURI.segmentCount() - 3).appendSegment("")).toString();
+        }
+        genModelPathUri = URI.createFileURI(tempPath);
     }
-    if(!relativeGenmodelPath.startsWith("/")){
-        relativeGenmodelPath = "/" + relativeGenmodelPath;
-    }
-    
-    URI genModelPathUri = URI.createFileURI(relativeGenmodelPath.substring(1));
-    
+
     String ecoreLocation = null;
     String ecoreSourceLocation = null;
     StringJoiner devPaths = new StringJoiner(",");
-    
+
+    // Check for explicitly provided ecore bundle location (from Maven plugin)
+    String ecoreBundleLocation = (String) props.get("ecoreBundleLocation");
+    if (includeEcore && ecoreBundleLocation != null && !ecoreBundleLocation.isEmpty()) {
+        ecoreLocation = ecoreBundleLocation;
+    }
+
     if(props.containsKey(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH)){
     	String genModelpath = (String) props.get(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH);
     	devPaths.add("\"" + genModelpath + "\"");
-    	
+
     	URI ePackageUri = genPackage.getEcorePackage().eResource().getURI();
     	URI genModelUri = genPackage.getGenModel().eResource().getURI();
-    	
-    	ecoreLocation = GeneratorHelper.convertToBundleEcoreURI(genModelPathUri, ePackageUri, genModelUri).toString();
-    	ecoreSourceLocation = ePackageUri.deresolve(genModelUri, true, false, false).toString();
+
+    	// Only compute ecore location if not already set from props
+    	if (includeEcore && ecoreLocation == null) {
+    	    URI ecoreUri = GeneratorHelper.convertToBundleEcoreURI(genModelPathUri, ePackageUri, genModelUri);
+    	    if (ecoreUri != null) {
+    	        ecoreLocation = ecoreUri.toString();
+    	    }
+    	}
+    	if (includeEcoreSourceLocations) {
+    	    URI srcUri = ePackageUri.deresolve(genModelUri, true, false, false);
+    	    if (srcUri != null) {
+    	        ecoreSourceLocation = srcUri.toString();
+    	    }
+    	}
     }
     if(props.containsKey(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA)){
     	List<String> paths = (List<String>) props.get(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA);
-    	paths.stream().map(s -> "\"" + s + "\"").forEach(devPaths::add); 
+    	paths.stream().map(s -> "\"" + s + "\"").forEach(devPaths::add);
     }
+
+    // Helper to check if a string is valid (not null, not empty, not literal "null")
+    boolean hasGenModel = relativeGenmodelPath != null && !relativeGenmodelPath.isEmpty() && !"null".equals(relativeGenmodelPath);
+    boolean hasDevPaths = devPaths.length() > 0;
+    boolean hasEcore = ecoreLocation != null && !ecoreLocation.isEmpty() && !"null".equals(ecoreLocation);
+    boolean hasEcoreSrc = ecoreSourceLocation != null && !ecoreSourceLocation.isEmpty() && !"null".equals(ecoreSourceLocation);
 
     stringBuffer.append(TEXT_24);
     stringBuffer.append(genModel.getImportedName("org.eclipse.fennec.emf.osgi.annotation.provide.EPackage"));
-    stringBuffer.append(TEXT_25);
+    stringBuffer.append("(uri = ");
     stringBuffer.append(genPackage.getPackageInterfaceName());
-    stringBuffer.append(TEXT_26);
-    stringBuffer.append(relativeGenmodelPath);
-    stringBuffer.append(TEXT_27);
-    stringBuffer.append(devPaths.toString());
-    stringBuffer.append(TEXT_28);
-    stringBuffer.append(ecoreLocation);
-    stringBuffer.append(TEXT_29);
-    stringBuffer.append(ecoreSourceLocation);
-    stringBuffer.append(TEXT_30);
+    stringBuffer.append(".eNS_URI");
+    if (hasGenModel) { stringBuffer.append(", genModel = \""); stringBuffer.append(relativeGenmodelPath); stringBuffer.append("\""); }
+    if (hasDevPaths) { stringBuffer.append(", genModelSourceLocations = {"); stringBuffer.append(devPaths.toString()); stringBuffer.append("}"); }
+    if (hasEcore) { stringBuffer.append(", ecore = \""); stringBuffer.append(ecoreLocation); stringBuffer.append("\""); }
+    if (hasEcoreSrc) { stringBuffer.append(", ecoreSourceLocations = \""); stringBuffer.append(ecoreSourceLocation); stringBuffer.append("\""); }
+    stringBuffer.append(")" + NL + "public interface ");
     stringBuffer.append(genPackage.getPackageInterfaceName());
     stringBuffer.append(TEXT_22);
     stringBuffer.append(genModel.getImportedName("org.eclipse.emf.ecore.EPackage"));

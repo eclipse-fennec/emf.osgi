@@ -49,7 +49,7 @@ public @interface EPackage {
 
 	Class<?> value() default Target.class;
 
-	String genModel();
+	String genModel() default "";
 
 	String[] genModelSourceLocations() default "";
 
