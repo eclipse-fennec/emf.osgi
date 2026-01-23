@@ -78,6 +78,11 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 	private static final String PROP_OUTPUT = "output"; //$NON-NLS-1$
 	/** PROP_LOGFILE */
 	private static final String PROP_LOGFILE = "logfile"; //$NON-NLS-1$
+	/** @EPackage annotation parameter control properties */
+	private static final String PROP_INCLUDE_GENMODEL_ATTR = "includeGenModelAttr"; //$NON-NLS-1$
+	private static final String PROP_INCLUDE_GENMODEL_SOURCE_LOCATIONS_ATTR = "includeGenModelSourceLocationsAttr"; //$NON-NLS-1$
+	private static final String PROP_INCLUDE_ECORE_ATTR = "includeEcoreAttr"; //$NON-NLS-1$
+	private static final String PROP_INCLUDE_ECORE_SOURCE_LOCATIONS_ATTR = "includeEcoreSourceLocationsAttr"; //$NON-NLS-1$
 
 	private static PrintStream logWriter;
 
@@ -148,14 +153,20 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 				return Optional.of("genmodel attribute not set");
 			}
 
-			String genmodelLocation = context.get(PROP_GENMODEL_INLCLUDE_LOCATION); 
+			String genmodelLocation = context.get(PROP_GENMODEL_INLCLUDE_LOCATION);
 			if(genmodelLocation == null) {
 				info("genmodelLocation: null");
 			} else {
 				info("genmodelLocation: [" + genmodelLocation + "]");
 			}
 
-			
+			// Read @EPackage annotation parameter configuration (default to true for backward compatibility)
+			boolean includeGenModelAttr = !"false".equalsIgnoreCase(context.get(PROP_INCLUDE_GENMODEL_ATTR));
+			boolean includeGenModelSourceLocationsAttr = !"false".equalsIgnoreCase(context.get(PROP_INCLUDE_GENMODEL_SOURCE_LOCATIONS_ATTR));
+			boolean includeEcoreAttr = !"false".equalsIgnoreCase(context.get(PROP_INCLUDE_ECORE_ATTR));
+			boolean includeEcoreSourceLocationsAttr = !"false".equalsIgnoreCase(context.get(PROP_INCLUDE_ECORE_SOURCE_LOCATIONS_ATTR));
+
+
 			File genmodelFile = new File(context.getBase(), genmodel);
 
 			if(!genmodelFile.exists()) {
@@ -167,10 +178,12 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 			Iterator<String> iterator = project.getBsns().iterator();
 			String bsn = iterator.hasNext() ? iterator.next() : context.getParent()
 					.toString();
-			return doGenerate(genFolder, genmodel, 
-					refModels, 
-					context.getBase(), 
-					bsn, genmodelLocation);
+			return doGenerate(genFolder, genmodel,
+					refModels,
+					context.getBase(),
+					bsn, genmodelLocation,
+					includeGenModelAttr, includeGenModelSourceLocationsAttr,
+					includeEcoreAttr, includeEcoreSourceLocationsAttr);
 		} catch (Exception e) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintWriter print = new PrintWriter(baos);
@@ -277,14 +290,19 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 	 * @param output
 	 * @param genmodelPath
 	 * @param genmodelFile
-	 * @param refModels 
-	 * @param genmodelLocation 
-	 * @param string 
-	 * @param file 
+	 * @param refModels
+	 * @param genmodelLocation
+	 * @param string
+	 * @param file
+	 * @param includeGenModelAttr whether to include genModel in @EPackage annotation
+	 * @param includeGenModelSourceLocationsAttr whether to include genModelSourceLocations in @EPackage annotation
+	 * @param includeEcoreAttr whether to include ecore in @EPackage annotation
+	 * @param includeEcoreSourceLocationsAttr whether to include ecoreSourceLocations in @EPackage annotation
 	 * @return
 	 * @throws IOException
 	 */
-	protected Optional<String> doGenerate(String output, String genmodelPath, Map<Container, Map<String, String>> refModels, File base, String bsn, String genmodelLocation) {
+	protected Optional<String> doGenerate(String output, String genmodelPath, Map<Container, Map<String, String>> refModels, File base, String bsn, String genmodelLocation,
+			boolean includeGenModelAttr, boolean includeGenModelSourceLocationsAttr, boolean includeEcoreAttr, boolean includeEcoreSourceLocationsAttr) {
 		info("Running for genmodel " + genmodelPath + " in " + base.getAbsolutePath()); 
 		ResourceSet resourceSet = new ResourceSetImpl();
 		try {
@@ -320,9 +338,19 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 			
 			
 			Map<String, Object> props = new HashMap<>();
-			props.put(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH, genmodelPath);
-			props.put(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA, Arrays.asList(base.getName() + "/" + genmodelPath));
+			// Only set path properties when corresponding config is true
+			// The template will include annotation attributes only when these values are present
+			if (includeGenModelAttr || includeEcoreAttr || includeEcoreSourceLocationsAttr) {
+				props.put(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH, genmodelPath);
+			}
+			if (includeGenModelSourceLocationsAttr) {
+				props.put(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA, Arrays.asList(base.getName() + "/" + genmodelPath));
+			}
 			props.put(GeckoEmfGenerator.INCLUDE_GEN_MODEL_FOLDER, genmodelLocation);
+			// Pass boolean flags to control annotation attributes independently
+			props.put("includeGenModelAttr", includeGenModelAttr);
+			props.put("includeEcoreAttr", includeEcoreAttr);
+			props.put("includeEcoreSourceLocationsAttr", includeEcoreSourceLocationsAttr);
 			gen.getOptions().data = new Object[] {props};
 			
 			genModel.setCanGenerate(true);
