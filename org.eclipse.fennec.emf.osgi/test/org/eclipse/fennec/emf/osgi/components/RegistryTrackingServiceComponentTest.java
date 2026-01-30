@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,16 +26,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.fennec.emf.osgi.RegistryPropertyListener;
-import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -132,35 +129,36 @@ public class RegistryTrackingServiceComponentTest {
         Long serviceId = 200L;
         Set<Long> serviceIds = Collections.singleton(serviceId);
         trackingService.registerListener(mockListener, serviceIds);
-        
+
         Map<String, Object> initialProperties = new HashMap<>();
         initialProperties.put(Constants.SERVICE_ID, serviceId);
         initialProperties.put(EMFNamespaces.EMF_NAME, "initialModel");
-        
+
         Map<String, Object> updatedProperties = new HashMap<>();
         updatedProperties.put(Constants.SERVICE_ID, serviceId);
         updatedProperties.put(EMFNamespaces.EMF_NAME, "updatedModel");
         updatedProperties.put(EMFNamespaces.EMF_MODEL_NSURI, "http://updated.example/model");
-        
+
         when(mockEPackageRegistryRef.getProperty(Constants.SERVICE_ID)).thenReturn(serviceId);
         when(mockEPackageRegistryRef.getProperties())
             .thenReturn(createDictionary(initialProperties))
             .thenReturn(createDictionary(updatedProperties));
-        
-        // Add the registry first
+
+        // Add the registry first - this now also notifies the listener
         trackingService.addEPackageRegistry(mockEPackageRegistryRef);
-        
+
         // When - update the registry
         trackingService.updateEPackageRegistry(mockEPackageRegistryRef);
-        
-        // Then - verify listener was called
+
+        // Then - verify listener was called twice (once on add, once on update)
         ArgumentCaptor<Map<String, Object>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
-        verify(mockListener, times(1)).onRegistryPropertiesChanged(
-            eq(serviceId), 
-            eq("EPackage.Registry"), 
+        verify(mockListener, times(2)).onRegistryPropertiesChanged(
+            eq(serviceId),
+            eq("EPackage.Registry"),
             propertiesCaptor.capture()
         );
-        
+
+        // The last captured properties should be the updated ones
         Map<String, Object> capturedProperties = propertiesCaptor.getValue();
         assertEquals("updatedModel", capturedProperties.get(EMFNamespaces.EMF_NAME));
         assertEquals("http://updated.example/model", capturedProperties.get(EMFNamespaces.EMF_MODEL_NSURI));
