@@ -68,7 +68,6 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	private ServiceReference<Registry> resourceFactoryRegistryReference;
 	private BundleContext cxt;
 	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
-	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> staticRegistry;
 	private RegistryTrackingService registryTracker;
 
 	/**
@@ -79,8 +78,6 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	public DefaultResourceSetFactoryComponent(BundleContext ctx,
 			@Reference(name="resourceSetEPackageRegistry", target = "(default.resourceset.epackage.registry=true)")
 			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
-			@Reference(name="staticEPackageRegistry", target = "(emf.default.epackage.registry=true)")
-			ServiceReference<EPackage.Registry> staticRegistry,
 			@Reference(name="resourceFactoryRegistry")
 			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference,
 			@Reference
@@ -88,22 +85,19 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 			) {
 		this.cxt = ctx;
 		this.defaultResourceSetRegistry = defaultResourceSetRegistry;
-		this.staticRegistry = staticRegistry;
 		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
 		this.registryTracker = registryTracker;
-		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(staticRegistry.getProperties()));
 		super.setEPackageRegistry(ctx.getService(defaultResourceSetRegistry), FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(ctx.getService(resourceFactoryRegistryReference), FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
 		//TODO: Tut dat note, dass das so rumoxidiert?
 		EcorePackagesRegistrator.start();
-		
+
 		// Register for property change notifications on the services we care about
 		Set<Long> trackedServiceIds = new HashSet<>();
 		trackedServiceIds.add((Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID));
-		trackedServiceIds.add((Long) staticRegistry.getProperty(Constants.SERVICE_ID));
 		trackedServiceIds.add((Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID));
 		registryTracker.registerListener(this, trackedServiceIds);
-		
+
 		doActivate(cxt);
 	}
 	
@@ -126,8 +120,6 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 		// Determine which registry changed and call appropriate parent method
 		if (serviceId == (Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID)) {
 			super.updateEPackageRegistry(newProperties);
-		} else if (serviceId == (Long) staticRegistry.getProperty(Constants.SERVICE_ID)) {
-			super.updateStaticEPackageRegistry(newProperties);
 		} else if (serviceId == (Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID)) {
 			super.modifiedResourceFactoryRegistry(newProperties);
 		}

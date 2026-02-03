@@ -22,7 +22,6 @@ import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.PROP_MODEL_TAR
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.PROP_RESOURCE_SET_FACTORY_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.RESOURCE_FACTORY_CONFIG_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.RESOURCE_FACTORY_REGISTRY_TARGET;
-import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.RESOURCE_FACTORY_TARGET;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.RESOURCE_SET_FACTORY_CONFIG_NAME;
 
 import java.io.IOException;
