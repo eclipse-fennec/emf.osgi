@@ -27,7 +27,7 @@ import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryRegistryImpl;
 import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.eclipse.fennec.emf.osgi.ecore.GeckoXMLResourceFactory;
+import org.eclipse.fennec.emf.osgi.ecore.FennecXMLResourceFactory;
 import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -65,7 +65,7 @@ public class DefaultResourceFactoryRegistryComponent extends SelfRegisteringServ
 		super(ctx, COMPONENT_NAME, Collections.emptyMap());
 		registry = new ResourceFactoryRegistryImpl();
 		registerService(ctx, Registry.class, registry);
-		addFactory(new GeckoXMLResourceFactory(packageRegistry), GeckoXMLResourceFactory.PROPERTIES);
+		addFactory(new FennecXMLResourceFactory(packageRegistry), FennecXMLResourceFactory.PROPERTIES);
 	}
 	
 	@Deactivate
