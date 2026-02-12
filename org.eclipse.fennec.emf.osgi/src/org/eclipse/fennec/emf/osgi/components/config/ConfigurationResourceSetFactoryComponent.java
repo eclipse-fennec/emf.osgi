@@ -22,12 +22,10 @@ import java.util.Set;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.Resource.Factory;
-import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.RegistryPropertyListener;
 import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
-import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.constants.VersionConstant;
@@ -70,7 +68,6 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	private Dictionary<String, Object> properties;
 	private BundleContext cxt;
 	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
-	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> staticRegistry;
 	private ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference;
 	private RegistryTrackingService registryTracker;
 
@@ -88,8 +85,6 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 	public ConfigurationResourceSetFactoryComponent(ComponentContext ctx,
 			@Reference(name="ePackageRegistry", target = "(" + EMFNamespaces.EMF_MODEL_SCOPE +"=" + EMFNamespaces.EMF_MODEL_SCOPE_RESOURCE_SET + ")")
 			ServiceReference<EPackage.Registry> defaultResourceSetRegistry,
-			@Reference(name="staticEPackageRegistry", target = "(emf.default.epackage.registry=true)")
-			ServiceReference<EPackage.Registry> staticRegistry,
 			@Reference(name="resourceFactoryRegistry")
 			ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference,
 			@Reference
@@ -97,25 +92,21 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 			) {
 		this.cxt = ctx.getBundleContext();
 		this.defaultResourceSetRegistry = defaultResourceSetRegistry;
-		this.staticRegistry = staticRegistry;
 		this.resourceFactoryRegistryReference = resourceFactoryRegistryReference;
 		this.registryTracker = registryTracker;
-		
+
 		EcorePackagesRegistrator.start();
 
-		
 		// Get the actual services and set up the factory
 		EPackage.Registry registry = cxt.getService(defaultResourceSetRegistry);
 		Resource.Factory.Registry resourceFactoryRegistry = cxt.getService(resourceFactoryRegistryReference);
-		
-		super.setStaticEPackageRegistryProperties(FrameworkUtil.asMap(staticRegistry.getProperties()));
+
 		super.setEPackageRegistry(registry, FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(resourceFactoryRegistry, FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
-		
+
 		// Register for property change notifications on the services we care about
 		Set<Long> trackedServiceIds = new HashSet<>();
 		trackedServiceIds.add((Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID));
-		trackedServiceIds.add((Long) staticRegistry.getProperty(Constants.SERVICE_ID));
 		trackedServiceIds.add((Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID));
 		registryTracker.registerListener(this, trackedServiceIds);
 	}
@@ -147,7 +138,6 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 		super.deactivate();
 		if (cxt != null) {
 			cxt.ungetService(defaultResourceSetRegistry);
-			cxt.ungetService(staticRegistry);
 			cxt.ungetService(resourceFactoryRegistryReference);
 		}
 		EcorePackagesRegistrator.stop();
@@ -164,8 +154,6 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 		// Determine which registry changed and call appropriate parent method
 		if (serviceId == (Long) defaultResourceSetRegistry.getProperty(Constants.SERVICE_ID)) {
 			super.updateEPackageRegistry(newProperties);
-		} else if (serviceId == (Long) staticRegistry.getProperty(Constants.SERVICE_ID)) {
-			super.updateStaticEPackageRegistry(newProperties);
 		} else if (serviceId == (Long) resourceFactoryRegistryReference.getProperty(Constants.SERVICE_ID)) {
 			super.modifiedResourceFactoryRegistry(newProperties);
 		}

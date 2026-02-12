@@ -20,14 +20,14 @@ import org.eclipse.fennec.emf.osgi.ResourceSetCache;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.osgi.annotation.bundle.Requirement;
 import org.osgi.annotation.versioning.ProviderType;
+import org.osgi.namespace.implementation.ImplementationNamespace;
+import org.osgi.resource.Namespace;
 import org.osgi.service.cm.ConfigurationConstants;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.namespace.implementation.ImplementationNamespace;
-import org.osgi.resource.Namespace;
 
 /**
  * A cache for a {@link ResourceSet}. Whereas the {@link ResourceSetFactory} only creates new instances of

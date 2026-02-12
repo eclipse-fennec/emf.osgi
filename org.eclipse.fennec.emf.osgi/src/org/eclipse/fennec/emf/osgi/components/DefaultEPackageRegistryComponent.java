@@ -23,9 +23,9 @@ import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.versioning.ProviderType;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -97,6 +97,43 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 			getPropertyContext().removeSubContext(properties);
 		}
 		configurator.unconfigureEPackage(registry);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Adds the parent static {@link EPackage.Registry} and propagates its properties
+	 * @param serviceRef the service reference of the parent registry
+	 */
+	@Reference(name = "parentRegistry",
+			service = EPackage.Registry.class,
+			cardinality = ReferenceCardinality.MANDATORY,
+			policy = ReferencePolicy.DYNAMIC,
+			target = "(emf.default.epackage.registry=true)",
+			unbind = "removeParentRegistry",
+			updated = "updateParentRegistry")
+	protected void addParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
+		Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
+		getPropertyContext().addSubContext(properties);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Updates the propagated properties when the parent registry changes
+	 * @param serviceRef the service reference of the parent registry
+	 */
+	protected void updateParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
+		Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
+		getPropertyContext().addSubContext(properties);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Removes the propagated properties when the parent registry is removed
+	 * @param serviceRef the service reference of the parent registry
+	 */
+	protected void removeParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
+		Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
+		getPropertyContext().removeSubContext(properties);
 		updateRegistrationProperties();
 	}
 }

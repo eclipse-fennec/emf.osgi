@@ -16,26 +16,19 @@ package org.eclipse.fennec.emf.osgi.components.config;
 
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.PROP_RESOURCE_SET_FACTORY_NAME;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.EPackage.Registry;
-import org.eclipse.emf.ecore.impl.EPackageImpl;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.fennec.emf.osgi.components.SelfRegisteringServiceComponent;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -68,7 +61,8 @@ public class ConfigurationEPackageRegistryComponent extends SelfRegisteringServi
 	 * Creates a non-delegating instance.
 	 */
 	@Activate
-	public ConfigurationEPackageRegistryComponent(BundleContext ctx, Map<String, Object> properties) {
+	public ConfigurationEPackageRegistryComponent(BundleContext ctx,
+			Map<String, Object> properties) {
 		super(ctx, (String) properties.get(PROP_RESOURCE_SET_FACTORY_NAME), properties);
 		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
@@ -106,6 +100,43 @@ public class ConfigurationEPackageRegistryComponent extends SelfRegisteringServi
 			getPropertyContext().removeSubContext(properties);
 		}
 		configurator.unconfigureEPackage(registry);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Adds the parent {@link EPackage.Registry} and propagates its properties
+	 * @param serviceRef the service reference of the parent registry
+	 */
+	@Reference(name = "parentRegistry",
+			service = EPackage.Registry.class,
+			cardinality = ReferenceCardinality.MANDATORY,
+			policy = ReferencePolicy.DYNAMIC,
+			target = "(default.resourceset.epackage.registry=true)",
+			unbind = "removeParentRegistry",
+			updated = "updateParentRegistry")
+	protected void addParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
+		Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
+		getPropertyContext().addSubContext(properties);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Updates the propagated properties when the parent registry changes
+	 * @param serviceRef the service reference of the parent registry
+	 */
+	protected void updateParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
+		Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
+		getPropertyContext().addSubContext(properties);
+		updateRegistrationProperties();
+	}
+
+	/**
+	 * Removes the propagated properties when the parent registry is removed
+	 * @param serviceRef the service reference of the parent registry
+	 */
+	protected void removeParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
+		Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
+		getPropertyContext().removeSubContext(properties);
 		updateRegistrationProperties();
 	}
 }

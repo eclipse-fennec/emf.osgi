@@ -15,13 +15,10 @@ package org.eclipse.fennec.emf.osgi.provider;
 
 import static java.util.Objects.isNull;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,7 +44,6 @@ import org.osgi.framework.PrototypeServiceFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.condition.Condition;
 
 /**

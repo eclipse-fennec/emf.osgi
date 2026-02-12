@@ -36,9 +36,9 @@ import org.osgi.service.component.annotations.Activate;
  * @author Juergen Albert
  * @since 22 Feb 2022
  */
-public class GeckoXMLResourceFactory extends XMLResourceFactoryImpl implements Resource.Factory{
+public class FennecXMLResourceFactory extends XMLResourceFactoryImpl implements Resource.Factory{
 
-	public static final Map<String, Object> PROPERTIES = GeckoXMLResourceFactory.getProperties();
+	public static final Map<String, Object> PROPERTIES = FennecXMLResourceFactory.getProperties();
 	private static SecureRandom random = null;
 
 	private static Map<String, Object> getProperties(){
@@ -62,7 +62,7 @@ public class GeckoXMLResourceFactory extends XMLResourceFactoryImpl implements R
 	 * Creates a new instance.
 	 */
 	@Activate
-	public GeckoXMLResourceFactory(EPackage.Registry registry) {
+	public FennecXMLResourceFactory(EPackage.Registry registry) {
 		this.registry = registry;
 	}
 	

@@ -89,6 +89,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 		});
 		
 		serviceRegistration = ctx.registerService(EPackage.Registry.class, this, getDictionary());
+		updateProperties();
 	}
 	
 	@Deactivate

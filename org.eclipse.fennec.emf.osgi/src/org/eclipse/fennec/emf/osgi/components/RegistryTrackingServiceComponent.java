@@ -76,9 +76,15 @@ public class RegistryTrackingServiceComponent implements RegistryTrackingService
             }
         }
         
-        // Add listener to new service mappings
+        // Add listener to new service mappings and notify of current state
         for (Long serviceId : serviceIds) {
             serviceListeners.computeIfAbsent(serviceId, k -> new CopyOnWriteArraySet<>()).add(listener);
+
+            // Notify listener of current state if service is already tracked
+            ServiceInfo info = trackedServices.get(serviceId);
+            if (info != null) {
+                listener.onRegistryPropertiesChanged(serviceId, info.serviceName, info.properties);
+            }
         }
     }
 
@@ -120,6 +126,9 @@ public class RegistryTrackingServiceComponent implements RegistryTrackingService
         long serviceId = (Long) serviceRef.getProperty(Constants.SERVICE_ID);
         Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
         trackedServices.put(serviceId, new ServiceInfo("EPackage.Registry", properties));
+
+        // Notify interested listeners of new service
+        notifyListeners(serviceId, "EPackage.Registry", properties);
     }
 
     protected void updateEPackageRegistry(ServiceReference<EPackage.Registry> serviceRef) {
@@ -150,6 +159,9 @@ public class RegistryTrackingServiceComponent implements RegistryTrackingService
         long serviceId = (Long) serviceRef.getProperty(Constants.SERVICE_ID);
         Map<String, Object> properties = FrameworkUtil.asMap(serviceRef.getProperties());
         trackedServices.put(serviceId, new ServiceInfo("Resource.Factory.Registry", properties));
+
+        // Notify interested listeners of new service
+        notifyListeners(serviceId, "Resource.Factory.Registry", properties);
     }
 
     protected void updateResourceFactoryRegistry(ServiceReference<Resource.Factory.Registry> serviceRef) {

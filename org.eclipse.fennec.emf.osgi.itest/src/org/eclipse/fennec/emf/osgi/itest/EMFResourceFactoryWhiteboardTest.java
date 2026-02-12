@@ -136,7 +136,7 @@ public class EMFResourceFactoryWhiteboardTest {
 		
 		Object xmlFactory = rs.getResourceFactoryRegistry().getContentTypeToFactoryMap().get("application/xml");
 		assertNotNull(xmlFactory);
-		assertEquals("GeckoXMLResourceFactory", xmlFactory.getClass().getSimpleName());
+		assertEquals("FennecXMLResourceFactory", xmlFactory.getClass().getSimpleName());
 	}
 	
 	/**
