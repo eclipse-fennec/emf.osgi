@@ -13,7 +13,7 @@ javac.target: 1.8
 # Contributors:
 #     Data In Motion - initial API and implementation
 
--require-bnd: "(version>=7.1.0)"
+-require-bnd: "(version>=7.2.0)"
 
 -library: \
  	fennecTest,\
