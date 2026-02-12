@@ -1,0 +1,6 @@
+-library: enableOSGi-Test
+-runrequires: \
+	bnd.identity;id='org.eclipse.fennec.emf.gecko.compatibility.itest',\
+	bnd.identity;id='org.eclipse.fennec.emf.gecko.compatibility.api'
+-runfw: org.apache.felix.framework;version='[7.0.5,7.0.5]'
+-runee: JavaSE-17
