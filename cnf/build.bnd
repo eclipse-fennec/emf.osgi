@@ -60,9 +60,4 @@ maven-central: true
 		transitive          = false;\
 		readOnly            = true;\
 		name                = "EMF Milestone Dependendencies"
-
--plugin.local: \
-	aQute.bnd.repository.maven.provider.MavenBndRepository;\
-		index               = ${.}/local.maven;\
-		name                = "Release"
 	
