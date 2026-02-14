@@ -36,8 +36,6 @@ import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.itest.configurator.TestResource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
@@ -56,16 +54,13 @@ import org.osgi.test.junit5.service.ServiceExtension;
  */
 @ExtendWith(BundleContextExtension.class)
 @ExtendWith(ServiceExtension.class)
-@ExtendWith(MockitoExtension.class)
 public class EMFResourceFactoryWhiteboardTest {
 
 	@InjectBundleContext
 	BundleContext bc;
-	
-	@Mock
-	Factory factoryOneMock;
-	@Mock
-	Factory factoryTwoMock;
+
+	Factory factoryOneMock = new ResourceFactoryImpl() {};
+	Factory factoryTwoMock = new ResourceFactoryImpl() {};
 
 	@Test
 	public void testDelegatingResourceFactoryRegistry(@InjectService ServiceAware<ResourceSetFactory> sa

@@ -20,9 +20,9 @@ pluginManagement {
     }
     mavenCentral()
     gradlePluginPortal()
-    rootProject.name="org.eclipse.fennec.osgi.emf"
   }
 }
 plugins {
   id 'biz.aQute.bnd.workspace'
 }
+rootProject.name="fennec-emf.osgi"
