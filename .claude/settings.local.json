@@ -5,7 +5,13 @@
       "Bash(./gradlew:*)",
       "Bash(.gradlew clean build)",
       "Bash(ls:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(while read f)",
+      "Bash(do head -20 \"$f\")",
+      "Bash(echo:*)",
+      "Bash(done)"
     ],
     "deny": []
   }

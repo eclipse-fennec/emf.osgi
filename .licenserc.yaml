@@ -1,37 +1,38 @@
 header:
   license:
     spdx-id: EPL-2.0
-    copyright-owner: Data In Motion
+    copyright-owner: Contributors to the Eclipse Foundation
     content: |
-      Copyright (c) 2012 - 2022 Data In Motion and others.
-      All rights reserved. 
-      
-      This program and the accompanying materials are made
-      available under the terms of the Eclipse Public License 2.0
-      which is available at https://www.eclipse.org/legal/epl-2.0/
-      SPDX-License-Identifier: EPL-2.0
-      
-      Contributors:
-    pattern: |
+      Copyright (c) 2026 Contributors to the Eclipse Foundation.
+
       This program and the accompanying materials are made
       available under the terms of the Eclipse Public License 2.0
       which is available at https://www.eclipse.org/legal/epl-2.0/
 
+      SPDX-License-Identifier: EPL-2.0
+
+    pattern: |
+      This program and the accompanying materials are made
+      available under the terms of the Eclipse Public License 2.0
+      which is available at https://www.eclipse.org/legal/epl-2.0/
+      SPDX-License-Identifier: EPL-2.0
   paths-ignore:
     - 'dist'
     - 'licenses'
     - '**/package-info.java'
     - '**/packageinfo'
     - '**/module-info.java'
-    - '**/*.puml'
-    - '**/*.json'
-    - '**/*.log'
-    - '**/*.txt'
     - '**/*.bnd'
-    - '**/*.setup'
     - '**/*.bndrun'
     - '**/*.xml'
+    - '**/*.xmi'
+    - '**/*.xsd'
+    - '**/*.csv'
+    - '**/*.json'
+    - '**/*.yaml'
+    - '**/*.yml'
     - '**/*.ecore'
+    - '**/*.xcore'
     - '**/*.genmodel'
     - '**/*.md'
     - '**/*.MD'
@@ -42,23 +43,28 @@ header:
     - '**/*.properties'
     - '**/*.maven'
     - '**/*.mvn'
+    - '**/*.MF'
     - '**/*.html'
+    - '**/*.drawio*'
     - '**/*.ftl'
     - '**/*.aird'
     - '**/*.basic'
     - '**/.classpath'
-    - '**/*.xmi'
+    - '**/*.puml'
+    - '**/*.log'
+    - '**/*.txt'
+    - '**/*.setup'
     - 'org.eclipse.fennec.emf.osgi.codegen/src/org/eclipse/fennec/emf/osgi/codegen/templates/model/*'
-    - 'org.eclipse.fennec.emf.osgi.extender/src/org/eclipse/fennec/emf/osgi/extender/**'
     - 'LICENSE'
+    - 'DEPENDENCIES'
     - 'Jenkinsfile'
     - 'NOTICE'
-    - 'DEPENDENCIES'
+    - 'cnf/**'
+    - '**/generated/**'
     - '.gitattributes'
     - '.github/**'
     - '.gitignore'
     - 'cnf/release/**.*'
-    - 'cnf/local/**.*'
     - '.gradle-wrapper/gradle-wrapper.properties'
     - '.licenserc.yaml'
     - '**/.project'
@@ -68,5 +74,5 @@ header:
     - 'gradlew'
     - 'gradlew.bat'
     - 'settings.gradle'
- 
+
   comment: always

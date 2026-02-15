@@ -1,21 +1,16 @@
 name: license
 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main , snapshot ]
   pull_request:
-    branches: [ main , snapshot ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Check License Header
-        uses: apache/skywalking-eyes@main      # always prefer to use a revision instead of `main`.
+        uses: apache/skywalking-eyes@v0.8.0
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # needed only when you want License-Eye to comment on the pull request.
