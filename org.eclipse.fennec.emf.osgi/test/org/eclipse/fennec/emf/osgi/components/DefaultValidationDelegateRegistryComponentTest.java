@@ -16,12 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EValidator.ValidationDelegate;
 import org.eclipse.emf.ecore.EValidator.ValidationDelegate.Descriptor;
 import org.eclipse.emf.ecore.EValidator.ValidationDelegate.Registry;
-import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class DefaultValidationDelegateRegistryComponentTest {
 
 	private DefaultValidationDelegateRegistryComponent component;
 
+	private final Map<String, Object> properties = Map.of(
+			EMFNamespaces.EMF_CONFIGURATOR_NAME, DELEGATE_URI);
+
 	@Mock
 	private ValidationDelegate delegate;
 
@@ -51,13 +55,9 @@ class DefaultValidationDelegateRegistryComponentTest {
 	@Mock
 	private Descriptor anotherDescriptor;
 
-	@Mock
-	private EMFConfigurator configurator;
-
 	@BeforeEach
 	void setUp() {
 		component = new DefaultValidationDelegateRegistryComponent();
-		when(configurator.configuratorName()).thenReturn(DELEGATE_URI);
 	}
 
 	@AfterEach
@@ -67,23 +67,23 @@ class DefaultValidationDelegateRegistryComponentTest {
 
 	@Test
 	void addDelegateRegistersInGlobalRegistry() {
-		component.addValidationDelegate(delegate, configurator);
+		component.addValidationDelegate(delegate, properties);
 
 		assertSame(delegate, Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void removeDelegateUnregistersFromGlobalRegistry() {
-		component.addValidationDelegate(delegate, configurator);
-		component.removeValidationDelegate(delegate, configurator);
+		component.addValidationDelegate(delegate, properties);
+		component.removeValidationDelegate(delegate, properties);
 
 		assertNull(Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void addDelegateReplacesExisting() {
-		component.addValidationDelegate(delegate, configurator);
-		component.addValidationDelegate(anotherDelegate, configurator);
+		component.addValidationDelegate(delegate, properties);
+		component.addValidationDelegate(anotherDelegate, properties);
 
 		assertSame(anotherDelegate, Registry.INSTANCE.get(DELEGATE_URI));
 	}
@@ -93,34 +93,34 @@ class DefaultValidationDelegateRegistryComponentTest {
 
 	@Test
 	void addDescriptorRegistersInGlobalRegistry() {
-		component.addValidationDelegateDescriptor(descriptor, configurator);
+		component.addValidationDelegateDescriptor(descriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void removeDescriptorUnregistersFromGlobalRegistry() {
-		component.addValidationDelegateDescriptor(descriptor, configurator);
-		component.removeValidationDelegateDescriptor(descriptor, configurator);
+		component.addValidationDelegateDescriptor(descriptor, properties);
+		component.removeValidationDelegateDescriptor(descriptor, properties);
 
 		assertFalse(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void addDescriptorReplacesExisting() {
-		component.addValidationDelegateDescriptor(descriptor, configurator);
-		component.addValidationDelegateDescriptor(anotherDescriptor, configurator);
+		component.addValidationDelegateDescriptor(descriptor, properties);
+		component.addValidationDelegateDescriptor(anotherDescriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void delegateAndDescriptorShareRegistryKey() {
-		component.addValidationDelegate(delegate, configurator);
+		component.addValidationDelegate(delegate, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 
 		// descriptor replaces delegate under same key
-		component.addValidationDelegateDescriptor(descriptor, configurator);
+		component.addValidationDelegateDescriptor(descriptor, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 }

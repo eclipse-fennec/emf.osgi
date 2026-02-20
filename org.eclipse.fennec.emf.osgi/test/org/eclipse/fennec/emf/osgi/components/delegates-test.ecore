@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    name="delegatestest"
+    nsURI="http://example.org/delegatestest/1.0"
+    nsPrefix="delegatestest">
+  <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+    <details key="invocationDelegates" value="http://example.org/test/delegates"/>
+    <details key="settingDelegates" value="http://example.org/test/delegates"/>
+    <details key="validationDelegates" value="http://example.org/test/delegates"/>
+    <details key="conversionDelegates" value="http://example.org/test/delegates"/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EClass" name="Person">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="nameNotEmpty"/>
+    </eAnnotations>
+    <eAnnotations source="http://example.org/test/delegates">
+      <details key="nameNotEmpty" value="name &lt;> null and name.size() > 0"/>
+    </eAnnotations>
+    <eOperations name="greet" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://example.org/test/delegates">
+        <details key="body" value="'Hello from delegate'"/>
+      </eAnnotations>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="upperName"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"
+        changeable="false" volatile="true" transient="true" derived="true">
+      <eAnnotations source="http://example.org/test/delegates">
+        <details key="derivation" value="name.toUpperCase()"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="UpperString"
+      instanceClassName="java.lang.String">
+    <eAnnotations source="http://example.org/test/delegates">
+      <details key="conversion" value="toUpperCase()"/>
+    </eAnnotations>
+  </eClassifiers>
+</ecore:EPackage>

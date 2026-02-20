@@ -42,6 +42,7 @@ public class EMFNamespaces {
 	// Attribute PREFIX for the EMF models and confiogurators
 	public static final String EMF_PREFIX = "emf.";
 	// Attribute name constants for {@link EMFConfigurator} annotation
+	public static final String EMF_CONFIGURATOR_TYPE = EMF_PREFIX + "configuratorType"; //$NON-NLS-1$
 	public static final String EMF_CONFIGURATOR_NAME = EMF_PREFIX + "configuratorName"; //$NON-NLS-1$
 	// Attribute PREFIX for the EMF model
 //	public static final String EMF_MODEL_PREFIX = "emf.model.";

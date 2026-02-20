@@ -16,12 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EStructuralFeature.Internal.SettingDelegate.Factory;
 import org.eclipse.emf.ecore.EStructuralFeature.Internal.SettingDelegate.Factory.Descriptor;
 import org.eclipse.emf.ecore.EStructuralFeature.Internal.SettingDelegate.Factory.Registry;
-import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class DefaultSettingDelegateRegistryComponentTest {
 
 	private DefaultSettingDelegateRegistryComponent component;
 
+	private final Map<String, Object> properties = Map.of(
+			EMFNamespaces.EMF_CONFIGURATOR_NAME, DELEGATE_URI);
+
 	@Mock
 	private Factory factory;
 
@@ -51,13 +55,9 @@ class DefaultSettingDelegateRegistryComponentTest {
 	@Mock
 	private Descriptor anotherDescriptor;
 
-	@Mock
-	private EMFConfigurator configurator;
-
 	@BeforeEach
 	void setUp() {
 		component = new DefaultSettingDelegateRegistryComponent();
-		when(configurator.configuratorName()).thenReturn(DELEGATE_URI);
 	}
 
 	@AfterEach
@@ -67,23 +67,23 @@ class DefaultSettingDelegateRegistryComponentTest {
 
 	@Test
 	void addFactoryRegistersInGlobalRegistry() {
-		component.addSettingDelegateFactory(factory, configurator);
+		component.addSettingDelegateFactory(factory, properties);
 
 		assertSame(factory, Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void removeFactoryUnregistersFromGlobalRegistry() {
-		component.addSettingDelegateFactory(factory, configurator);
-		component.removeSettingDelegateFactory(factory, configurator);
+		component.addSettingDelegateFactory(factory, properties);
+		component.removeSettingDelegateFactory(factory, properties);
 
 		assertNull(Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void addFactoryReplacesExisting() {
-		component.addSettingDelegateFactory(factory, configurator);
-		component.addSettingDelegateFactory(anotherFactory, configurator);
+		component.addSettingDelegateFactory(factory, properties);
+		component.addSettingDelegateFactory(anotherFactory, properties);
 
 		assertSame(anotherFactory, Registry.INSTANCE.get(DELEGATE_URI));
 	}
@@ -93,34 +93,34 @@ class DefaultSettingDelegateRegistryComponentTest {
 
 	@Test
 	void addDescriptorRegistersInGlobalRegistry() {
-		component.addSettingDelegateDescriptor(descriptor, configurator);
+		component.addSettingDelegateDescriptor(descriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void removeDescriptorUnregistersFromGlobalRegistry() {
-		component.addSettingDelegateDescriptor(descriptor, configurator);
-		component.removeSettingDelegateDescriptor(descriptor, configurator);
+		component.addSettingDelegateDescriptor(descriptor, properties);
+		component.removeSettingDelegateDescriptor(descriptor, properties);
 
 		assertFalse(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void addDescriptorReplacesExisting() {
-		component.addSettingDelegateDescriptor(descriptor, configurator);
-		component.addSettingDelegateDescriptor(anotherDescriptor, configurator);
+		component.addSettingDelegateDescriptor(descriptor, properties);
+		component.addSettingDelegateDescriptor(anotherDescriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void factoryAndDescriptorShareRegistryKey() {
-		component.addSettingDelegateFactory(factory, configurator);
+		component.addSettingDelegateFactory(factory, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 
 		// descriptor replaces factory under same key
-		component.addSettingDelegateDescriptor(descriptor, configurator);
+		component.addSettingDelegateDescriptor(descriptor, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 }

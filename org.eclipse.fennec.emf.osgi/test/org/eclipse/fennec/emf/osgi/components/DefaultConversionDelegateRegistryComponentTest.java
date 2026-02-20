@@ -16,12 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EDataType.Internal.ConversionDelegate.Factory;
 import org.eclipse.emf.ecore.EDataType.Internal.ConversionDelegate.Factory.Descriptor;
 import org.eclipse.emf.ecore.EDataType.Internal.ConversionDelegate.Factory.Registry;
-import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class DefaultConversionDelegateRegistryComponentTest {
 
 	private DefaultConversionDelegateRegistryComponent component;
 
+	private final Map<String, Object> properties = Map.of(
+			EMFNamespaces.EMF_CONFIGURATOR_NAME, DELEGATE_URI);
+
 	@Mock
 	private Factory factory;
 
@@ -51,13 +55,9 @@ class DefaultConversionDelegateRegistryComponentTest {
 	@Mock
 	private Descriptor anotherDescriptor;
 
-	@Mock
-	private EMFConfigurator configurator;
-
 	@BeforeEach
 	void setUp() {
 		component = new DefaultConversionDelegateRegistryComponent();
-		when(configurator.configuratorName()).thenReturn(DELEGATE_URI);
 	}
 
 	@AfterEach
@@ -67,23 +67,23 @@ class DefaultConversionDelegateRegistryComponentTest {
 
 	@Test
 	void addFactoryRegistersInGlobalRegistry() {
-		component.addConversionDelegateFactory(factory, configurator);
+		component.addConversionDelegateFactory(factory, properties);
 
 		assertSame(factory, Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void removeFactoryUnregistersFromGlobalRegistry() {
-		component.addConversionDelegateFactory(factory, configurator);
-		component.removeConversionDelegateFactory(factory, configurator);
+		component.addConversionDelegateFactory(factory, properties);
+		component.removeConversionDelegateFactory(factory, properties);
 
 		assertNull(Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void addFactoryReplacesExisting() {
-		component.addConversionDelegateFactory(factory, configurator);
-		component.addConversionDelegateFactory(anotherFactory, configurator);
+		component.addConversionDelegateFactory(factory, properties);
+		component.addConversionDelegateFactory(anotherFactory, properties);
 
 		assertSame(anotherFactory, Registry.INSTANCE.get(DELEGATE_URI));
 	}
@@ -93,34 +93,34 @@ class DefaultConversionDelegateRegistryComponentTest {
 
 	@Test
 	void addDescriptorRegistersInGlobalRegistry() {
-		component.addConversionDelegateDescriptor(descriptor, configurator);
+		component.addConversionDelegateDescriptor(descriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void removeDescriptorUnregistersFromGlobalRegistry() {
-		component.addConversionDelegateDescriptor(descriptor, configurator);
-		component.removeConversionDelegateDescriptor(descriptor, configurator);
+		component.addConversionDelegateDescriptor(descriptor, properties);
+		component.removeConversionDelegateDescriptor(descriptor, properties);
 
 		assertFalse(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void addDescriptorReplacesExisting() {
-		component.addConversionDelegateDescriptor(descriptor, configurator);
-		component.addConversionDelegateDescriptor(anotherDescriptor, configurator);
+		component.addConversionDelegateDescriptor(descriptor, properties);
+		component.addConversionDelegateDescriptor(anotherDescriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void factoryAndDescriptorShareRegistryKey() {
-		component.addConversionDelegateFactory(factory, configurator);
+		component.addConversionDelegateFactory(factory, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 
 		// descriptor replaces factory under same key
-		component.addConversionDelegateDescriptor(descriptor, configurator);
+		component.addConversionDelegateDescriptor(descriptor, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 }

@@ -124,6 +124,7 @@ This allows EMF models to be dynamically added/removed as bundles are installed/
 ## Key Documents
 
 - **EMF Delegate Registries:** `docs/emf-delegate-registries.md` - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
+- **EMF Delegate User Guide:** `docs/emf-delegate-user-guide.md` - How to use the four delegate types: Ecore annotations, OSGi service implementation, runtime behavior, and caching
 
 ## Development Workflow
 

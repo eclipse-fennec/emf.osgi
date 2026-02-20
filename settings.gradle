@@ -26,3 +26,12 @@ plugins {
   id 'biz.aQute.bnd.workspace'
 }
 rootProject.name="fennec-emf.osgi"
+
+// Exclude 'docs' folder from Gradle build — it contains documentation, not build targets
+gradle.beforeProject { project ->
+  if (project.name == 'docs') {
+    project.tasks.configureEach { task ->
+      task.enabled = false
+    }
+  }
+}

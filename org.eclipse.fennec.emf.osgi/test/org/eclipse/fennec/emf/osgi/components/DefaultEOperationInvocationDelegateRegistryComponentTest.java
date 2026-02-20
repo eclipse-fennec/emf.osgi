@@ -16,12 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EOperation.Internal.InvocationDelegate.Factory;
 import org.eclipse.emf.ecore.EOperation.Internal.InvocationDelegate.Factory.Descriptor;
 import org.eclipse.emf.ecore.EOperation.Internal.InvocationDelegate.Factory.Registry;
-import org.eclipse.fennec.emf.osgi.annotation.provide.EMFConfigurator;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class DefaultEOperationInvocationDelegateRegistryComponentTest {
 
 	private DefaultEOperationInvocationDelegateRegistryComponent component;
 
+	private final Map<String, Object> properties = Map.of(
+			EMFNamespaces.EMF_CONFIGURATOR_NAME, DELEGATE_URI);
+
 	@Mock
 	private Factory factory;
 
@@ -51,13 +55,9 @@ class DefaultEOperationInvocationDelegateRegistryComponentTest {
 	@Mock
 	private Descriptor anotherDescriptor;
 
-	@Mock
-	private EMFConfigurator configurator;
-
 	@BeforeEach
 	void setUp() {
 		component = new DefaultEOperationInvocationDelegateRegistryComponent();
-		when(configurator.configuratorName()).thenReturn(DELEGATE_URI);
 	}
 
 	@AfterEach
@@ -67,23 +67,23 @@ class DefaultEOperationInvocationDelegateRegistryComponentTest {
 
 	@Test
 	void addFactoryRegistersInGlobalRegistry() {
-		component.addOperationInvocationDelegateFactory(factory, configurator);
+		component.addOperationInvocationDelegateFactory(factory, properties);
 
 		assertSame(factory, Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void removeFactoryUnregistersFromGlobalRegistry() {
-		component.addOperationInvocationDelegateFactory(factory, configurator);
-		component.removeOperationInvocationDelegateFactory(factory, configurator);
+		component.addOperationInvocationDelegateFactory(factory, properties);
+		component.removeOperationInvocationDelegateFactory(factory, properties);
 
 		assertNull(Registry.INSTANCE.get(DELEGATE_URI));
 	}
 
 	@Test
 	void addFactoryReplacesExisting() {
-		component.addOperationInvocationDelegateFactory(factory, configurator);
-		component.addOperationInvocationDelegateFactory(anotherFactory, configurator);
+		component.addOperationInvocationDelegateFactory(factory, properties);
+		component.addOperationInvocationDelegateFactory(anotherFactory, properties);
 
 		assertSame(anotherFactory, Registry.INSTANCE.get(DELEGATE_URI));
 	}
@@ -93,34 +93,34 @@ class DefaultEOperationInvocationDelegateRegistryComponentTest {
 
 	@Test
 	void addDescriptorRegistersInGlobalRegistry() {
-		component.addOperationInvocationDelegateDescriptor(descriptor, configurator);
+		component.addOperationInvocationDelegateDescriptor(descriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void removeDescriptorUnregistersFromGlobalRegistry() {
-		component.addOperationInvocationDelegateDescriptor(descriptor, configurator);
-		component.removeOperationInvocationDelegateDescriptor(descriptor, configurator);
+		component.addOperationInvocationDelegateDescriptor(descriptor, properties);
+		component.removeOperationInvocationDelegateDescriptor(descriptor, properties);
 
 		assertFalse(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void addDescriptorReplacesExisting() {
-		component.addOperationInvocationDelegateDescriptor(descriptor, configurator);
-		component.addOperationInvocationDelegateDescriptor(anotherDescriptor, configurator);
+		component.addOperationInvocationDelegateDescriptor(descriptor, properties);
+		component.addOperationInvocationDelegateDescriptor(anotherDescriptor, properties);
 
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 
 	@Test
 	void factoryAndDescriptorUseSameRegistryKey() {
-		component.addOperationInvocationDelegateFactory(factory, configurator);
+		component.addOperationInvocationDelegateFactory(factory, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 
 		// descriptor replaces factory under same key
-		component.addOperationInvocationDelegateDescriptor(descriptor, configurator);
+		component.addOperationInvocationDelegateDescriptor(descriptor, properties);
 		assertTrue(Registry.INSTANCE.containsKey(DELEGATE_URI));
 	}
 }

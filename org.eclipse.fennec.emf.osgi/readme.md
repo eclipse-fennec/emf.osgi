@@ -111,11 +111,29 @@ Central event bus for registry property changes.
 - When a tracked service's properties change, notifies all registered `RegistryPropertyListener`s
 - Used by `DefaultResourceSetFactoryComponent` to react to registry changes
 
+#### EMF Delegate Registry Components
+
+Four whiteboard populator components that bridge EMF's static delegate registries with OSGi's dynamic service model. Each component watches for OSGi services implementing a specific EMF delegate interface and automatically registers/unregisters them in the corresponding global `Registry.INSTANCE`.
+
+| Component | Tracks Services Of Type | Populates Registry |
+|-----------|------------------------|-------------------|
+| `DefaultEOperationInvocationDelegateRegistryComponent` | `InvocationDelegate.Factory` | `EOperation.Internal.InvocationDelegate.Factory.Registry.INSTANCE` |
+| `DefaultSettingDelegateRegistryComponent` | `SettingDelegate.Factory` | `EStructuralFeature.Internal.SettingDelegate.Factory.Registry.INSTANCE` |
+| `DefaultValidationDelegateRegistryComponent` | `ValidationDelegate` | `EValidator.ValidationDelegate.Registry.INSTANCE` |
+| `DefaultConversionDelegateRegistryComponent` | `ConversionDelegate.Factory` | `EDataType.Internal.ConversionDelegate.Factory.Registry.INSTANCE` |
+
+All four follow the same pattern:
+- No service of their own (pure whiteboard populators)
+- `@Reference(DYNAMIC, MULTIPLE)` for both the concrete type and its `Descriptor` (lazy-loading) variant
+- Target filter on `configuratorType` matching the `@EMFConfigurator` annotation on the tracked service
+- `put()`/`remove()` on the static `Registry.INSTANCE`
+
+For a complete guide on how to annotate your Ecore model, implement delegates, and register them as OSGi services, see the **[EMF Delegate User Guide](../docs/emf-delegate-user-guide.md)**.
+
 #### Other Core Components
 
 | Component | Service | Purpose |
 |-----------|---------|---------|
-| `DefaultEOperationInvocationDelegateRegistryComponent` | -- | Manages `EOperation.Internal.InvocationDelegate.Factory.Registry.INSTANCE` |
 | `ResourceSetCacheComponent` | `ResourceSetCache` | Provides a cached (non-thread-safe) `ResourceSet`; requires ConfigAdmin |
 | `ResourceSetUriHandlerConfiguratorComponent` | `ResourceSetConfigurator` | Configures URIConverter with custom `UriHandlerProvider`s and `UriMapProvider`s |
 | `UriMapProviderComponent` | `UriMapProvider` | ConfigAdmin-driven URI-to-URI redirection maps |
@@ -238,6 +256,9 @@ org.eclipse.fennec.emf.osgi/
         DefaultResourceSetFactoryComponent
         RegistryTrackingServiceComponent
         DefaultEOperationInvocationDelegateRegistryComponent
+        DefaultSettingDelegateRegistryComponent
+        DefaultValidationDelegateRegistryComponent
+        DefaultConversionDelegateRegistryComponent
         ResourceSetCacheComponent
         ResourceSetUriHandlerConfiguratorComponent
         RestUriHandlerProvider
@@ -270,6 +291,12 @@ org.eclipse.fennec.emf.osgi/
       components/
         RegistryTrackingServiceComponentTest.java
         RegistryTrackingIntegrationTest.java
+        DefaultEOperationInvocationDelegateRegistryComponentTest.java
+        DefaultSettingDelegateRegistryComponentTest.java
+        DefaultValidationDelegateRegistryComponentTest.java
+        DefaultConversionDelegateRegistryComponentTest.java
+        EMFDelegateRegistryEndToEndTest.java
+        delegates-test.ecore
       helper/
         ServicePropertyContextTest.java
         SystemPropertyHelperTest.java
@@ -286,7 +313,7 @@ org.eclipse.fennec.emf.osgi/
 ./gradlew :org.eclipse.fennec.emf.osgi:test
 ```
 
-Tests cover: `RegistryTrackingServiceComponent` (with Mockito), `ServicePropertyContext`, `ServicePropertiesHelper`, `DelegatingEPackageRegistry`, `DelegatingHashMap`.
+Tests cover: `RegistryTrackingServiceComponent` (with Mockito), `ServicePropertyContext`, `ServicePropertiesHelper`, `DelegatingEPackageRegistry`, `DelegatingHashMap`, all four delegate registry components (unit + end-to-end with real Ecore model).
 
 ### Full Build
 
