@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -366,6 +367,67 @@ class EcoreHelperTest {
 		assertFalse(props.isEmpty());
 		assertEquals("bla", props.get("blub"));
 		props.clear();
+	}
+
+	// === Bug fix verifications ===
+
+	/**
+	 * Fix 1: Verifies that a failed load (type mismatch) does not leak a Resource
+	 * in the ResourceSet.
+	 */
+	@Test
+	void testLoadTypeMismatchCleansUpResource() {
+		EcoreHelper helper = new EcoreHelper();
+		assertTrue(helper.getResourceSet().getResources().isEmpty());
+		assertThrows(IOException.class,
+				() -> helper.load("manual.ecore", getClass(), EClass.class));
+		// Resource must be removed from ResourceSet after type mismatch error
+		assertTrue(helper.getResourceSet().getResources().isEmpty(),
+				"Failed load must not leave orphan Resource in ResourceSet");
+	}
+
+	/**
+	 * Fix 1: Verifies that an empty/invalid InputStream does not leak a Resource.
+	 */
+	@Test
+	void testLoadEmptyStreamCleansUpResource() {
+		EcoreHelper helper = new EcoreHelper();
+		InputStream emptyStream = new ByteArrayInputStream(new byte[0]);
+		assertThrows(IOException.class,
+				() -> helper.load(emptyStream, URI.createURI("test://empty.ecore"), EPackage.class));
+		assertTrue(helper.getResourceSet().getResources().isEmpty(),
+				"Failed load from empty stream must not leave orphan Resource");
+	}
+
+	/**
+	 * Fix 3: Verifies that loading an ecore without nsURI does not throw NPE.
+	 */
+	@Test
+	void testLoadEcoreWithoutNsUri() throws IOException {
+		EcoreHelper helper = new EcoreHelper();
+		EPackage ePackage = helper.loadEcore("no-nsuri.ecore", getClass());
+		assertNotNull(ePackage);
+		assertEquals("nouri", ePackage.getName());
+		assertNull(ePackage.getNsURI());
+		// Resource URI should remain the original (not overwritten with null nsURI)
+		assertNotNull(ePackage.eResource());
+		assertNotNull(ePackage.eResource().getURI());
+	}
+
+	/**
+	 * Fix 4: Verifies that releaseAll works with multiple resources without
+	 * ConcurrentModificationException.
+	 */
+	@Test
+	void testReleaseAllMultipleResources() throws IOException {
+		EcoreHelper helper = new EcoreHelper();
+		helper.loadEcore("manual.ecore", getClass());
+		helper.loadEcore("no-nsuri.ecore", getClass());
+		assertEquals(2, helper.getResourceSet().getResources().size());
+
+		// Must not throw ConcurrentModificationException
+		helper.releaseAll();
+		assertTrue(helper.getResourceSet().getResources().isEmpty());
 	}
 
 	// === releaseAll ===

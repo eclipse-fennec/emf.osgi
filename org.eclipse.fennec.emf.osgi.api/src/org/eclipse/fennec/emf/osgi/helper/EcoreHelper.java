@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
@@ -112,8 +113,13 @@ public class EcoreHelper {
 		requireNonNull(uri, "URI must not be null");
 		requireNonNull(type, "Type must not be null");
 		Resource resource = resourceSet.createResource(uri);
-		resource.load(is, null);
-		return extractRoot(resource, type);
+		try {
+			resource.load(is, null);
+			return extractRoot(resource, type);
+		} catch (IOException e) {
+			resourceSet.getResources().remove(resource);
+			throw e;
+		}
 	}
 
 	/**
@@ -183,7 +189,10 @@ public class EcoreHelper {
 	 */
 	public EPackage loadEcore(InputStream is, URI uri) throws IOException {
 		EPackage ePackage = load(is, uri, EPackage.class);
-		ePackage.eResource().setURI(URI.createURI(ePackage.getNsURI()));
+		String nsURI = ePackage.getNsURI();
+		if (nsURI != null) {
+			ePackage.eResource().setURI(URI.createURI(nsURI));
+		}
 		return ePackage;
 	}
 
@@ -398,9 +407,7 @@ public class EcoreHelper {
 	 * Unloads all resources and clears the resource set.
 	 */
 	public void releaseAll() {
-		for (Resource resource : resourceSet.getResources()) {
-			resource.unload();
-		}
+		List.copyOf(resourceSet.getResources()).forEach(Resource::unload);
 		resourceSet.getResources().clear();
 	}
 

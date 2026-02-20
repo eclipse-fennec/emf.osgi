@@ -177,10 +177,10 @@ public class ModelHelper {
 	 * @param bundleId    the bundle ID that provides this model
 	 * @param resourceSet the {@link ResourceSet} used to load the ecore resource
 	 * @param url         the URL of the {@code .ecore} file
-	 * @param properties  additional properties extracted from the path
+	 * @param properties  additional properties extracted from the path, may be {@code null}
 	 * @param diagnostic  collects errors and warnings during loading
-	 * @return the loaded model, or {@code null} if the resource was empty
-	 * @throws IOException if the ecore file cannot be read
+	 * @return the loaded model, never {@code null}
+	 * @throws IOException if the ecore file cannot be read or is empty
 	 */
 	public static Model loadModelInstance(final long bundleId,
 			final ResourceSet resourceSet,
@@ -197,7 +197,7 @@ public class ModelHelper {
 			serviceProperties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 			serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 			serviceProperties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
-			if (!properties.containsKey(EMFNamespaces.EMF_MODEL_SCOPE)) {
+			if (properties == null || !properties.containsKey(EMFNamespaces.EMF_MODEL_SCOPE)) {
 				serviceProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_STATIC);
 			}
 			return new Model(ePackage, serviceProperties, bundleId);
