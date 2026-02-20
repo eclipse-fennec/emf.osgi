@@ -121,6 +121,10 @@ This allows EMF models to be dynamically added/removed as bundles are installed/
 - **Try-with-resources** - always use for `AutoCloseable` resources
 - **License header** - all Java files must have the EPL-2.0 header
 
+## Key Documents
+
+- **EMF Delegate Registries:** `docs/emf-delegate-registries.md` - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
+
 ## Development Workflow
 
 1. **Model Development**: Place `.ecore` and `.genmodel` files in `model/` directories
