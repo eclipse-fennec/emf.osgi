@@ -56,7 +56,9 @@ public class EMFModelExtenderComponent {
 	 */
 	@Deactivate
 	public void deactivate(ComponentContext ctx) {
-		modelExtender.shutdown();
+		if (modelExtender != null) {
+			modelExtender.shutdown();
+		}
 		logger.info("Stopped EMF Model Extender");
 	}
 }

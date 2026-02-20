@@ -12,8 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static java.util.Objects.requireNonNull;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
@@ -31,36 +30,29 @@ import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
  * @see EMFModelExtender
  */
 public class ModelExtenderConfigurator implements EPackageConfigurator {
-	
-	private static Logger logger = Logger.getLogger(ModelExtenderConfigurator.class.getName());
+
 	private final EPackage ePackage;
+	private final String nsURI;
 
 	/**
 	 * Creates a new configurator for the given package.
 	 *
-	 * @param ePackage the EMF package to register, should not be {@code null}
+	 * @param ePackage the EMF package to register, must not be {@code null} and must have a non-null nsURI
+	 * @throws NullPointerException if {@code ePackage} or its nsURI is {@code null}
 	 */
 	public ModelExtenderConfigurator(EPackage ePackage) {
-		this.ePackage = ePackage;
+		this.ePackage = requireNonNull(ePackage, "EPackage must not be null");
+		this.nsURI = requireNonNull(ePackage.getNsURI(), "EPackage nsURI must not be null");
 	}
-
 
 	@Override
 	public void configureEPackage(EPackage.Registry registry) {
-		if (ePackage != null) {
-			registry.put(ePackage.getNsURI(), ePackage);
-		} else {
-			logger.log(Level.SEVERE, ()->"Error registering a NULL package, that should never happen");
-		}
+		registry.put(nsURI, ePackage);
 	}
 
 	@Override
 	public void unconfigureEPackage(EPackage.Registry registry) {
-		if (ePackage != null) {
-			registry.remove(ePackage.getNsURI());
-		} else {
-			logger.log(Level.SEVERE, ()->"Error un-registering a NULL package, that should never happen");
-		}
+		registry.remove(nsURI);
 	}
 
 }

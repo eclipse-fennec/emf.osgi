@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender.model;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -40,11 +42,13 @@ public class Model {
 	 * Creates a new model instance.
 	 *
 	 * @param ePackage   the loaded EMF package, must not be {@code null}
-	 * @param properties the OSGi service properties for registration
+	 * @param properties the OSGi service properties for registration, must not be {@code null}
 	 * @param bundleId   the ID of the bundle that provides this model
+	 * @throws NullPointerException if {@code ePackage} or {@code properties} is {@code null}
 	 */
 	public Model(EPackage ePackage, Dictionary<String, Object> properties, long bundleId) {
-		this.ePackage = ePackage;
+		this.ePackage = requireNonNull(ePackage, "EPackage must not be null");
+		requireNonNull(properties, "Properties must not be null");
 		this.bundleId = bundleId;
 		this.properties = new HashMap<>(FrameworkUtil.asMap(properties));
 	}

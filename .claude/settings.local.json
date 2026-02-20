@@ -11,7 +11,8 @@
       "Bash(while read f)",
       "Bash(do head -20 \"$f\")",
       "Bash(echo:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

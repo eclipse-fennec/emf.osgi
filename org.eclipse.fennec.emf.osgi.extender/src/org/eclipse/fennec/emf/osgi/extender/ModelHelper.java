@@ -12,8 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_EXTENDER_DEFAULT_PATH;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_EXTENDER_PROP_MODELS_NAME;
@@ -31,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -90,10 +87,11 @@ public class ModelHelper {
 		if (paths == null) {
 			return Collections.emptyList();
 		}
+		// J1: use .toList() instead of Collectors.toList()
 		return paths.stream()
 				.map(path -> readModel(bundle, resourceSet, path, diagnostic))
 				.flatMap(List::stream)
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	/**
@@ -116,8 +114,13 @@ public class ModelHelper {
 		final List<Model> models = new ArrayList<>();
 		Map<String, String> properties = new HashMap<>();
 		String plainPath = extractProperties(path, properties);
+		// N3 fix: guard against null plainPath
+		if (plainPath == null) {
+			diagnostic.errors.add("Model path is null");
+			return models;
+		}
 		final Enumeration<URL> urls;
-		if (plainPath != null && plainPath.endsWith(".ecore")) {
+		if (plainPath.endsWith(".ecore")) {
 			URL url = bundle.getEntry(plainPath);
 			if (url == null) {
 				urls = bundle.findEntries(plainPath, "*.ecore", false);
@@ -137,12 +140,12 @@ public class ModelHelper {
 	private static void loadModelsFromUrls(final long bundleId, final ResourceSet resourceSet, final String path,
 			final Diagnostic diagnostic, final List<Model> models, Map<String, String> properties, String plainPath,
 			final Enumeration<URL> urls) {
-		if (nonNull(urls)) {
+		if (urls != null) {
 			while (urls.hasMoreElements()) {
 				final URL url = urls.nextElement();
 				try {
 					final Model model = loadModelInstance(bundleId, resourceSet, url, properties, diagnostic);
-					if (nonNull(model)) {
+					if (model != null) {
 						models.add(model);
 					}
 				} catch (final IOException ioe) {
@@ -194,8 +197,19 @@ public class ModelHelper {
 			if (properties != null) {
 				properties.forEach(serviceProperties::put);
 			}
-			serviceProperties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
-			serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
+			// N4 fix: guard against null name/nsURI which would cause Hashtable NPE
+			String name = ePackage.getName();
+			if (name != null) {
+				serviceProperties.put(EMFNamespaces.EMF_NAME, name);
+			} else {
+				diagnostic.warnings.add("EPackage at " + url + " has no name");
+			}
+			String nsURI = ePackage.getNsURI();
+			if (nsURI != null) {
+				serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, nsURI);
+			} else {
+				diagnostic.warnings.add("EPackage at " + url + " has no nsURI");
+			}
 			serviceProperties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
 			if (properties == null || !properties.containsKey(EMFNamespaces.EMF_MODEL_SCOPE)) {
 				serviceProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_STATIC);
@@ -226,18 +240,22 @@ public class ModelHelper {
 	 */
 	public static Set<String> isModelBundle(final Bundle bundle, final long extenderBundleId) {
 		final BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
-		if (isNull(bundleWiring)) {
+		if (bundleWiring == null) {
 			return Collections.emptySet();
 		}
 
 		final List<BundleRequirement> requirements = bundleWiring.getRequirements(ExtenderNamespace.EXTENDER_NAMESPACE);
-		if (isNull(requirements) || requirements.isEmpty()) {
+		if (requirements == null || requirements.isEmpty()) {
 			return Collections.emptySet();
 		}
 
+		// N2 fix: getRequiredWires() can return null per OSGi spec
 		final List<BundleWire> wires = bundleWiring.getRequiredWires(ExtenderNamespace.EXTENDER_NAMESPACE);
+		if (wires == null) {
+			return Collections.emptySet();
+		}
 		for (final BundleWire wire : wires) {
-			if (nonNull(wire.getProviderWiring())
+			if (wire.getProviderWiring() != null
 					&& wire.getProviderWiring().getBundle().getBundleId() == extenderBundleId) {
 				return extractModelPath(wire);
 			}
@@ -258,7 +276,7 @@ public class ModelHelper {
 	private static Set<String> extractModelPath(final BundleWire wire) {
 		requireNonNull(wire);
 		final Object val = wire.getRequirement().getAttributes().get(EMF_MODEL_EXTENDER_PROP_MODELS_NAME);
-		if (nonNull(val)) {
+		if (val != null) {
 			if (val instanceof String s) {
 				return Collections.singleton(s);
 			}

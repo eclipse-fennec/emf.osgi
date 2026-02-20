@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +23,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
-import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -72,9 +73,10 @@ public class EMFModelExtender {
 	 * Creates a new model extender.
 	 *
 	 * @param bc the bundle context of the extender bundle itself
+	 * @throws NullPointerException if {@code bc} is {@code null}
 	 */
 	public EMFModelExtender(BundleContext bc) {
-		this.bundleContext = bc;
+		this.bundleContext = requireNonNull(bc, "BundleContext must not be null");
 		this.tracker = new BundleTracker<>(bc,
 				Bundle.ACTIVE | Bundle.STARTING,
 				new BundleTrackerCustomizer<Bundle>() {
@@ -124,36 +126,55 @@ public class EMFModelExtender {
 	private void processAddBundle(Bundle bundle) {
 		long bundleId = bundle.getBundleId();
 
-		// Skip if already processed
-		if (registrations.containsKey(bundleId)) {
+		// Atomic check-then-put: skip if already processed (R1 fix)
+		if (registrations.putIfAbsent(bundleId, List.of()) != null) {
 			return;
 		}
 
 		try {
 			Set<String> paths = ModelHelper.isModelBundle(bundle, bundleContext.getBundle().getBundleId());
 			if (paths.isEmpty()) {
+				registrations.remove(bundleId);
 				return;
 			}
 
-			ResourceSet resourceSet = EcoreHelper.createResourceSet();
+			EcoreHelper ecoreHelper = new EcoreHelper();
 			ModelHelper.Diagnostic diagnostic = new ModelHelper.Diagnostic();
-			List<Model> models = ModelHelper.readModelsFromBundle(bundle, resourceSet, paths, diagnostic);
+			List<Model> models = ModelHelper.readModelsFromBundle(bundle, ecoreHelper.getResourceSet(), paths, diagnostic);
 
 			diagnostic.warnings.forEach(w -> logger.log(Level.WARNING, w));
 			diagnostic.errors.forEach(e -> logger.log(Level.SEVERE, e));
 
+			// M1 fix: release ResourceSet resources after loading
+			ecoreHelper.releaseAll();
+
 			if (models.isEmpty()) {
+				registrations.remove(bundleId);
 				return;
 			}
 
 			List<ServiceRegistration<?>> bundleRegs = new ArrayList<>();
-			for (Model model : models) {
-				registerModel(bundle, model, bundleRegs);
+			try {
+				for (Model model : models) {
+					registerModel(bundle, model, bundleRegs);
+				}
+			} catch (RuntimeException e) {
+				// M2 fix: on partial failure, unregister already-registered services
+				for (ServiceRegistration<?> reg : bundleRegs) {
+					try {
+						reg.unregister();
+					} catch (IllegalStateException ise) {
+						// already unregistered
+					}
+				}
+				registrations.remove(bundleId);
+				throw e;
 			}
 			registrations.put(bundleId, bundleRegs);
 
 			logger.fine(() -> "Registered " + models.size() + " EMF model(s) from " + getBundleIdentity(bundle));
 		} catch (IllegalStateException e) {
+			registrations.remove(bundleId);
 			logger.log(Level.SEVERE, e, () -> "Error processing bundle " + getBundleIdentity(bundle));
 		}
 	}
@@ -175,14 +196,31 @@ public class EMFModelExtender {
 
 	/**
 	 * Resolves the {@link BundleContext} for the bundle with the given ID.
-	 * Falls back to the extender's own context if {@code bundleId} is {@code -1}.
+	 * Falls back to the extender's own context if {@code bundleId} is {@code -1}
+	 * or if the target bundle cannot be resolved.
+	 *
+	 * @param bundleId the target bundle ID
+	 * @return the bundle context of the target bundle, or the extender's own context as fallback
 	 */
 	private BundleContext getModelBundleContext(long bundleId) {
 		if (bundleId == -1) {
 			return bundleContext;
 		}
+		// N1 fix: guard against NPE from system bundle or target bundle lookup
 		Bundle systemBundle = bundleContext.getBundle(Constants.SYSTEM_BUNDLE_LOCATION);
-		return systemBundle.getBundleContext().getBundle(bundleId).getBundleContext();
+		if (systemBundle == null) {
+			return bundleContext;
+		}
+		BundleContext systemContext = systemBundle.getBundleContext();
+		if (systemContext == null) {
+			return bundleContext;
+		}
+		Bundle targetBundle = systemContext.getBundle(bundleId);
+		if (targetBundle == null) {
+			return bundleContext;
+		}
+		BundleContext targetContext = targetBundle.getBundleContext();
+		return targetContext != null ? targetContext : bundleContext;
 	}
 
 	private void processRemoveBundle(long bundleId) {

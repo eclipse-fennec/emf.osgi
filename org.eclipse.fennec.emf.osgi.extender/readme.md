@@ -1,64 +1,246 @@
-# Gecko EMF Model Extender
+# Fennec EMF Model Extender
 
-This is an implementation of an OSGi Extender. It tracks all bundle Manifest for a special *Requirement*.
+An OSGi extender that automatically discovers and registers EMF ecore models from bundles at runtime -- no code generation or manual service registration required.
 
-This defines the *ecore* model folders. The extender looks into these folders and tries to load the model files  for the given paths. The loaded models are then registered to the Gecko EMF infrastructure. That means each *ecore* model will get an own *EPackageConfigurator*
+## Overview
 
-Each model will be registered with the service properties *emf.model.name* and *emf.model.nsURI*. Additional properties are appended to the service properties.
+The EMF Model Extender implements the [OSGi Extender Pattern](https://docs.osgi.org/specification/osgi.cmpn/8.0.0/service.loader.html) using a `BundleTracker` to monitor bundles as they become active. When a bundle declares the `emf.model` extender requirement, the extender:
 
-## Registering a model
+1. Scans the declared model paths for `.ecore` files
+2. Loads each ecore file into an `EPackage`
+3. Registers each `EPackage` as an OSGi service
+4. Registers a corresponding `EPackageConfigurator` service
 
-The bundle that contains the model needs to define a OSGi Requirement:
+This makes the models available to the Fennec EMF OSGi infrastructure without any generated code.
+
+## How It Works
+
+### Architecture
 
 ```
++---------------------+       tracks        +-------------------+
+| EMFModelExtender    | ------------------> | Model Bundles     |
+| (BundleTracker)     |                     | (with .ecore)     |
++---------------------+                     +-------------------+
+         |                                           |
+         |  reads Require-Capability                 |  contains .ecore files
+         |  extracts model paths                     |  at declared paths
+         v                                           v
++---------------------+       loads         +-------------------+
+| ModelHelper         | ------------------> | EcoreHelper       |
+| (path resolution,   |                     | (ResourceSet,     |
+|  bundle scanning)   |                     |  ecore loading)   |
++---------------------+                     +-------------------+
+         |
+         |  registers services in model bundle's context
+         v
++---------------------+
+| OSGi Service        |
+| Registry            |
+|  - EPackage         |
+|  - EPackageConfig.  |
++---------------------+
+```
+
+### Component Lifecycle
+
+The `EMFModelExtenderComponent` (Declarative Services) manages the lifecycle:
+
+- **Activate**: Creates an `EMFModelExtender` and starts the `BundleTracker`
+- **Deactivate**: Stops the tracker and unregisters all model services
+
+### Service Registration
+
+For each discovered `.ecore` model, two services are registered in the **model bundle's own `BundleContext`** (not the extender's), ensuring automatic cleanup when the model bundle stops:
+
+| Service Type | Implementation | Purpose |
+|-------------|----------------|---------|
+| `EPackageConfigurator` | `ModelExtenderConfigurator` | Registers/unregisters the `EPackage` in EMF package registries |
+| `EPackage` | The loaded `EPackage` instance | Direct access to the EMF package for consumers |
+
+### Service Properties
+
+Each registered service carries these standard properties:
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| `emf.name` | `ePackage.getName()` | The EPackage name |
+| `emf.nsURI` | `ePackage.getNsURI()` | The EPackage namespace URI |
+| `emf.registration` | `extender` | Indicates model was registered by the extender |
+| `emf.model.scope` | `static` (default) | The registry scope for the EPackageConfigurator |
+
+Additional custom properties can be specified inline (see below).
+
+## Usage
+
+### Basic: Default Model Folder
+
+Place your `.ecore` files in a `model/` folder inside your bundle and add this requirement to your `bnd.bnd`:
+
+```properties
 Require-Capability: \
-	osgi.extender;\
-	filter:="(osgi.extender=emf.model)";\
-	models:List<String>="/model;foo=bar;test=me,OSGI-INF/model;test=me;foo=baz,/toast/toast.ecore;toast=me;foo=toast"
+    osgi.extender;\
+    filter:="(osgi.extender=emf.model)"
 ```
 
-We make use of the OSGi Extender here. So there is an own extender **emf.model**. The attribute *models* is of type String+ and contains a comma separated list of folder and properties.
+The extender will scan the default path `model/` and register all `.ecore` files found there.
+
+### Using the Annotation
+
+Instead of manually writing the `Require-Capability` header, use the `@ProvideExtenderModel` annotation on any class or `package-info.java`:
+
+```java
+@ProvideExtenderModel
+package com.example.mymodel;
+
+import org.eclipse.fennec.emf.osgi.annotation.extender.ProvideExtenderModel;
+```
+
+With custom model locations:
+
+```java
+@ProvideExtenderModel({"/mymodels", "OSGI-INF/ecore/special.ecore"})
+package com.example.mymodel;
+
+import org.eclipse.fennec.emf.osgi.annotation.extender.ProvideExtenderModel;
+```
+
+### Custom Model Paths
+
+Specify one or more paths using the `models` attribute:
+
+```properties
+Require-Capability: \
+    osgi.extender;\
+    filter:="(osgi.extender=emf.model)";\
+    models:List<String>="OSGI-INF/model,/custom/path"
+```
 
 ### Registering a Single Model File
 
-```
+Point directly to a specific `.ecore` file:
+
+```properties
 Require-Capability: \
-	osgi.extender;\
-	filter:="(osgi.extender=emf.model)";\
-	models:List<String>="/test/test.ecore;foo=bar;test"
+    osgi.extender;\
+    filter:="(osgi.extender=emf.model)";\
+    models:List<String>="/model/mymodel.ecore"
 ```
 
-This example registers the *test.ecore* that is located in the JAR under */test/test.ecore*. The *EPAckageConfigurator will be registered with additional properties **foo=bar** and **test=***
+### Inline Properties
 
-### Registering a Model Folder
-
-There is also the possiblility to scan folder for *ecore* files.
+Append additional service properties to any path using semicolons. These properties are added to the `EPackage` and `EPackageConfigurator` service registrations:
 
 ```
+path;key1=value1;key2=value2;flagKey
+```
+
+- `key=value` -- sets a named property
+- `flagKey` (no `=`) -- sets the key with a `null` value
+
+#### Examples
+
+Single model with properties:
+
+```properties
+models:List<String>="/model/mymodel.ecore;foo=bar;test=me"
+```
+
+Multiple paths with different properties:
+
+```properties
+models:List<String>="/model;foo=bar,OSGI-INF/model;env=staging,/special/special.ecore;toast=me"
+```
+
+Override the default scope:
+
+```properties
+models:List<String>="/model;emf.model.scope=resourceset"
+```
+
+The `emf.model.scope` property controls which EMF registry level the `EPackageConfigurator` targets. If not specified, it defaults to `static`. Available scopes:
+
+| Scope | Description |
+|-------|-------------|
+| `static` | Replaces entries in `EPackage.Registry.INSTANCE` (global) |
+| `resourceset` | Registered at ResourceSet level |
+| `generated` | For generated model code |
+
+### Full Example
+
+A bundle's `bnd.bnd` with multiple model locations and properties:
+
+```properties
+-includeresource.model: \
+    model/manual.ecore=model/manual.ecore,\
+    OSGI-INF/model/test.ecore=model/test.ecore
+
 Require-Capability: \
-	osgi.extender;\
-	filter:="(osgi.extender=emf.model)"
+    osgi.extender;\
+    filter:="(osgi.extender=emf.model)";\
+    models:List<String>="/model;foo=bar;test=me,OSGI-INF/model;env=production"
+
+-buildpath: org.eclipse.fennec.emf.osgi.api;version=snapshot
 ```
 
-The example above registers all *ecore* model found in the folder **/model**
-
-For alternative folders look at this example:
+## Module Structure
 
 ```
-Require-Capability: \
-	osgi.extender;\
-	filter:="(osgi.extender=emf.model)";\
-	models:List<String>="OSGI-INF/model"
+org.eclipse.fennec.emf.osgi.extender/
+  src/
+    org/eclipse/fennec/emf/osgi/extender/
+      EMFModelExtenderComponent.java  -- DS component (lifecycle)
+      EMFModelExtender.java           -- BundleTracker + service registration
+      ModelExtenderConfigurator.java   -- EPackageConfigurator implementation
+      ModelHelper.java                -- Bundle scanning + ecore loading utility
+      model/
+        Model.java                    -- Immutable data holder (EPackage + properties + bundleId)
+  test/
+    org/gecko/emf/osgi/extender/
+      ModelUtilsTest.java             -- extractProperties unit tests
+      ModelExtenderConfiguratorTest.java -- Configurator unit tests
+      ModelHelperTest.java            -- Model loading unit tests
+      ModelTest.java                  -- Model data holder unit tests
 ```
 
-## Additional Properties
+## Testing
 
-For each model location entry, additional key value pairs can be provided. They are appended to the model location using **;** (semicolon)
+### Unit Tests
 
-`/model;foo=bar;test=me`
+```bash
+./gradlew :org.eclipse.fennec.emf.osgi.extender:test
+```
 
-This provided additional properties **foo=bar** and **test=me** to each *ecore* model in the folder *model*
+Unit tests cover: `Model`, `ModelExtenderConfigurator`, `ModelHelper` (property extraction, model loading with real `.ecore` files).
 
-For single model files it works as well.
+### OSGi Integration Tests
 
-`/model/test.ecore;foo=bar;test=me`
+```bash
+./gradlew :org.eclipse.fennec.emf.osgi.extender.itest:testOSGi
+```
+
+Integration tests run in a full OSGi container (Felix) and verify:
+- Bundle tracking and model discovery
+- Service registration and property propagation
+- Bundle restart and re-registration
+- End-to-end lifecycle with real model bundles
+
+### Full Build
+
+```bash
+./gradlew build
+```
+
+A full build is required when changing the extender or API, because the component bundle (`org.eclipse.fennec.emf.osgi`) repackages the API. Without a full build, integration tests may fail with `NoClassDefFoundError`.
+
+## Dependencies
+
+| Dependency | Purpose |
+|-----------|---------|
+| `org.eclipse.fennec.emf.osgi.api` | Interfaces (`EPackageConfigurator`), constants (`EMFNamespaces`), `EcoreHelper` |
+| `org.eclipse.emf.ecore` | EMF core (EPackage, EClass, Resource) |
+| `org.eclipse.emf.ecore.xmi` | XMI resource factory for loading `.ecore` files |
+| `org.osgi.framework` | OSGi framework API (Bundle, BundleContext, ServiceRegistration) |
+| `org.osgi.util.tracker` | BundleTracker |
+| `org.osgi.namespace.extender` | OSGi extender namespace constants |
+| `org.osgi.service.component` | Declarative Services annotations |
