@@ -12,9 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender.model;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URL;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -22,167 +19,70 @@ import java.util.Map;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 
-public class Model implements Serializable {
+/**
+ * Immutable data holder for a discovered EMF model.
+ * <p>
+ * Encapsulates an {@link EPackage} loaded from a bundle together with the OSGi
+ * service properties to be used when registering the model as a service, and
+ * the originating bundle ID for proper service lifecycle management.
+ *
+ * @author Mark Hoffmann
+ * @since 17.10.2022
+ */
+public class Model {
 
-    private static final long serialVersionUID = 1L;
+	private final EPackage ePackage;
+	private final Map<String, Object> properties;
+	private final long bundleId;
 
-    /** Serialization version. */
-    private static final int VERSION = 1;
+	/**
+	 * Creates a new model instance.
+	 *
+	 * @param ePackage   the loaded EMF package, must not be {@code null}
+	 * @param properties the OSGi service properties for registration
+	 * @param bundleId   the ID of the bundle that provides this model
+	 */
+	public Model(EPackage ePackage, Dictionary<String, Object> properties, long bundleId) {
+		this.ePackage = ePackage;
+		this.bundleId = bundleId;
+		this.properties = new HashMap<>(FrameworkUtil.asMap(properties));
+	}
 
-    /** The model namespace */
-    private String ns;
-
-    /** The bundle id. */
-    private long bundleId;
-    
-    /** The model URL */
-    private URL url;
-
-    /** The model properties. */
-    private Map<String, Object> properties;
-    
-    private transient EPackage ePackage = null;
-    private transient ServiceRegistration<EPackage> modelRegistration = null;
-    private transient ServiceRegistration<?> modelConfigRegistration = null;
-
-    /** The model state. */
-    private volatile ModelState state = ModelState.INSTALL;
-
-    public Model(final EPackage ePackage,
-    		final URL url,
-            final Dictionary<String, Object> properties,
-            final long bundleId) {
-        this.ePackage = ePackage;
-        this.ns = ePackage.getNsURI();
-        this.url = url;
-        this.bundleId = bundleId;
-        this.properties = new HashMap<>(FrameworkUtil.asMap(properties));
-    }
-
-    /**
-     * Serialize the object
-     * - write version id
-     * - serialize fields
-     * @param out Object output stream
-     * @throws IOException
-     */
-    private void writeObject(final java.io.ObjectOutputStream out)
-    throws IOException {
-        out.writeInt(VERSION);
-        out.writeObject(ns);
-        out.writeObject(url.toExternalForm());
-        out.writeObject(properties);
-        out.writeLong(bundleId);
-        out.writeObject(state.name());
-    }
-
-    /**
-     * Deserialize the object
-     * - read version id
-     * - deserialize fields
-     */
-    @SuppressWarnings("unchecked")
-    private void readObject(final java.io.ObjectInputStream in)
-    throws IOException, ClassNotFoundException {
-        final int version = in.readInt();
-        if ( version < 1 || version > VERSION ) {
-            throw new ClassNotFoundException(this.getClass().getName());
-        }
-        this.ns = (String) in.readObject();
-        this.url = new URL((String) in.readObject());
-        this.properties = (Hashtable<String, Object>) in.readObject();
-        this.bundleId = in.readLong();
-        this.state = ModelState.valueOf((String)in.readObject());
-    }
-
-    /**
-     * Get the model namespace
-     * @return The model namespace.
-     */
-    public String getNamespace() {
-        return this.ns;
-    }
-
-    /**
-     * The bundle id
-     * @return The bundle id
-     */
-    public long getBundleId() {
-        return this.bundleId;
-    }
-
-    /**
-     * Get the model state
-     * @return The state
-     */
-    public ModelState getState() {
-        return this.state;
-    }
-
-    /**
-     * Set the model state
-     * @param value The new state
-     */
-    public void setState(final ModelState value) {
-        this.state = value;
-    }
-
-    /**
-     * Get all properties
-     * @return The model properties
-     */
-    public Dictionary<String, Object> getProperties() {
-        return FrameworkUtil.asDictionary(this.properties);
-    }
-
-    /**
-	 * Returns the modelReference.
-	 * @return the modelReference
+	/**
+	 * Returns the loaded EMF package.
+	 *
+	 * @return the EPackage, never {@code null}
 	 */
 	public EPackage getEPackage() {
 		return ePackage;
 	}
 
 	/**
-	 * Returns the modelREgistration.
-	 * @return the modelREgistration
+	 * Returns a copy of the service properties as a {@link Dictionary}.
+	 * <p>
+	 * A new {@link Hashtable} is created on each call so callers cannot
+	 * mutate the internal state.
+	 *
+	 * @return service properties for OSGi registration
 	 */
-	public ServiceRegistration<EPackage> getModelRegistration() {
-		return modelRegistration;
+	public Dictionary<String, Object> getProperties() {
+		return new Hashtable<>(properties);
 	}
 
 	/**
-	 * Sets the modelREgistration.
-	 * @param modelREgistration the modelREgistration to set
+	 * Returns the ID of the bundle that provides this model.
+	 *
+	 * @return the originating bundle ID, or {@code -1} if not associated with a specific bundle
 	 */
-	public void setModelRegistration(ServiceRegistration<EPackage> modelREgistration) {
-		this.modelRegistration = modelREgistration;
+	public long getBundleId() {
+		return bundleId;
 	}
-	
-	/**
-	 * Returns the modelConfigRegistration.
-	 * @return the modelConfigRegistration
-	 */
-	public ServiceRegistration<?> getModelConfigRegistration() {
-		return modelConfigRegistration;
+
+	@Override
+	public String toString() {
+		return "Model [namespace=" + ePackage.getNsURI()
+				+ ", bundleId=" + bundleId
+				+ ", properties=" + properties + "]";
 	}
-	
-	/**
-	 * Sets the modelConfigRegistration.
-	 * @param modelConfigRegistration the modelConfigRegistration to set
-	 */
-	public void setModelConfigRegistration(ServiceRegistration<?> modelConfigRegistration) {
-		this.modelConfigRegistration = modelConfigRegistration;
-	}
-	
-    @Override
-    public String toString() {
-        return "Model [namespace=" + ns
-                + ", url=" + url.toExternalForm()
-                + ", bundleId=" + bundleId
-                + ", properties=" + properties
-                + ", state=" + state + "]";
-    }
 }

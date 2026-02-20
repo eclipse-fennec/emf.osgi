@@ -40,21 +40,34 @@ import org.osgi.test.junit5.context.BundleContextExtension;
 import org.osgi.test.junit5.service.ServiceExtension;
 
 /**
- * 
- * @author mark
+ * OSGi integration tests for the EMF model extender.
+ * <p>
+ * Verifies that ecore models declared via the extender pattern are correctly
+ * discovered, loaded, and registered as OSGi services ({@link EPackage},
+ * {@link EPackageConfigurator}, and made available through {@link ResourceSet}).
+ * <p>
+ * The test bundles ({@code org.eclipse.fennec.emf.osgi.example.model.extender}
+ * and {@code org.eclipse.fennec.emf.osgi.example.model.manual}) provide test
+ * models with inline properties and multiple folder configurations.
+ *
+ * @author Mark Hoffmann
  * @since 14.10.2022
  */
 @ExtendWith(ServiceExtension.class)
 @ExtendWith(BundleContextExtension.class)
 public class EMFModelExtenderTest {
-	
+
 	private BundleContext ctx;
 
 	@BeforeEach
 	public void before(@InjectBundleContext BundleContext ctx) {
 		this.ctx = ctx;
 	}
-	
+
+	/**
+	 * Verifies that a single extender-managed model is available through
+	 * a filtered {@link ResourceSet} service and contains expected classifiers.
+	 */
 	@Test
 	public void simpleTest(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<ResourceSet> rsAware) {
 		ResourceSet rs = rsAware.getService();
@@ -70,6 +83,9 @@ public class EMFModelExtenderTest {
 		assertNull(bar);
 	}
 	
+	/**
+	 * Verifies that an extender-managed model is registered as an {@link EPackage} service.
+	 */
 	@Test
 	public void simpleTestEPackage(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
 		assertNotNull(epackageAware);
@@ -82,6 +98,10 @@ public class EMFModelExtenderTest {
 		assertNull(bar);
 	}
 	
+	/**
+	 * Verifies that the {@code emf.registration} service property is set to
+	 * {@code extender} for models registered by the extender.
+	 */
 	@Test
 	public void simpleTestEPackageRegistrationProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
 		assertNotNull(epackageAware);
@@ -90,6 +110,10 @@ public class EMFModelExtenderTest {
 		.extractingByKey(EMFNamespaces.EMF_MODEL_REGISTRATION).isEqualTo(EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
 	}
 	
+	/**
+	 * Verifies that models from multiple folders are all available in a single
+	 * {@link ResourceSet} when filtered for both model names.
+	 */
 	@Test
 	public void simpleMultipleFolders(@InjectService(filter = "(&(" + EMFNamespaces.EMF_NAME + "=manual)(" + EMFNamespaces.EMF_NAME + "=foobar))") ServiceAware<ResourceSet> rsAware) {
 		ResourceSet rs = rsAware.getService();
@@ -116,6 +140,10 @@ public class EMFModelExtenderTest {
 		assertNotNull(foobarBar);
 	}
 	
+	/**
+	 * Verifies that models from multiple folders are registered as separate
+	 * {@link EPackage} services with distinct filter properties.
+	 */
 	@Test
 	public void simpleMultipleFoldersEPackage(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> manualAware, @InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=foobar)") ServiceAware<EPackage> fooAware) {
 		EPackage manualPackage = manualAware.getService();
@@ -136,6 +164,10 @@ public class EMFModelExtenderTest {
 		assertNotNull(foobarBar);
 	}
 	
+	/**
+	 * Verifies that inline path properties ({@code ;foo=bar;test=me}) are propagated
+	 * to the {@link EPackageConfigurator} service registrations and can be used for filtering.
+	 */
 	@Test
 	public void simpleMultiplePropertiesFolders01(@InjectService(filter = "(|(foo=bar)(foo=baz))") ServiceAware<EPackageConfigurator> configAware) {
 		List<ServiceReference<EPackageConfigurator>> references = configAware.getServiceReferences();
@@ -184,6 +216,10 @@ public class EMFModelExtenderTest {
 		assertNotNull(foobarBar);
 	}
 	
+	/**
+	 * Verifies that a shared inline property ({@code test=me}) matches multiple
+	 * configurators and that each correctly registers its EPackage.
+	 */
 	@Test
 	public void simpleMultiplePropertiesFolders02(@InjectService(filter = "(test=me)") ServiceAware<EPackageConfigurator> configAware) {
 		List<ServiceReference<EPackageConfigurator>> references = configAware.getServiceReferences();
@@ -220,6 +256,10 @@ public class EMFModelExtenderTest {
 		assertNotNull(foobarBar);
 	}
 	
+	/**
+	 * Verifies that a single ecore file path with inline properties is correctly loaded
+	 * and registered with the expected custom property ({@code toast=me}).
+	 */
 	@Test
 	public void simpleMultiplePropertiesFile(@InjectService(filter = "(toast=me)") ServiceAware<EPackageConfigurator> configAware) {
 		List<ServiceReference<EPackageConfigurator>> references = configAware.getServiceReferences();
@@ -255,6 +295,10 @@ public class EMFModelExtenderTest {
 		assertNotNull(toastBar);
 	}
 	
+	/**
+	 * Verifies that a single ecore file with inline properties is also registered
+	 * as an {@link EPackage} service with the matching custom property.
+	 */
 	@Test
 	public void simpleMultiplePropertiesFileEPackage(@InjectService(filter = "(toast=me)") ServiceAware<EPackage> epackageAware) {
 		List<ServiceReference<EPackage>> references = epackageAware.getServiceReferences();

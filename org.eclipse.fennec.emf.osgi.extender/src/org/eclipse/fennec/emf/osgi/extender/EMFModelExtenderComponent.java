@@ -12,60 +12,51 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
+import java.util.logging.Logger;
+
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-
-import java.util.logging.Logger;
-
-import org.osgi.framework.Constants;
-import org.osgi.service.component.AnyService;
-import org.osgi.service.component.ComponentContext;
 
 /**
- * 
- * @author mark
+ * Declarative Services component that manages the lifecycle of the {@link EMFModelExtender}.
+ * <p>
+ * On activation, creates and starts an {@link EMFModelExtender} that begins
+ * tracking bundles for EMF model content. On deactivation, the extender is
+ * shut down and all model service registrations are cleaned up.
+ *
+ * @author Mark Hoffmann
  * @since 13.10.2022
  */
 @Component
 public class EMFModelExtenderComponent {
-	
-	private static Logger logger = Logger.getLogger(EMFModelExtenderComponent.class.getName());
 
-    /** The current EMF extender. */
-    private EMFModelExtender modelExtender;
-	
+	private static final Logger logger = Logger.getLogger(EMFModelExtenderComponent.class.getName());
+
+	private EMFModelExtender modelExtender;
+
+	/**
+	 * Activates the component by creating and starting the model extender.
+	 *
+	 * @param ctx the component context providing access to the bundle context
+	 */
 	@Activate
 	public void activate(ComponentContext ctx) {
 		modelExtender = new EMFModelExtender(ctx.getBundleContext());
 		modelExtender.start();
-		logger.info("Start EMF Model Extender");
+		logger.info("Started EMF Model Extender");
 	}
+
+	/**
+	 * Deactivates the component by shutting down the model extender
+	 * and unregistering all discovered model services.
+	 *
+	 * @param ctx the component context
+	 */
 	@Deactivate
 	public void deactivate(ComponentContext ctx) {
 		modelExtender.shutdown();
-		logger.info("Shutdown EMF Model Extender");
-		
+		logger.info("Stopped EMF Model Extender");
 	}
-	
-	@Reference(cardinality = ReferenceCardinality.OPTIONAL, 
-			policy = ReferencePolicy.DYNAMIC, 
-			service = AnyService.class, 
-			target = "(" + Constants.OBJECTCLASS + "=org.osgi.service.coordinator.Coordinator)")
-	public void addCoordinator(Object coordinator) {
-		if (modelExtender != null) {
-			modelExtender.setCoordinator(coordinator);
-		}
-	}
-	
-	public void removeCoordinator(Object coordinator) {
-		if (modelExtender != null) {
-			modelExtender.setCoordinator(null);
-		}
-		
-	}
-
 }

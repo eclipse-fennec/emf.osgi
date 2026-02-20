@@ -19,9 +19,16 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 
 /**
- * Implementation for Gecko EMF configurators, used by the extender.
+ * {@link EPackageConfigurator} implementation used by the EMF model extender.
+ * <p>
+ * Wraps a single {@link EPackage} and registers/unregisters it in an
+ * {@link EPackage.Registry} by its namespace URI. This allows the extender
+ * to integrate discovered ecore models into the EMF package registry
+ * through the OSGi whiteboard pattern.
+ *
  * @author Mark Hoffmann
  * @since 13.10.2022
+ * @see EMFModelExtender
  */
 public class ModelExtenderConfigurator implements EPackageConfigurator {
 	
@@ -29,19 +36,17 @@ public class ModelExtenderConfigurator implements EPackageConfigurator {
 	private final EPackage ePackage;
 
 	/**
-	 * Creates a new instance.
+	 * Creates a new configurator for the given package.
+	 *
+	 * @param ePackage the EMF package to register, should not be {@code null}
 	 */
 	public ModelExtenderConfigurator(EPackage ePackage) {
 		this.ePackage = ePackage;
 	}
 
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.EPackageConfigurator#configureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
-	 */
 	@Override
-	public void configureEPackage(org.eclipse.emf.ecore.EPackage.Registry registry) {
+	public void configureEPackage(EPackage.Registry registry) {
 		if (ePackage != null) {
 			registry.put(ePackage.getNsURI(), ePackage);
 		} else {
@@ -49,12 +54,8 @@ public class ModelExtenderConfigurator implements EPackageConfigurator {
 		}
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.EPackageConfigurator#unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
-	 */
 	@Override
-	public void unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry registry) {
+	public void unconfigureEPackage(EPackage.Registry registry) {
 		if (ePackage != null) {
 			registry.remove(ePackage.getNsURI());
 		} else {
