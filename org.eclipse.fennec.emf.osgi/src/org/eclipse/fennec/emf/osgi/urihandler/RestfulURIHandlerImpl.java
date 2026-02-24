@@ -397,7 +397,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	 */
 	@Override
 	public boolean canHandle(URI uri) {
-		return uri.scheme().equalsIgnoreCase(SCHEMA_HTTP) || uri.scheme().equalsIgnoreCase(SCHEMA_HTTPS);
+		return SCHEMA_HTTP.equalsIgnoreCase(uri.scheme()) || SCHEMA_HTTPS.equalsIgnoreCase(uri.scheme());
 	}
 
 	/**

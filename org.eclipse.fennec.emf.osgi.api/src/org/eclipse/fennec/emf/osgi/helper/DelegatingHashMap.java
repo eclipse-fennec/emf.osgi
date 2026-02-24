@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A {@link Map} implementation that holds an internal {@link HashMap} to store its data together with a delegate.
@@ -39,6 +41,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @see MapChangeListener
  */
 public class DelegatingHashMap<K, V> implements Map<K, V> {
+
+	private static final Logger LOG = Logger.getLogger(DelegatingHashMap.class.getName());
 
 	private Map<K, V> delegate;
 	private Map<K, V> main;
@@ -113,11 +117,10 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 	 */
 	@Override
 	public V get(Object key) {
-		V result = main.get(key);
-		if(result == null) {
-			return delegate.get(key);
+		if(main.containsKey(key)) {
+			return main.get(key);
 		}
-		return result;
+		return delegate.get(key);
 	}
 	
 	/* 
@@ -220,7 +223,7 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 			try {
 				listener.entryAdded(key, value);
 			} catch (Exception e) {
-				// Continue with other listeners even if one fails
+				LOG.log(Level.WARNING, "MapChangeListener threw exception", e);
 			}
 		}
 	}
@@ -230,7 +233,7 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 			try {
 				listener.entryRemoved(key, value);
 			} catch (Exception e) {
-				// Continue with other listeners even if one fails
+				LOG.log(Level.WARNING, "MapChangeListener threw exception", e);
 			}
 		}
 	}
@@ -240,7 +243,7 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 			try {
 				listener.entryUpdated(key, oldValue, newValue);
 			} catch (Exception e) {
-				// Continue with other listeners even if one fails
+				LOG.log(Level.WARNING, "MapChangeListener threw exception", e);
 			}
 		}
 	}
@@ -250,7 +253,7 @@ public class DelegatingHashMap<K, V> implements Map<K, V> {
 			try {
 				listener.mapCleared();
 			} catch (Exception e) {
-				// Continue with other listeners even if one fails
+				LOG.log(Level.WARNING, "MapChangeListener threw exception", e);
 			}
 		}
 	}

@@ -199,8 +199,8 @@ public class SynchronizedResourceSetImpl extends ResourceSetImpl implements Deta
 
 	@Override
 	public void detachFromAll(EObject object) {
-		detachFromResource(object);
 		Resource resource = object.eResource();
+		detachFromResource(object);
 		if (resource == null) {
 			return;
 		}

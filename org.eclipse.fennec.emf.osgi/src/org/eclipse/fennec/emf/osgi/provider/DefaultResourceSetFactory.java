@@ -115,7 +115,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 	 */
 	protected void setEPackageRegistry(EPackage.Registry registry, Map<String, Object> properties) {
 		this.packageRegistry = registry;
-		getPropertyContext().removeSubContext(properties);
+		getPropertyContext().addSubContext(properties);
 		updateRegistrationProperties();
 	}
 

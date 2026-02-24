@@ -14,11 +14,14 @@ package org.eclipse.fennec.emf.osgi.helper;
 
 import static java.util.Objects.requireNonNull;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -115,8 +118,15 @@ public class ServicePropertiesHelper {
 		Collection<?> values;
 		if (value instanceof String s) {
 			values = Collections.singletonList(s);
+		} else if(value instanceof Object[] arr){
+			values = Arrays.asList(arr);
 		} else if(value.getClass().isArray()){
-			values = Arrays.asList((Object[])value);
+			int length = Array.getLength(value);
+			List<Object> list = new ArrayList<>(length);
+			for (int j = 0; j < length; j++) {
+				list.add(Array.get(value, j));
+			}
+			values = list;
 		} else if (value instanceof Collection<?> c) {
 			values = c;
 		} else {
@@ -140,8 +150,15 @@ public class ServicePropertiesHelper {
 			return null;
 		}
 		Collection<?> values;
-		if(value.getClass().isArray()){
-			values = Arrays.asList((Object[])value);
+		if(value instanceof Object[] arr){
+			values = Arrays.asList(arr);
+		} else if(value.getClass().isArray()){
+			int length = Array.getLength(value);
+			List<Object> list = new ArrayList<>(length);
+			for (int j = 0; j < length; j++) {
+				list.add(Array.get(value, j));
+			}
+			values = list;
 		} else if (value instanceof Collection<?>) {
 			values = (Collection<?>)value;
 		} else {

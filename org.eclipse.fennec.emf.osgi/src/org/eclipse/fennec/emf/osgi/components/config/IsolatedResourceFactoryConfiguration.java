@@ -93,7 +93,7 @@ public class IsolatedResourceFactoryConfiguration {
 			if (eprConfig == null) {
 				eprConfig = configAdmin.getFactoryConfiguration(EPACKAGE_REGISTRY_CONFIG_NAME, name, "?");
 			}
-			eprConfig.updateIfDifferent(getRegistryProperties(name, filter));
+			eprConfig.updateIfDifferent(getEPackageRegistryProperties(name, filter));
 			if (rfConfig == null) {
 				rfConfig = configAdmin.getFactoryConfiguration(RESOURCE_FACTORY_CONFIG_NAME, name, "?");
 			}

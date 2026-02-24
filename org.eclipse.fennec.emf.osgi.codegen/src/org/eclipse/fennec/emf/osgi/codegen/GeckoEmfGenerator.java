@@ -86,18 +86,20 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 	private static volatile PrintStream logWriter;
 
 	public static void info(String message) {
-		if(logWriter != null) {
-			logWriter.println("[INFO] " + message); //$NON-NLS-1$
-			logWriter.flush();
+		PrintStream writer = logWriter;
+		if(writer != null) {
+			writer.println("[INFO] " + message); //$NON-NLS-1$
+			writer.flush();
 		} else {
 			System.out.println("[INFO] " + message); //$NON-NLS-1$
 		}
 	}
 
 	public static void error(String message) {
-		if(logWriter != null) {
-			logWriter.println("[ERROR] " + message); //$NON-NLS-1$
-			logWriter.flush();
+		PrintStream writer = logWriter;
+		if(writer != null) {
+			writer.println("[ERROR] " + message); //$NON-NLS-1$
+			writer.flush();
 		} else {
 			System.err.println("[ERROR] " + message); //$NON-NLS-1$
 		}
@@ -105,9 +107,10 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 
 	public static void error(String message, Throwable t) {
 		error(message);
-		if (logWriter != null) {
-			t.printStackTrace(logWriter);
-			logWriter.flush();
+		PrintStream writer = logWriter;
+		if (writer != null) {
+			t.printStackTrace(writer);
+			writer.flush();
 		} else {
 			t.printStackTrace(System.err);
 		}
@@ -222,11 +225,13 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 				builder.addAttributesOrDirectives(attrs);
 				Capability capability = builder.synthetic();
 				String genModelLocation = (String) capability.getAttributes().get("genModel");
-				List<String> sourceLocations = (List<String>) capability.getAttributes().get("genModelSourceLocations");
-				if(sourceLocations != null) {
-					sourceLocations.forEach(l -> result.put(l, genModelLocation));
+				if (genModelLocation != null) {
+					List<String> sourceLocations = (List<String>) capability.getAttributes().get("genModelSourceLocations");
+					if(sourceLocations != null) {
+						sourceLocations.forEach(l -> result.put(l, genModelLocation));
+					}
+					result.put(genModelLocation, genModelLocation);
 				}
-				result.put(genModelLocation, genModelLocation);
 				String ecoreLocation = (String) capability.getAttributes().get("ecore");
 				AtomicBoolean checkForEcore = new AtomicBoolean(true);
 				if(ecoreLocation != null) {
@@ -264,9 +269,10 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 	 * 
 	 */
 	private static void closeLog() {
-		if(logWriter != null) {
-			logWriter.close();
+		PrintStream writer = logWriter;
+		if(writer != null) {
 			logWriter = null;
+			writer.close();
 		}
 	}
 
@@ -386,7 +392,7 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 			error(prefix + diagnostic.getMessage() + " - " + diagnostic.getSource()); //$NON-NLS-1$
 			if(diagnostic.getException() != null) {
 				error(prefix, diagnostic.getException());
-				if(diagnostic.getException() instanceof NullPointerException npe) {
+				if(diagnostic.getException() instanceof NullPointerException npe && npe.getStackTrace().length > 0) {
 					StackTraceElement stackTraceElement = npe.getStackTrace()[0];
 					if(stackTraceElement.getClassName().equals(GenModelImpl.class.getName()) && stackTraceElement.getMethodName().equals("setImportManager")) {
 						String message = prefix + "|-> Nullpointer Exception while setting Import Manager on the Genmodel indicates that the genmodel may need to be reloaded. This usually happens when a referenced Genmodel can't be loaded.";

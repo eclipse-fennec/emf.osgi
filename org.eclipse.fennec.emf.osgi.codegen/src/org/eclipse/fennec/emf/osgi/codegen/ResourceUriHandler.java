@@ -77,7 +77,7 @@ public class ResourceUriHandler implements URIHandler {
 	@Override
 	public boolean canHandle(URI uri) {
 		GeckoEmfGenerator.info("Asked to handle " + uri); //$NON-NLS-1$
-		return uri.scheme().equals(UriSanatizer.RESOURCE_SCHEMA_NAME) || uri.toString().startsWith(UriSanatizer.PLATFORM_RESOURCE) || uri.toString().startsWith(UriSanatizer.PLATFORM_PLUGIN); 
+		return UriSanatizer.RESOURCE_SCHEMA_NAME.equals(uri.scheme()) || uri.toString().startsWith(UriSanatizer.PLATFORM_RESOURCE) || uri.toString().startsWith(UriSanatizer.PLATFORM_PLUGIN); 
 	}
 
 	
@@ -97,7 +97,7 @@ public class ResourceUriHandler implements URIHandler {
 		if(bsn.equals(uriBSN)) {
 			GeckoEmfGenerator.info("The bsn segment part fits to: " + bsn); //$NON-NLS-1$
 			StringJoiner joiner = new StringJoiner(UriSanatizer.SLASH);
-			uri.segmentsList().stream().forEach(joiner::add);
+			theUri.segmentsList().stream().forEach(joiner::add);
 			return IO.stream( new File(base, joiner.toString() ));
 		} 
 		
@@ -220,12 +220,12 @@ public class ResourceUriHandler implements URIHandler {
 			return;
 		}
 //		GeckoEmfGenerator.info("Sanatized " + theUri); //$NON-NLS-1$
-		String uriBSN = theUri.segment(0);
+		String uriBSN = theUri.host();
 		if(bsn.equals(uriBSN)) {
 			StringJoiner joiner = new StringJoiner(UriSanatizer.SLASH);
-			uri.segmentsList().stream().skip(1).forEach(joiner::add);
-			IO.delete(new File(base, joiner.toString() + uri.fileExtension()));
-		} 
+			theUri.segmentsList().stream().forEach(joiner::add);
+			IO.delete(new File(base, joiner.toString()));
+		}
 	}
 
 	/* 
@@ -251,11 +251,11 @@ public class ResourceUriHandler implements URIHandler {
 			return false;
 		}
 //		GeckoEmfGenerator.info("Sanatized " + uri); //$NON-NLS-1$
-		String uriBSN = theUri.segment(0);
+		String uriBSN = theUri.host();
 		if(bsn.equals(uriBSN)) {
 			StringJoiner joiner = new StringJoiner(UriSanatizer.SLASH);
-			uri.segmentsList().stream().skip(1).forEach(joiner::add);
-			return new File(base, joiner.toString() + uri.fileExtension()).exists();
+			theUri.segmentsList().stream().forEach(joiner::add);
+			return new File(base, joiner.toString()).exists();
 		}
 		
 

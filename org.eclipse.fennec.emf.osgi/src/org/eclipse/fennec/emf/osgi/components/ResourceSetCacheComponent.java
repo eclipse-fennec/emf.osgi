@@ -66,9 +66,7 @@ public class ResourceSetCacheComponent implements ResourceSetCache {
 	public void deactivate() {
 		ResourceSet rs = resourceSet.getAndSet(null);
 		if (rs != null) {
-			for (Resource resource : rs.getResources()) {
-				resource.unload();
-			}
+			new java.util.ArrayList<>(rs.getResources()).forEach(Resource::unload);
 			rs.getResources().clear();
 		}
 		resourceSetFactoryReference.set(null);

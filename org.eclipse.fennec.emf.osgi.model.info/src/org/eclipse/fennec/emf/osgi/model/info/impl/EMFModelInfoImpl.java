@@ -134,7 +134,7 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 		if (value instanceof EPackage ePackage) {
 			addEClassesOfEPackage(ePackage);
 		}
-		return null;
+		return super.put(uri, value);
 	}
 
 	private void addEClassesOfEPackage(EPackage ePackage) {
@@ -165,7 +165,7 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 			}
 			List<EClass> hierarchy = upperHierarchy.get(superEClass);
 			if (hierarchy != null) {
-				if (!hierarchy.contains(superEClass)) {
+				if (!hierarchy.contains(eClass)) {
 					hierarchy.add(eClass);
 				}
 			} else {

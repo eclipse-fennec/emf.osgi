@@ -384,7 +384,7 @@ public class GeckoGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter 
 	protected URI toPlatformResourceURI(URI uri) {
 		GeckoEmfGenerator.info("toPlatformResourceURI: " + uri.toString());
 		URI result = super.toPlatformResourceURI(uri);
-		GeckoEmfGenerator.info("toPlatformResourceURI result: " + uri.toString());
+		GeckoEmfGenerator.info("toPlatformResourceURI result: " + result.toString());
 		return result;
 	}
 

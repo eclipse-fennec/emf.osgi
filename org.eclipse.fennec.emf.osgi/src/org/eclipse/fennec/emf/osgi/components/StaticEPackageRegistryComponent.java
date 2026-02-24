@@ -118,7 +118,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	
 	private Map<String, Object> getProperties(EPackage ePackage) {
 		Map<String, Object> properties = new HashMap<>();
-		properties.put(Constants.SERVICE_ID, Long.valueOf(ePackage.hashCode()));
+		properties.put(Constants.SERVICE_ID, Long.valueOf(ePackage.getNsURI().hashCode() & 0xFFFFFFFFL));
 		properties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 		return properties;
