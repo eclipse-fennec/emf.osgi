@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EPackage;
@@ -55,7 +56,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	public static final String NAME = "StaticEPackageRegistryComponent";
 
 	final DelegatingHashMap<String, Object> registry;
-	private long serviceChangeCount = 0;
+	private final AtomicLong serviceChangeCount = new AtomicLong();
 
 	private final ServiceRegistration<Registry> serviceRegistration;
 	private final MapChangeListener<String, Object> mapChangeListener;
@@ -111,7 +112,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 		features.forEach(properties::put);
 		properties.put("emf.default.epackage.registry", "true");
 		properties.put(ComponentConstants.COMPONENT_NAME, "StaticEPackageRegistry");
-		properties.put(Constants.SERVICE_CHANGECOUNT, serviceChangeCount++);
+		properties.put(Constants.SERVICE_CHANGECOUNT, serviceChangeCount.getAndIncrement());
 		return properties;
 	}
 	

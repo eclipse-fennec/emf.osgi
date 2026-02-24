@@ -83,7 +83,7 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 	private static final String PROP_INCLUDE_ECORE_ATTR = "includeEcoreAttr"; //$NON-NLS-1$
 	private static final String PROP_INCLUDE_ECORE_SOURCE_LOCATIONS_ATTR = "includeEcoreSourceLocationsAttr"; //$NON-NLS-1$
 
-	private static PrintStream logWriter;
+	private static volatile PrintStream logWriter;
 
 	public static void info(String message) {
 		if(logWriter != null) {

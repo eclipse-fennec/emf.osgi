@@ -12,7 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.components;
 
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
@@ -117,10 +116,7 @@ public class DefaultResourceFactoryRegistryComponent extends SelfRegisteringServ
 	private void verifyRemove(Map<String, Object> factoryMap, String parameter, Object compare) {
 		requireNonNull(factoryMap);
 		requireNonNull(compare);
-		Object removed = factoryMap.get(parameter);
-		if(nonNull(removed) && compare.equals(removed)) {
-			factoryMap.remove(parameter);
-		} else {
+		if(!factoryMap.remove(parameter, compare)) {
 			logger.fine("Cannot remove the factory, because a newer on was already set");
 		}
 	}

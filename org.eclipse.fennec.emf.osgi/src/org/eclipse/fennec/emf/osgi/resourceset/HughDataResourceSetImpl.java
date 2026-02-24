@@ -31,7 +31,7 @@ public class HughDataResourceSetImpl extends ResourceSetImpl implements HughData
 	private final AtomicBoolean suppressNotification = new AtomicBoolean(false);
 	private final AtomicBoolean internalSuppressNotification = new AtomicBoolean(false);
 	private final ResourceSet resourceSet;
-	private boolean useLocator = false;
+	private volatile boolean useLocator = false;
 	
 	/**
 	 * Creates a new instance.

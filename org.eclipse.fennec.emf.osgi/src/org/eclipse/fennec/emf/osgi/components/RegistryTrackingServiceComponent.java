@@ -65,13 +65,10 @@ public class RegistryTrackingServiceComponent implements RegistryTrackingService
         // Remove listener from previous service mappings
         if (previousServiceIds != null) {
             for (Long serviceId : previousServiceIds) {
-                Set<RegistryPropertyListener> listeners = serviceListeners.get(serviceId);
-                if (listeners != null) {
+                serviceListeners.computeIfPresent(serviceId, (k, listeners) -> {
                     listeners.remove(listener);
-                    if (listeners.isEmpty()) {
-                        serviceListeners.remove(serviceId);
-                    }
-                }
+                    return listeners.isEmpty() ? null : listeners;
+                });
             }
         }
         
@@ -92,13 +89,10 @@ public class RegistryTrackingServiceComponent implements RegistryTrackingService
         Set<Long> serviceIds = listenerServiceIds.remove(listener);
         if (serviceIds != null) {
             for (Long serviceId : serviceIds) {
-                Set<RegistryPropertyListener> listeners = serviceListeners.get(serviceId);
-                if (listeners != null) {
+                serviceListeners.computeIfPresent(serviceId, (k, listeners) -> {
                     listeners.remove(listener);
-                    if (listeners.isEmpty()) {
-                        serviceListeners.remove(serviceId);
-                    }
-                }
+                    return listeners.isEmpty() ? null : listeners;
+                });
             }
         }
     }

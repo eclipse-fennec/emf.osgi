@@ -15,6 +15,7 @@ package org.eclipse.fennec.emf.osgi.components;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +28,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentConstants;
 
 /**
- * 
+ *
  * @author Juergen Albert
  * @since 26 Jun 2025
  */
@@ -35,8 +36,8 @@ public abstract class SelfRegisteringServiceComponent {
 
 	private static final Logger LOG = Logger.getLogger(SelfRegisteringServiceComponent.class.getName());
 	private final ServicePropertyContext propertyContext;
-	private ServiceRegistration<?> serviceRegistration;
-	private long serviceChangeCount = 0;
+	private volatile ServiceRegistration<?> serviceRegistration;
+	private final AtomicLong serviceChangeCount = new AtomicLong();
 	final String componentName;
 	private Map<String, Object> defaultProperties;
 
@@ -85,9 +86,9 @@ public abstract class SelfRegisteringServiceComponent {
 	 * Updates the registry's properties
 	 */
 	protected void updateRegistrationProperties() {
-		if (serviceRegistration != null) {
-			serviceChangeCount++;
-			serviceRegistration.setProperties(getDictionary());
+		ServiceRegistration<?> reg = serviceRegistration;
+		if (reg != null) {
+			reg.setProperties(getDictionary());
 		}
 	}
 
@@ -99,7 +100,7 @@ public abstract class SelfRegisteringServiceComponent {
 		Dictionary<String, Object> properties = propertyContext.getDictionary(true);
 		defaultProperties.forEach(properties::put);
 		properties.put(ComponentConstants.COMPONENT_NAME, componentName);
-		properties.put(Constants.SERVICE_CHANGECOUNT, serviceChangeCount++);
+		properties.put(Constants.SERVICE_CHANGECOUNT, serviceChangeCount.getAndIncrement());
 		return properties;
 	}
 

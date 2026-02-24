@@ -18,6 +18,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.emf.ecore.EPackage;
@@ -62,7 +63,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 	protected ServiceRegistration<ResourceSetFactory> rsfRegistration = null;
 	protected ServiceRegistration<ResourceSet> rsRegistration = null;
 	protected ServiceRegistration<Condition> conditionRegistration = null;
-	private long serviceChangeCount = 0;
+	private final AtomicLong serviceChangeCount = new AtomicLong();
 	
 	/**
 	 * Returns the propertyContext.
@@ -330,7 +331,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 		Map<String, Object> features = ServicePropertiesHelper.normalizeProperties(EMFNamespaces.EMF_MODEL_FEATURE + ".", FrameworkUtil.asMap(properties));
 		features.forEach(properties::put);
 		properties.put(ComponentConstants.COMPONENT_NAME, "DefaultResourcesetFactory");
-		properties.put(Constants.SERVICE_CHANGECOUNT, serviceChangeCount++);
+		properties.put(Constants.SERVICE_CHANGECOUNT, serviceChangeCount.getAndIncrement());
 		return properties;
 	}
 

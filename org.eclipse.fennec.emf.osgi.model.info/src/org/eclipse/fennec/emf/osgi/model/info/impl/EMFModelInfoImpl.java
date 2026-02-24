@@ -51,9 +51,9 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 	/** serialVersionUID */
 	private static final long serialVersionUID = 7749336016374647599L;
 
-	private transient Map<Class<?>, EClassifier> classes = new ConcurrentHashMap<>();
-	private transient Map<EClass, List<EClass>> upperHierarchy = new ConcurrentHashMap<>();
-	private transient Map<EClass, List<EClass>> needsRevisiting = new ConcurrentHashMap<>();
+	private transient volatile Map<Class<?>, EClassifier> classes = new ConcurrentHashMap<>();
+	private transient volatile Map<EClass, List<EClass>> upperHierarchy = new ConcurrentHashMap<>();
+	private transient volatile Map<EClass, List<EClass>> needsRevisiting = new ConcurrentHashMap<>();
 	private transient List<EPackageConfigurator> list = new ArrayList<>();
 	
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -163,16 +163,14 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 			if (superEClass.equals(EcorePackage.Literals.ECLASS)) {
 				return;
 			}
-			if (upperHierarchy.containsKey(superEClass)) {
-				List<EClass> hierarchy = upperHierarchy.get(superEClass);
+			List<EClass> hierarchy = upperHierarchy.get(superEClass);
+			if (hierarchy != null) {
 				if (!hierarchy.contains(superEClass)) {
 					hierarchy.add(eClass);
 				}
 			} else {
-				List<EClass> otherHierachy = needsRevisiting.getOrDefault(superEClass,
-						Collections.synchronizedList(new LinkedList<>()));
-				otherHierachy.add(eClass);
-				needsRevisiting.put(superEClass, otherHierachy);
+				needsRevisiting.computeIfAbsent(superEClass,
+						k -> Collections.synchronizedList(new LinkedList<>())).add(eClass);
 			}
 		});
 
@@ -210,11 +208,11 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 	public List<EClass> getUpperTypeHierarchyForEClass(EClass eClass) {
 		lock.readLock().lock();
 		try {
-			if (!upperHierarchy.containsKey(eClass)) {
+			List<EClass> hierarchy = upperHierarchy.get(eClass);
+			if (hierarchy == null) {
 				return Collections.emptyList();
 			}
-			
-			return upperHierarchy.get(eClass);
+			return List.copyOf(hierarchy);
 		} finally {
 			lock.readLock().unlock();
 		}
