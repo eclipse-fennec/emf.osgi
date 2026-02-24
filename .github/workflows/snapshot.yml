@@ -57,9 +57,6 @@ jobs:
         echo "$GPG_PASSPHRASE" | gpg --batch --passphrase-fd 0 --pinentry-mode loopback --no-tty --quiet --yes --import private.key
         rm private.key
       shell: bash
-    - name: Build and Release
-      if: matrix.java-version == 21
-      run: ./gradlew build release --stacktrace --scan --info
     - name: Build only
       if: matrix.java-version != 21
       run: ./gradlew build --stacktrace --info
@@ -73,6 +70,9 @@ jobs:
         path: |
           **/build/test-results/**/TEST-*.xml
           **/generated/test-reports/**/TEST-*.xml
+    - name: Release Snapshots
+      if: matrix.java-version == 21
+      run: ./gradlew release --stacktrace --scan --info
     - name: Delete GPG key from keyring
       if: always() && matrix.java-version == 21
       run: |
