@@ -18,6 +18,7 @@ import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.metatype.annotations.Designate;
 
 /**
  * Component for the {@link ResourceFactoryRegistryImpl}
@@ -25,6 +26,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
  * @since 25.07.2017
  */
 @Component(configurationPid=EMFNamespaces.RESOURCE_FACTORY_CONFIG_NAME, service=Resource.Factory.Registry.class, configurationPolicy=ConfigurationPolicy.REQUIRE)
+@Designate(ocd = ResourceFactoryRegistryConfig.class, factory = true)
 @ProviderType
 public class ConfigurationResourceFactoryRegistryComponent extends ResourceFactoryRegistryImpl {
 

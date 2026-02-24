@@ -21,7 +21,9 @@
       "Bash(jar xf:*)",
       "Bash(jar tf:*)",
       "Bash(javap:*)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(.gradlew:*)",
+      "Bash(gradlew.bat:*)"
     ],
     "deny": []
   }

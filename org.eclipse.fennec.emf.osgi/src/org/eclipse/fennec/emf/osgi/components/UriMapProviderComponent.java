@@ -22,6 +22,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.metatype.annotations.Designate;
 
 /**
  * Implementation of an {@link UriMapProvider}
@@ -30,6 +31,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
  * @since 25.07.2017
  */
 @Component(name="DefaultUriMapProvider", configurationPolicy=ConfigurationPolicy.REQUIRE)
+@Designate(ocd = UriMapProviderConfig.class, factory = true)
 @ProviderType
 public class UriMapProviderComponent implements UriMapProvider {
 	

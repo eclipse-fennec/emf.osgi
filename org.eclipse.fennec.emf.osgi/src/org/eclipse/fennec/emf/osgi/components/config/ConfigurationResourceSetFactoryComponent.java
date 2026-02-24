@@ -44,18 +44,20 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.Designate;
 
 /**
  * Implementation of a {@link ResourceSetFactory}. It hold the {@link EPackage} registry as well as the {@link Factory} registry.
- * {@link EPackage} are dynamically injected as {@link EPackageProvider} instance. 
+ * {@link EPackage} are dynamically injected as {@link EPackageProvider} instance.
  * {@link Factory} instance are injected dynamically as {@link ServiceReference} instance. So they can be registered using
  * their properties for contentTyp or fileExtension.
  * Third additional {@link ResourceSetConfigurator} instance can be injected to customize the {@link ResourceSet} for
- * further extension like custom serialization. 
+ * further extension like custom serialization.
  * @author Mark Hoffmann
  * @since 28.06.2017
  */
 @Component(service= {}, configurationPid=EMFNamespaces.RESOURCE_SET_FACTORY_CONFIG_NAME, configurationPolicy=ConfigurationPolicy.REQUIRE)
+@Designate(ocd = ResourceSetFactoryConfig.class, factory = true)
 @Capability(
 		namespace = EMFNamespaces.EMF_NAMESPACE,
 		name = ResourceSetFactory.EMF_CAPABILITY_NAME,

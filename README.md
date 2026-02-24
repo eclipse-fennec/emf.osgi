@@ -145,6 +145,12 @@ If a package location uri via *dynamicEcoreUri* property changes, this will lead
 If some of the other properties change, the properties will be updated without any re-registration of the *EPackage*.
 
 
+## Documentation
+
+- [Configuration Guide](docs/configuration-guide.md) — How to configure EMF components via OSGi Configuration Admin
+- [EMF Delegate Registries](docs/emf-delegate-registries.md) — Analysis of EMF's four delegate registries and whiteboard populator implementation
+- [EMF Delegate User Guide](docs/emf-delegate-user-guide.md) — How to use invocation, setting, validation, and conversion delegates
+
 ## Dependencies
 
 The latest Version is named here:

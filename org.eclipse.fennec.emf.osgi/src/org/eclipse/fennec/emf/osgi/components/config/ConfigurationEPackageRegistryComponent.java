@@ -36,6 +36,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import org.osgi.service.metatype.annotations.Designate;
+
 import aQute.bnd.annotation.service.ServiceCapability;
 
 /**
@@ -43,6 +45,7 @@ import aQute.bnd.annotation.service.ServiceCapability;
  * This implementation is derived from the default {@link ConfigurationEPackageRegistryComponent} to be enabled as OSGi component
  */
 @Component(configurationPid=EMFNamespaces.EPACKAGE_REGISTRY_CONFIG_NAME, configurationPolicy=ConfigurationPolicy.REQUIRE)
+@Designate(ocd = EPackageRegistryConfig.class, factory = true)
 @ProviderType
 @ServiceCapability(EPackage.Registry.class)
 public class ConfigurationEPackageRegistryComponent extends SelfRegisteringServiceComponent{

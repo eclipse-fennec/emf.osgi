@@ -27,6 +27,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.metatype.annotations.Designate;
 
 /**
  * A cache for a {@link ResourceSet}. Whereas the {@link ResourceSetFactory} only creates new instances of
@@ -35,6 +36,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  * @author Mark Hoffmann
  */
 @Component(name="ResourceSetCache", service=ResourceSetCache.class, configurationPolicy=ConfigurationPolicy.REQUIRE)
+@Designate(ocd = ResourceSetCacheConfig.class, factory = true)
 @Requirement(namespace = ImplementationNamespace.IMPLEMENTATION_NAMESPACE, //
 	name = ConfigurationConstants.CONFIGURATION_ADMIN_IMPLEMENTATION, //
 	version = ConfigurationConstants.CONFIGURATION_ADMIN_SPECIFICATION_VERSION,

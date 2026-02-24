@@ -44,6 +44,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.metatype.annotations.Designate;
 
 /**
  * COnfiguration component for a Isolated
@@ -51,6 +52,7 @@ import org.osgi.service.component.annotations.Reference;
  * @since 14.10.2018
  */
 @Component(configurationPid=ISOLATED_RESOURCE_SET_FACTORY_CONFIG_NAME, configurationPolicy = ConfigurationPolicy.REQUIRE)
+@Designate(ocd = IsolatedResourceSetFactoryConfig.class, factory = true)
 @RequireConfigurationAdmin
 @ProviderType
 public class IsolatedResourceFactoryConfiguration {

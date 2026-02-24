@@ -15,6 +15,7 @@
 	org.eclipse.emf.common;version=latest,\
 	org.eclipse.emf.ecore;version=latest,\
 	org.eclipse.emf.ecore.xmi;version=latest,\
+	org.osgi.service.metatype.annotations;version=latest,\
 	org.eclipse.fennec.emf.osgi.api;version=snapshot
 	
 # Add proper JPMS module-info
