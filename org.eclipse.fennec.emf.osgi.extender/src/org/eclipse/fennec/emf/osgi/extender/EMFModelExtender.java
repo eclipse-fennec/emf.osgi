@@ -139,14 +139,17 @@ public class EMFModelExtender {
 			}
 
 			EcoreHelper ecoreHelper = new EcoreHelper();
-			ModelHelper.Diagnostic diagnostic = new ModelHelper.Diagnostic();
-			List<Model> models = ModelHelper.readModelsFromBundle(bundle, ecoreHelper.getResourceSet(), paths, diagnostic);
+			List<Model> models;
+			try {
+				ModelHelper.Diagnostic diagnostic = new ModelHelper.Diagnostic();
+				models = ModelHelper.readModelsFromBundle(bundle, ecoreHelper.getResourceSet(), paths, diagnostic);
 
-			diagnostic.warnings.forEach(w -> logger.log(Level.WARNING, w));
-			diagnostic.errors.forEach(e -> logger.log(Level.SEVERE, e));
-
-			// M1 fix: release ResourceSet resources after loading
-			ecoreHelper.releaseAll();
+				diagnostic.warnings.forEach(w -> logger.log(Level.WARNING, w));
+				diagnostic.errors.forEach(e -> logger.log(Level.SEVERE, e));
+			} finally {
+				// M1 fix: release ResourceSet resources after loading
+				ecoreHelper.releaseAll();
+			}
 
 			if (models.isEmpty()) {
 				registrations.remove(bundleId);

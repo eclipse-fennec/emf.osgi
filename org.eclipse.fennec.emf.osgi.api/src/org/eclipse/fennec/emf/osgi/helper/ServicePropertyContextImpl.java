@@ -212,10 +212,12 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 	 * @return the {@link ServicePropertyContext} to be removed or <code>null</code> 
 	 */
 	protected ServicePropertyContext removeSubContext(long serviceId) {
-		ServicePropertyContext subContext = null;
+		ServicePropertyContext subContext;
 		synchronized (subContextMap) {
 			subContext = subContextMap.remove(serviceId);
 		}
+		// Clean up keyMapPairs entries for this service ID
+		keyMapPairs.values().forEach(innerMap -> innerMap.remove(serviceId));
 		return subContext;
 	}
 

@@ -114,6 +114,7 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 	}
 
 	private static void initializeLog(File base, String file) throws IOException {
+		closeLog();
 		File logFile = new File(base, file);
 		IO.delete(logFile);
 		if (logFile.createNewFile()) {

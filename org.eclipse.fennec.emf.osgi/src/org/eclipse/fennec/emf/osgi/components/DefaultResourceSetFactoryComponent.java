@@ -108,6 +108,7 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	public void deactivate() {
 		registryTracker.unregisterListener(this);
 		super.deactivate();
+		cxt.ungetService(defaultResourceSetRegistry);
 		cxt.ungetService(resourceFactoryRegistryReference);
 		EcorePackagesRegistrator.stop();
 	}

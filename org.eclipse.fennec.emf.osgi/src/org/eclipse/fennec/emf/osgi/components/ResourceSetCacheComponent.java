@@ -22,8 +22,10 @@ import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.namespace.implementation.ImplementationNamespace;
 import org.osgi.resource.Namespace;
 import org.osgi.service.cm.ConfigurationConstants;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -58,6 +60,18 @@ public class ResourceSetCacheComponent implements ResourceSetCache {
 			}
 		}
 		return resourceSet.get();
+	}
+
+	@Deactivate
+	public void deactivate() {
+		ResourceSet rs = resourceSet.getAndSet(null);
+		if (rs != null) {
+			for (Resource resource : rs.getResources()) {
+				resource.unload();
+			}
+			rs.getResources().clear();
+		}
+		resourceSetFactoryReference.set(null);
 	}
 
 	/**

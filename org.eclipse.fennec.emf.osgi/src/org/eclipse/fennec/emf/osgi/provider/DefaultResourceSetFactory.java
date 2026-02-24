@@ -255,6 +255,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 	 */
 	protected void deactivate() {
 		unregisterServices();
+		resourceSetConfigurators.clear();
 	}
 	
 	/**

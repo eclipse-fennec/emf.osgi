@@ -70,8 +70,9 @@ public class ConfigurationEPackageRegistryComponent extends SelfRegisteringServi
 	@Deactivate
 	public void deactivate() {
 		doDeactivate();
+		ePackageConfigurators.clear();
 	}
-	
+
 	/**
 	 * Adds {@link EPackageConfigurator}, to register a new {@link EPackage}
 	 * @param configurator the {@link EPackageConfigurator} to be registered

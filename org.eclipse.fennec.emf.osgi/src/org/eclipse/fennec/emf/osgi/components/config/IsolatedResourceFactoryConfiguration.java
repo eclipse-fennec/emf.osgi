@@ -115,6 +115,7 @@ public class IsolatedResourceFactoryConfiguration {
 			} catch (IOException e) {
 				logger.log(Level.SEVERE, "Error removing an ResourceSetFactory configuration", e);
 			}
+			rsfConfig = null;
 		}
 		if (eprConfig != null) {
 			try {
@@ -122,6 +123,7 @@ public class IsolatedResourceFactoryConfiguration {
 			} catch (IOException e) {
 				logger.log(Level.SEVERE, "Error removing an EPackage registry configuration", e);
 			}
+			eprConfig = null;
 		}
 		if (rfConfig != null) {
 			try {
@@ -129,6 +131,7 @@ public class IsolatedResourceFactoryConfiguration {
 			} catch (IOException e) {
 				logger.log(Level.SEVERE, "Error removing a ResourceFactory registry configuration", e);
 			}
+			rfConfig = null;
 		}
 	}
 	

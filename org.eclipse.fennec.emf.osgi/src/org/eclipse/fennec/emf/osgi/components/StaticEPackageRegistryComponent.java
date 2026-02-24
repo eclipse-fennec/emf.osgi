@@ -58,14 +58,15 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	private long serviceChangeCount = 0;
 
 	private final ServiceRegistration<Registry> serviceRegistration;
-	
+	private final MapChangeListener<String, Object> mapChangeListener;
+
 	@Activate
 	public StaticEPackageRegistryComponent(BundleContext ctx) {
 		// Create registry with EMF's static registry as delegate
 		registry = new DelegatingHashMap<>();
-		
+
 		// Add change listener to automatically update service properties
-		registry.addMapChangeListener(new MapChangeListener<String, Object>() {
+		mapChangeListener = new MapChangeListener<>() {
 			@Override
 			public void entryAdded(String key, Object value) {
 				updateProperties();
@@ -85,14 +86,16 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 			public void mapCleared() {
 				updateProperties();
 			}
-		});
-		
+		};
+		registry.addMapChangeListener(mapChangeListener);
+
 		serviceRegistration = ctx.registerService(EPackage.Registry.class, this, getDictionary());
 		updateProperties();
 	}
-	
+
 	@Deactivate
 	public void deactivate() {
+		registry.removeMapChangeListener(mapChangeListener);
 		serviceRegistration.unregister();
 	}
 	

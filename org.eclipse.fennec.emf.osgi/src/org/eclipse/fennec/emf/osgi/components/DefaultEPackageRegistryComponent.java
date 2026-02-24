@@ -66,6 +66,7 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 	@Deactivate
 	public void deactivate() {
 		doDeactivate();
+		ePackageConfigurators.clear();
 	}
 
 	/**
