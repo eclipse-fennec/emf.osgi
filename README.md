@@ -79,7 +79,7 @@ In a BND workspace, code generation is configured in `bnd.bnd`:
 ```properties
 -generate: \
     model/mymodel.genmodel; \
-        generate=geckoEMF; \
+        generate=fennecEMF; \
         genmodel=model/mymodel.genmodel; \
         output=src
 
