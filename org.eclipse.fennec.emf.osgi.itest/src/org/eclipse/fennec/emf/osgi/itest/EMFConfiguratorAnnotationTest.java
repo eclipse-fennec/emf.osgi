@@ -1,16 +1,15 @@
-/**
- * Copyright (c) 2012 - 2022 Data In Motion and others.
- * All rights reserved. 
- *  
+/********************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation.
+ *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
- *  
+ *
  * Contributors:
- *       Data In Motion - initial API and implementation
- */
+ *   Data In Motion Consulting - initial implementation
+ ********************************************************************/
 package org.eclipse.fennec.emf.osgi.itest;
 
 import static org.assertj.core.api.Assertions.fail;
@@ -29,7 +28,6 @@ import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.dto.BundleDTO;
@@ -49,7 +47,6 @@ import org.osgi.test.junit5.service.ServiceExtension;
  */
 @ExtendWith(BundleContextExtension.class)
 @ExtendWith(ServiceExtension.class)
-@ExtendWith(MockitoExtension.class)
 public class EMFConfiguratorAnnotationTest {
 
 	@InjectBundleContext
@@ -58,7 +55,7 @@ public class EMFConfiguratorAnnotationTest {
 	@Test
 	public void testResourceFactoryAnnotation(@InjectService ServiceAware<ResourceSetFactory> sa, @InjectService ServiceAware<ServiceComponentRuntime> scrAware
 			)
-			throws IOException {
+			throws IOException, InterruptedException {
 
 		ServiceReference<ResourceSetFactory> reference = sa.getServiceReference();
 		assertNotNull(reference);
@@ -148,13 +145,14 @@ public class EMFConfiguratorAnnotationTest {
 		
 		scr.disableComponent(cddto);
 		assertFalse(scr.isComponentEnabled(cddto));
-		
+		Thread.sleep(100);
+
 	}
-	
+
 	@Test
 	public void testEPackageAnnotation(@InjectService ServiceAware<ResourceSetFactory> sa, @InjectService ServiceAware<ServiceComponentRuntime> scrAware
 			)
-					throws IOException {
+					throws IOException, InterruptedException {
 		
 		ServiceReference<ResourceSetFactory> reference = sa.getServiceReference();
 		assertNotNull(reference);
@@ -237,12 +235,13 @@ public class EMFConfiguratorAnnotationTest {
 		
 		scr.disableComponent(cddto);
 		assertFalse(scr.isComponentEnabled(cddto));
+		Thread.sleep(100);
 	}
-	
+
 	@Test
 	public void testResourceSetAnnotation(@InjectService ServiceAware<ResourceSetFactory> sa, @InjectService ServiceAware<ServiceComponentRuntime> scrAware
 			)
-					throws IOException {
+					throws IOException, InterruptedException {
 		
 		ServiceReference<ResourceSetFactory> reference = sa.getServiceReference();
 		assertNotNull(reference);
@@ -324,7 +323,7 @@ public class EMFConfiguratorAnnotationTest {
 		
 		scr.disableComponent(cddto);
 		assertFalse(scr.isComponentEnabled(cddto));
+		Thread.sleep(100);
 	}
 
-	
 }

@@ -1,47 +1,32 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+/********************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *   Data In Motion Consulting - initial implementation
+ ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.Iterator;
+import static java.util.Objects.requireNonNull;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
-import org.eclipse.fennec.emf.osgi.extender.model.ModelNamespace;
-import org.eclipse.fennec.emf.osgi.extender.model.ModelState;
-import org.eclipse.fennec.emf.osgi.extender.model.State;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -53,381 +38,211 @@ import org.osgi.util.tracker.BundleTracker;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
 
 /**
- * The main class of the EMF ecore model extender.
+ * EMF ecore model extender that discovers and registers EMF models from OSGi bundles.
+ * <p>
+ * This class implements the OSGi extender pattern using a {@link BundleTracker} to
+ * monitor bundles entering {@link Bundle#ACTIVE ACTIVE} or {@link Bundle#STARTING STARTING}
+ * states. Bundles that declare the requirement:
+ * <pre>
+ * Require-Capability: osgi.extender; filter:="(osgi.extender=emf.model)"
+ * </pre>
+ * are scanned for {@code .ecore} model files. Each discovered {@link EPackage} is
+ * registered as both an {@link EPackage} service and an {@link EPackageConfigurator}
+ * service, enabling dynamic model availability in the OSGi service registry.
+ * <p>
+ * Service registrations are performed in the model bundle's own {@link BundleContext}
+ * so that they are automatically cleaned up when the model bundle is stopped.
  *
+ * @author Mark Hoffmann
+ * @since 13.10.2022
+ * @see ModelHelper
+ * @see ModelExtenderConfigurator
  */
 @Capability(namespace = ExtenderNamespace.EXTENDER_NAMESPACE, name = EMFNamespaces.EMF_MODEL_EXTENDER_NAME, version = "1.0.0")
 public class EMFModelExtender {
 
-	private static Logger logger = Logger.getLogger(EMFModelExtender.class.getName());
+	private static final Logger logger = Logger.getLogger(EMFModelExtender.class.getName());
 
 	private final BundleContext bundleContext;
-
-	private final State state;
-
 	private final BundleTracker<Bundle> tracker;
 
-	private volatile boolean active = true;
-
-	private Object coordinator;
-
-	private final ExecutorService queue;
-
-	private final ResourceSet resourceSet;
+	/** Service registrations indexed by bundle ID, for cleanup on bundle removal. */
+	private final Map<Long, List<ServiceRegistration<?>>> registrations = new ConcurrentHashMap<>();
 
 	/**
-	 * Create a new EMF Model Extender and start it
+	 * Creates a new model extender.
 	 *
-	 * @param bc The bundle context
+	 * @param bc the bundle context of the extender bundle itself
+	 * @throws NullPointerException if {@code bc} is {@code null}
 	 */
-	public EMFModelExtender(final BundleContext bc) {
-		this.queue = Executors.newSingleThreadExecutor(r->{
-			Thread t = Executors.defaultThreadFactory().newThread(r);
-			t.setDaemon(true);
-			t.setName("Gecko EMF Model Extender Worker Thread");
-			return t;
-		});
-		this.resourceSet = new ResourceSetImpl();
-		this.resourceSet.getPackageRegistry().put(EcorePackage.eNS_URI, EcorePackage.eINSTANCE);
-		this.resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(EcorePackage.eNAME, new EcoreResourceFactoryImpl());
-
-		this.bundleContext = bc;
-		State s = null;
-		try {
-			s = State.createOrReadState(bundleContext.getDataFile(State.FILE_NAME));
-		} catch ( final ClassNotFoundException | IOException e ) {
-			logger.log(Level.SEVERE, e, ()->"Unable to read persisted state from " + State.FILE_NAME);
-			s = new State();
-		}
-		this.state = s;
-		this.tracker = new org.osgi.util.tracker.BundleTracker<>(this.bundleContext,
-				Bundle.ACTIVE|Bundle.STARTING|Bundle.STOPPING|Bundle.RESOLVED|Bundle.INSTALLED,
-
+	public EMFModelExtender(BundleContext bc) {
+		this.bundleContext = requireNonNull(bc, "BundleContext must not be null");
+		this.tracker = new BundleTracker<>(bc,
+				Bundle.ACTIVE | Bundle.STARTING,
 				new BundleTrackerCustomizer<Bundle>() {
 
-			@Override
-			public Bundle addingBundle(final Bundle bundle, final BundleEvent event) {
-				final int bundleState = bundle.getState();
-				if ( active &&
-						(bundleState == Bundle.ACTIVE || bundleState == Bundle.STARTING) ) {
-					logger.fine(()->"Adding bundle " + getBundleIdentity(bundle) + " : " + getBundleState(bundleState));
-					queue.submit(()->{
-						if ( processAddBundle(bundle) ) {
-							process();
-						}
-					});
-				}
-				return bundle;
-			}
-
-			@Override
-			public void modifiedBundle(final Bundle bundle, final BundleEvent event, final Bundle object) {
-				if (active) {
-					final int bundleState = bundle.getState();
-					switch (bundleState) {
-					case Bundle.ACTIVE:
-					case Bundle.STARTING:
-						this.addingBundle(bundle, event);
-						break;
-					case Bundle.STOPPING:
-						this.removedBundle(bundle, event, object);
-						break;
-					default:
-						break;
+					@Override
+					public Bundle addingBundle(Bundle bundle, BundleEvent event) {
+						processAddBundle(bundle);
+						return bundle;
 					}
 
-				}
-			}
-
-			@Override
-			public void removedBundle(final Bundle bundle, final BundleEvent event, final Bundle object) {
-				final int bundleState = bundle.getState();
-				if ( active && (bundleState == Bundle.UNINSTALLED || bundleState == Bundle.STOPPING)) {
-					logger.fine(()->"Removing bundle " + getBundleIdentity(bundle) + " : " + getBundleState(bundleState));
-					try {
-						if ( processRemoveBundle(bundle.getBundleId()) ) {
-							process();
-						}
-					} catch ( final IllegalStateException ise) {
-						logger.log(Level.SEVERE, ise, ()->"Error processing bundle " + getBundleIdentity(bundle));
+					@Override
+					public void modifiedBundle(Bundle bundle, BundleEvent event, Bundle object) {
+						// no action needed - state transitions are handled by adding/removed
 					}
-				}
-			}
 
-		});
-	}
-
-	private String getBundleIdentity(final Bundle bundle) {
-		if ( bundle.getSymbolicName() == null ) {
-			return bundle.getBundleId() + " (" + bundle.getLocation() + ")";
-		} else {
-			return bundle.getSymbolicName() + ":" + bundle.getVersion() + " (" + bundle.getBundleId() + ")";
-		}
-	}
-
-	private String getBundleState(int state) {
-		switch ( state ) {
-			case Bundle.ACTIVE : return "active";
-			case Bundle.INSTALLED : return "installed";
-			case Bundle.RESOLVED : return "resolved";
-			case Bundle.STARTING : return "starting";
-			case Bundle.STOPPING : return "stopping";
-			case Bundle.UNINSTALLED : return "uninstalled";
-			default: return String.valueOf(state);
-		}
+					@Override
+					public void removedBundle(Bundle bundle, BundleEvent event, Bundle object) {
+						processRemoveBundle(bundle.getBundleId());
+					}
+				});
 	}
 
 	/**
-	 * Shut down the extender
-	 */
-	public void shutdown() {
-		this.active = false;
-		this.queue.shutdown();
-		try {
-			if (!this.queue.awaitTermination(1, TimeUnit.SECONDS)) { //optional *
-				this.queue.shutdownNow(); 
-			}
-		} catch (InterruptedException e) {
-			logger.log(Level.SEVERE, e, ()->"Error shutting down EMF Model Extender executor service");
-			Thread.currentThread().interrupt();
-		}
-		this.tracker.close();
-	}
-
-	/**
-	 * Start the extender.
+	 * Start tracking bundles. The tracker will scan all existing active
+	 * bundles and then continue tracking new ones.
 	 */
 	public void start() {
-		final Bundle[] bundles = this.bundleContext.getBundles();
-		final Set<Long> ids = new HashSet<>();
-		for(final Bundle b : bundles) {
-			ids.add(b.getBundleId());
-			final int bundleState = b.getState();
-			if ( bundleState == Bundle.ACTIVE || bundleState == Bundle.STARTING ) {
-				processAddBundle(b);
-			}
-		}
-		for(final long id : state.getKnownBundleIds()) {
-			if ( !ids.contains(id) ) {
-				processRemoveBundle(id);
-			}
-		}
-		this.process();
 		this.tracker.open();
 	}
 
-	public boolean processAddBundle(final Bundle bundle) {
-		final long bundleId = bundle.getBundleId();
-		final long bundleLastModified = bundle.getLastModified();
-
-		final Long lastModified = state.getLastModified(bundleId);
-		if ( lastModified != null && lastModified.longValue() == bundleLastModified ) {
-			// no changes, nothing to do
-			return false;
-		}
-
-		List<Model> bundleModels = Collections.emptyList();
-		try {
-			final Set<String> paths = ModelHelper.isModelBundle(bundle, this.bundleContext.getBundle().getBundleId());
-			if ( !paths.isEmpty() ) {
-				final ModelHelper.Diagnostic report = new ModelHelper.Diagnostic();
-				bundleModels = ModelHelper.readModelsFromBundle(bundle, resourceSet, paths, report);
-				for(final String w : report.warnings) {
-					logger.log(Level.WARNING, w);
-				}
-				for(final String e : report.errors) {
-					logger.log(Level.SEVERE, e);
-				}
-			}
-		} catch ( final IllegalStateException ise) {
-			logger.log(Level.SEVERE, ise, ()->"Error processing bundle " + getBundleIdentity(bundle));
-		}
-		if ( lastModified != null ) {
-			processRemoveBundle(bundleId);
-		}
-		if ( !bundleModels.isEmpty() ) {
-			bundleModels.forEach(state::add);
-			state.setLastModified(bundleId, bundleLastModified);
-			return true;
-		}
-		return lastModified != null;
-	}
-
-	public boolean processRemoveBundle(final long bundleId) {
-		if ( state.getLastModified(bundleId) != null ) {
-			state.removeLastModified(bundleId);
-			for(final String ns : state.getNamespaces()) {
-				final ModelNamespace modelList = state.getModels(ns);
-				modelList.uninstall(bundleId);
-			}
-			return true;
-		}
-		return false;
-	}
-
 	/**
-	 * Set or unset the coordinator service
-	 * @param coordinator The coordinator service or {@code null}
+	 * Stop tracking and unregister all services.
 	 */
-	public void setCoordinator(final Object coordinator) {
-		this.coordinator = coordinator;
+	public void shutdown() {
+		this.tracker.close();
+		// Unregister any remaining services
+		registrations.values().forEach(regs -> regs.forEach(reg -> {
+			try {
+				reg.unregister();
+			} catch (IllegalStateException e) {
+				// already unregistered
+			}
+		}));
+		registrations.clear();
 	}
 
-	/**
-	 * Process the state to activate/deactivate configurations
-	 */
-	public void process() {
-		final Object localCoordinator = this.coordinator;
-		Object coordination = null;
-		if ( localCoordinator != null ) {
-			coordination = CoordinatorUtil.getCoordination(localCoordinator);
+	private void processAddBundle(Bundle bundle) {
+		long bundleId = bundle.getBundleId();
+
+		// Atomic check-then-put: skip if already processed (R1 fix)
+		if (registrations.putIfAbsent(bundleId, List.of()) != null) {
+			return;
 		}
 
 		try {
-			for(final String mns : state.getNamespaces()) {
-				final ModelNamespace modelList = state.getModels(mns);
+			Set<String> paths = ModelHelper.isModelBundle(bundle, bundleContext.getBundle().getBundleId());
+			if (paths.isEmpty()) {
+				registrations.remove(bundleId);
+				return;
+			}
 
-				if ( modelList.hasChanges() && process(modelList) ) {
+			EcoreHelper ecoreHelper = new EcoreHelper();
+			ModelHelper.Diagnostic diagnostic = new ModelHelper.Diagnostic();
+			List<Model> models = ModelHelper.readModelsFromBundle(bundle, ecoreHelper.getResourceSet(), paths, diagnostic);
+
+			diagnostic.warnings.forEach(w -> logger.log(Level.WARNING, w));
+			diagnostic.errors.forEach(e -> logger.log(Level.SEVERE, e));
+
+			// M1 fix: release ResourceSet resources after loading
+			ecoreHelper.releaseAll();
+
+			if (models.isEmpty()) {
+				registrations.remove(bundleId);
+				return;
+			}
+
+			List<ServiceRegistration<?>> bundleRegs = new ArrayList<>();
+			try {
+				for (Model model : models) {
+					registerModel(bundle, model, bundleRegs);
+				}
+			} catch (RuntimeException e) {
+				// M2 fix: on partial failure, unregister already-registered services
+				for (ServiceRegistration<?> reg : bundleRegs) {
 					try {
-						State.writeState(this.bundleContext.getDataFile(State.FILE_NAME), state);
-					} catch ( final IOException ioe) {
-						logger.log(Level.SEVERE, ioe, ()->"Unable to persist state to " + State.FILE_NAME);
+						reg.unregister();
+					} catch (IllegalStateException ise) {
+						// already unregistered
 					}
 				}
+				registrations.remove(bundleId);
+				throw e;
 			}
+			registrations.put(bundleId, bundleRegs);
 
-		} finally {
-			if ( coordination != null ) {
-				CoordinatorUtil.endCoordination(coordination);
-			}
+			logger.fine(() -> "Registered " + models.size() + " EMF model(s) from " + getBundleIdentity(bundle));
+		} catch (IllegalStateException e) {
+			registrations.remove(bundleId);
+			logger.log(Level.SEVERE, e, () -> "Error processing bundle " + getBundleIdentity(bundle));
 		}
 	}
 
 	/**
-	 * Process changes to a pid.
-	 * @param modelList The config list
-	 * @return {@code true} if the change has been processed, {@code false} if a retry is required
+	 * Registers a single model as both an {@link EPackageConfigurator} and
+	 * an {@link EPackage} service in the model bundle's context.
 	 */
-	public boolean process(final ModelNamespace modelList) {
-		Model toActivate = null;
-		Model toDeactivate = null;
-
-		for(final Model model : modelList) {
-			switch ( model.getState() ) {
-			case INSTALL     : // activate if first found
-				if ( toActivate == null ) {
-					toActivate = model;
-				}
-				break;
-
-			case IGNORED     : // same as installed
-			case INSTALLED   : // check if we have to uninstall
-				if ( toActivate == null ) {
-					toActivate = model;
-				} else {
-					model.setState(ModelState.INSTALL);
-				}
-				break;
-
-			case UNINSTALL   : // deactivate if first found (we should only find one anyway)
-				if ( toDeactivate == null ) {
-					toDeactivate = model;
-				}
-				break;
-
-			case UNINSTALLED : // nothing to do
-				break;
-			}
-
-		}
-		// if there is a configuration to activate, we can directly activate it
-		// without deactivating (reducing the changes of the configuration from two
-		// to one)
-		boolean noRetryNeeded = true;
-		if ( toActivate != null && toActivate.getState() == ModelState.INSTALL ) {
-			noRetryNeeded = activate(modelList, toActivate);
-		}
-		if ( toActivate == null && toDeactivate != null ) {
-			noRetryNeeded = deactivate(modelList, toDeactivate);
-		}
-
-		if ( noRetryNeeded ) {
-			// remove all uninstall(ed) configurations
-			final Iterator<Model> iter = modelList.iterator();
-			boolean foundInstalled = false;
-			while ( iter.hasNext() ) {
-				final Model model = iter.next();
-				if ( model.getState() == ModelState.UNINSTALL || model.getState() == ModelState.UNINSTALLED ) {
-					iter.remove();
-				} else if ( model.getState() == ModelState.INSTALLED ) {
-					if ( foundInstalled ) {
-						model.setState(ModelState.INSTALL);
-					} else {
-						foundInstalled = true;
-					}
-				}
-			}
-
-			// mark as processed
-			modelList.setHasChanges(false);
-		}
-		return noRetryNeeded;
-	}
-
-	/**
-	 * Try to activate a configuration
-	 * Check policy and change count
-	 * @param modelList The configuration list
-	 * @param model The configuration to activate
-	 * @return {@code true} if activation was successful
-	 */
-	public boolean activate(final ModelNamespace modelList, final Model model) {
-
-		final Bundle modelBundle = model.getBundleId() == -1 ? this.bundleContext.getBundle() : this.bundleContext.getBundle(Constants.SYSTEM_BUNDLE_LOCATION).getBundleContext().getBundle(model.getBundleId());
+	private void registerModel(Bundle modelBundle, Model model, List<ServiceRegistration<?>> regs) {
 		EPackage ePackage = model.getEPackage();
-		Dictionary<String,Object> properties = model.getProperties();
+		var properties = model.getProperties();
+
 		ModelExtenderConfigurator configurator = new ModelExtenderConfigurator(ePackage);
 
-		ServiceRegistration<?> modelConfigRegistration = modelBundle.getBundleContext().registerService(EPackageConfigurator.class.getName(), configurator, properties);
-		ServiceRegistration<EPackage> modelRegistration = modelBundle.getBundleContext().registerService(EPackage.class, ePackage, properties);
-		model.setModelConfigRegistration(modelConfigRegistration);
-		model.setModelRegistration(modelRegistration);
-		model.setState(ModelState.INSTALLED);
-		modelList.setChangeCount(modelList.getChangeCount() + 1);
-		modelList.setLastInstalled(model);
-		return true;
+		BundleContext modelBundleContext = getModelBundleContext(model.getBundleId());
+		regs.add(modelBundleContext.registerService(EPackageConfigurator.class.getName(), configurator, properties));
+		regs.add(modelBundleContext.registerService(EPackage.class, ePackage, properties));
 	}
-	
-	/**
-	 * Try to deactivate a configuration
-	 * Check policy and change count
-	 * @param model The configuration
-	 */
-	public boolean deactivate(final ModelNamespace configList, final Model model) {
-		ServiceRegistration<EPackage> modelRegistration = model.getModelRegistration();
-		if (modelRegistration != null) {
-			try {
-				modelRegistration.unregister();
-			} catch (IllegalStateException ise) {
-				logger.log(Level.FINE, ise, ()->"Model - Service might be already unregistered");
-			} finally {
-				model.setModelRegistration(null);
-			}
-		}
-		ServiceRegistration<?> modelConfigRegistration = model.getModelConfigRegistration();
-		if (modelConfigRegistration != null) {
-			try {
-				modelConfigRegistration.unregister();
-			} catch (IllegalStateException ise) {
-				logger.log(Level.FINE, ise, ()->"Model Configuration Service might be already unregistered");
-			} finally {
-				model.setModelConfigRegistration(null);
-			}
-		}
-		model.setState(ModelState.UNINSTALLED);
-		configList.setChangeCount(-1);
-		configList.setLastInstalled(null);
 
-		return true;
+	/**
+	 * Resolves the {@link BundleContext} for the bundle with the given ID.
+	 * Falls back to the extender's own context if {@code bundleId} is {@code -1}
+	 * or if the target bundle cannot be resolved.
+	 *
+	 * @param bundleId the target bundle ID
+	 * @return the bundle context of the target bundle, or the extender's own context as fallback
+	 */
+	private BundleContext getModelBundleContext(long bundleId) {
+		if (bundleId == -1) {
+			return bundleContext;
+		}
+		// N1 fix: guard against NPE from system bundle or target bundle lookup
+		Bundle systemBundle = bundleContext.getBundle(Constants.SYSTEM_BUNDLE_LOCATION);
+		if (systemBundle == null) {
+			return bundleContext;
+		}
+		BundleContext systemContext = systemBundle.getBundleContext();
+		if (systemContext == null) {
+			return bundleContext;
+		}
+		Bundle targetBundle = systemContext.getBundle(bundleId);
+		if (targetBundle == null) {
+			return bundleContext;
+		}
+		BundleContext targetContext = targetBundle.getBundleContext();
+		return targetContext != null ? targetContext : bundleContext;
+	}
+
+	private void processRemoveBundle(long bundleId) {
+		List<ServiceRegistration<?>> regs = registrations.remove(bundleId);
+		if (regs == null) {
+			return;
+		}
+		for (ServiceRegistration<?> reg : regs) {
+			try {
+				reg.unregister();
+			} catch (IllegalStateException e) {
+				logger.log(Level.FINE, e, () -> "Service already unregistered for bundle " + bundleId);
+			}
+		}
+		logger.fine(() -> "Unregistered EMF model(s) for bundle " + bundleId);
+	}
+
+	/** Returns a human-readable identifier for a bundle (symbolic name, version, and ID). */
+	private String getBundleIdentity(Bundle bundle) {
+		if (bundle.getSymbolicName() == null) {
+			return bundle.getBundleId() + " (" + bundle.getLocation() + ")";
+		}
+		return bundle.getSymbolicName() + ":" + bundle.getVersion() + " (" + bundle.getBundleId() + ")";
 	}
 }

@@ -1,25 +1,17 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+/********************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation.
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *   Data In Motion Consulting - initial implementation
+ ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_EXTENDER_DEFAULT_PATH;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_EXTENDER_PROP_MODELS_NAME;
@@ -37,15 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
-import org.osgi.annotation.bundle.Requirement;
+import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleWire;
@@ -53,30 +43,42 @@ import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.namespace.extender.ExtenderNamespace;
 
 /**
- * Helper to handle model loading
- * @author mark
+ * Utility class for discovering and loading EMF ecore models from OSGi bundles.
+ * <p>
+ * Provides methods to:
+ * <ul>
+ *   <li>Check if a bundle declares an EMF model extender requirement via its wiring</li>
+ *   <li>Extract model paths from the extender requirement attributes</li>
+ *   <li>Load {@code .ecore} files from bundle entries and create {@link Model} instances</li>
+ *   <li>Parse inline properties from path strings (semicolon-separated key=value pairs)</li>
+ * </ul>
+ *
+ * @author Mark Hoffmann
  * @since 17.10.2022
  */
 public class ModelHelper {
-	
-	private static Logger logger = Logger.getLogger(ModelHelper.class.getName());
 
+	private static final Logger logger = Logger.getLogger(ModelHelper.class.getName());
+
+	/**
+	 * Collects warnings and errors encountered during model loading.
+	 */
 	public static final class Diagnostic {
-
 		public final List<String> warnings = new ArrayList<>();
 		public final List<String> errors = new ArrayList<>();
 	}
-	
+
 	private ModelHelper() {
 	}
 
 	/**
-	 * Read all models from a bundle
-	 * @param bundle the bundle to be read
-	 * @param resourceSet the resourceSet to load the models with
-	 * @param paths The paths to read the models from
-	 * @param diagnostic The report for errors and warnings
-	 * @return the list of loaded models
+	 * Reads all EMF models from a bundle by scanning the given paths for {@code .ecore} files.
+	 *
+	 * @param bundle      the bundle to scan
+	 * @param resourceSet the {@link ResourceSet} used to load ecore resources
+	 * @param paths       the set of bundle-relative paths to scan (may include inline properties)
+	 * @param diagnostic  collects errors and warnings during loading
+	 * @return list of successfully loaded models, never {@code null}
 	 */
 	public static List<Model> readModelsFromBundle(final Bundle bundle,
 			final ResourceSet resourceSet,
@@ -84,21 +86,26 @@ public class ModelHelper {
 			final Diagnostic diagnostic) {
 		if (paths == null) {
 			return Collections.emptyList();
-		} else {
-			return paths.stream().
-					map(path->readModel(bundle, resourceSet, path, diagnostic)).
-					flatMap(List::stream).
-					collect(Collectors.toList());
 		}
+		// J1: use .toList() instead of Collectors.toList()
+		return paths.stream()
+				.map(path -> readModel(bundle, resourceSet, path, diagnostic))
+				.flatMap(List::stream)
+				.toList();
 	}
 
 	/**
-	 * Read all model files from a given path in the bundle
-	 * @param bundle the bundle to load the model from
-	 * @param resourceSet the {@link ResourceSet} to load the model with
-	 * @param path the model path in the JAR
-	 * @param diagnostic 
-	 * @return List of loaded models
+	 * Reads all {@code .ecore} model files from a single path in the bundle.
+	 * <p>
+	 * The path may point to a specific {@code .ecore} file or a directory.
+	 * If a directory, all {@code .ecore} files in that directory (non-recursive) are loaded.
+	 * The path may contain inline properties in the format {@code path;key=value;key2=value2}.
+	 *
+	 * @param bundle      the bundle to load models from
+	 * @param resourceSet the {@link ResourceSet} used to load ecore resources
+	 * @param path        the model path in the bundle, optionally with inline properties
+	 * @param diagnostic  collects errors and warnings during loading
+	 * @return list of loaded models from this path
 	 */
 	public static List<Model> readModel(final Bundle bundle,
 			final ResourceSet resourceSet,
@@ -107,8 +114,13 @@ public class ModelHelper {
 		final List<Model> models = new ArrayList<>();
 		Map<String, String> properties = new HashMap<>();
 		String plainPath = extractProperties(path, properties);
+		// N3 fix: guard against null plainPath
+		if (plainPath == null) {
+			diagnostic.errors.add("Model path is null");
+			return models;
+		}
 		final Enumeration<URL> urls;
-		if (plainPath != null && plainPath.endsWith(".ecore")) {
+		if (plainPath.endsWith(".ecore")) {
 			URL url = bundle.getEntry(plainPath);
 			if (url == null) {
 				urls = bundle.findEntries(plainPath, "*.ecore", false);
@@ -118,32 +130,25 @@ public class ModelHelper {
 		} else {
 			urls = bundle.findEntries(plainPath, "*.ecore", false);
 		}
-		readModelInstance(bundle, resourceSet, path, diagnostic, models, properties, plainPath, urls);
+		loadModelsFromUrls(bundle.getBundleId(), resourceSet, path, diagnostic, models, properties, plainPath, urls);
 		return models;
 	}
 
 	/**
-	 * @param bundle
-	 * @param resourceSet
-	 * @param path
-	 * @param diagnostic
-	 * @param models
-	 * @param properties
-	 * @param plainPath
-	 * @param urls
+	 * Iterates over the given URLs, loading each as an ecore model instance.
 	 */
-	private static void readModelInstance(final Bundle bundle, final ResourceSet resourceSet, final String path,
+	private static void loadModelsFromUrls(final long bundleId, final ResourceSet resourceSet, final String path,
 			final Diagnostic diagnostic, final List<Model> models, Map<String, String> properties, String plainPath,
 			final Enumeration<URL> urls) {
-		if ( nonNull(urls) ) {
-			while ( urls.hasMoreElements() ) {
+		if (urls != null) {
+			while (urls.hasMoreElements()) {
 				final URL url = urls.nextElement();
 				try {
-					final Model model = loadModelInstance(bundle.getBundleId(), resourceSet, url, properties, diagnostic);
-					if ( nonNull(model) ) {
+					final Model model = loadModelInstance(bundleId, resourceSet, url, properties, diagnostic);
+					if (model != null) {
 						models.add(model);
 					}
-				} catch ( final IOException ioe ) {
+				} catch (final IOException ioe) {
 					diagnostic.errors.add("Unable to load ecore " + plainPath + " : " + ioe.getMessage());
 				}
 			}
@@ -153,132 +158,134 @@ public class ModelHelper {
 	}
 
 	/**
-	 * Extracts properties from the path String. It expects the first segment to be the path itself,
-	 * followed by a semicolon separate list of key value pairs that are connect via '='
-	 * e.g. /testpath;mykey:String=myval return '/testpath' and in the properties map Entry.key = mykey:String, Entry.value = myval 
-	 * @param path
-	 * @param properties
-	 * @return
+	 * Extracts inline properties from a path string.
+	 * <p>
+	 * Delegates to {@link EcoreHelper#extractProperties(String, Map)}.
+	 *
+	 * @param path       the path string, possibly with inline properties
+	 * @param properties map to populate with extracted key-value pairs
+	 * @return the plain path without properties, or the original path if no properties found
+	 * @see EcoreHelper#extractProperties(String, Map)
 	 */
 	public static String extractProperties(String path, Map<String, String> properties) {
-		if (isNull(path) || path.isEmpty()) {
-			return path;
-		}
-		String[] parts = path.split(";");
-		if (parts.length > 1) {
-			for (int i = 1; i < parts.length; i++) {
-				String[] kvArray = parts[i].split("=");
-				if (kvArray.length > 0 && properties != null) {
-					String value = kvArray.length > 1 ? kvArray[1] : null;
-					properties.put(kvArray[0], value);
-				}
-			}
-			return parts[0];
-			
-		} else {
-			return parts.length == 1 ? parts[0] : path;
-		}
+		return EcoreHelper.extractProperties(path, properties);
 	}
 
 	/**
-	 * @param bundleId The bundle id
-	 * @param resourceSet The configured {@link ResourceSet}
-	 * @param path the ecore bundle file path
-	 * @param properties the path properties
-	 * @param url the file url
-	 * @param diagnostic the error report
-	 * @return the loaded model
-	 * @throws IOException
+	 * Loads a single ecore file from a URL and creates a {@link Model} instance.
+	 * <p>
+	 * The loaded {@link EPackage} is enriched with standard service properties
+	 * ({@code emf.name}, {@code emf.nsURI}, {@code emf.registration}, {@code emf.model.scope}).
+	 *
+	 * @param bundleId    the bundle ID that provides this model
+	 * @param resourceSet the {@link ResourceSet} used to load the ecore resource
+	 * @param url         the URL of the {@code .ecore} file
+	 * @param properties  additional properties extracted from the path, may be {@code null}
+	 * @param diagnostic  collects errors and warnings during loading
+	 * @return the loaded model, never {@code null}
+	 * @throws IOException if the ecore file cannot be read or is empty
 	 */
 	public static Model loadModelInstance(final long bundleId,
 			final ResourceSet resourceSet,
 			final URL url,
 			final Map<String, String> properties,
-			final Diagnostic diagnostic) throws IOException{
-		Resource r = resourceSet.createResource(URI.createURI(url.toExternalForm())); 
+			final Diagnostic diagnostic) throws IOException {
+		EPackage ePackage = EcoreHelper.loadEcore(url, resourceSet);
+		Resource r = ePackage.eResource();
 		try {
-			r.load(url.openStream(), null);
-			if (!r.getContents().isEmpty()) {
-				EPackage ePackage = (EPackage) r.getContents().get(0);
-				Dictionary<String, Object> serviceProperties = new Hashtable<>();
-				if (properties != null) {
-					properties.forEach(serviceProperties::put);
-				}
-				String nsUri = ePackage.getNsURI();
-				serviceProperties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
-				serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, nsUri);
-				serviceProperties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
-				if(!properties.containsKey(EMFNamespaces.EMF_MODEL_SCOPE)) {
-					serviceProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_STATIC);
-				}
-				return new Model(ePackage, url, serviceProperties, bundleId);
+			Dictionary<String, Object> serviceProperties = new Hashtable<>();
+			if (properties != null) {
+				properties.forEach(serviceProperties::put);
 			}
-			return null;
+			// N4 fix: guard against null name/nsURI which would cause Hashtable NPE
+			String name = ePackage.getName();
+			if (name != null) {
+				serviceProperties.put(EMFNamespaces.EMF_NAME, name);
+			} else {
+				diagnostic.warnings.add("EPackage at " + url + " has no name");
+			}
+			String nsURI = ePackage.getNsURI();
+			if (nsURI != null) {
+				serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, nsURI);
+			} else {
+				diagnostic.warnings.add("EPackage at " + url + " has no nsURI");
+			}
+			serviceProperties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
+			if (properties == null || !properties.containsKey(EMFNamespaces.EMF_MODEL_SCOPE)) {
+				serviceProperties.put(EMFNamespaces.EMF_MODEL_SCOPE, EMFNamespaces.EMF_MODEL_SCOPE_STATIC);
+			}
+			return new Model(ePackage, serviceProperties, bundleId);
 		} finally {
-			for (org.eclipse.emf.ecore.resource.Resource.Diagnostic de : r.getErrors()) {
-				diagnostic.errors.add(de.getMessage() + " [" + de.getLine() + ":" + de.getColumn() + "]");
-			}
-			for (org.eclipse.emf.ecore.resource.Resource.Diagnostic dw : r.getWarnings()) {
-				diagnostic.errors.add(dw.getMessage() + " [" + dw.getLine() + ":" + dw.getColumn() + "]");
+			if (r != null) {
+				for (Resource.Diagnostic de : r.getErrors()) {
+					diagnostic.errors.add(de.getMessage() + " [" + de.getLine() + ":" + de.getColumn() + "]");
+				}
+				for (Resource.Diagnostic dw : r.getWarnings()) {
+					diagnostic.warnings.add(dw.getMessage() + " [" + dw.getLine() + ":" + dw.getColumn() + "]");
+				}
 			}
 		}
-
 	}
-	
-    /**
-     * Check if the bundle contains EMF models depending on the OSGi requirements
-     * @param bundle The bundle
-     * @param modelBundleId The bundle id of the model bundle to check the wiring
-     * @return Set of locations or {@code null}
-     */
-    public static Set<String> isModelBundle(final Bundle bundle, final long modelBundleId) {
-        // check for bundle wiring
-        final BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
-        if ( isNull(bundleWiring) ) {
-            return Collections.emptySet();
-        }
-
-        // check for bundle requirement to extender namespace
-        final List<BundleRequirement> requirements = bundleWiring.getRequirements(ExtenderNamespace.EXTENDER_NAMESPACE);
-        if ( isNull(requirements) || requirements.isEmpty() ) {
-            return Collections.emptySet();
-        }
-        // get all wires for the implementation namespace
-        final List<BundleWire> wires = bundleWiring.getRequiredWires(ExtenderNamespace.EXTENDER_NAMESPACE);
-        for(final BundleWire wire : wires) {
-            // if the wire is to this bundle (EMF extender), it must be the correct
-            // requirement (no need to do additional checks like version etc.)
-            if ( nonNull(wire.getProviderWiring())
-                 && wire.getProviderWiring().getBundle().getBundleId() == modelBundleId ) {
-                return extractModelPath(wire);
-            }
-        }
-        return Collections.emptySet();
-    }
 
 	/**
-	 * Etracts the path attribute from a {@link Bundle} 
-	 * @param wire the {@link BundleWire}
-	 * @return the {@link Set} of path, extracted from the {@link Requirement}
+	 * Checks if a bundle has an EMF model extender requirement wired to the given extender bundle.
+	 * <p>
+	 * Examines the bundle's {@link BundleWiring} for requirements in the
+	 * {@code osgi.extender} namespace that are wired to the extender bundle
+	 * identified by {@code extenderBundleId}.
+	 *
+	 * @param bundle          the bundle to check
+	 * @param extenderBundleId the bundle ID of this extender bundle
+	 * @return set of model paths from the requirement attributes, or empty set if not a model bundle
+	 */
+	public static Set<String> isModelBundle(final Bundle bundle, final long extenderBundleId) {
+		final BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
+		if (bundleWiring == null) {
+			return Collections.emptySet();
+		}
+
+		final List<BundleRequirement> requirements = bundleWiring.getRequirements(ExtenderNamespace.EXTENDER_NAMESPACE);
+		if (requirements == null || requirements.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		// N2 fix: getRequiredWires() can return null per OSGi spec
+		final List<BundleWire> wires = bundleWiring.getRequiredWires(ExtenderNamespace.EXTENDER_NAMESPACE);
+		if (wires == null) {
+			return Collections.emptySet();
+		}
+		for (final BundleWire wire : wires) {
+			if (wire.getProviderWiring() != null
+					&& wire.getProviderWiring().getBundle().getBundleId() == extenderBundleId) {
+				return extractModelPath(wire);
+			}
+		}
+		return Collections.emptySet();
+	}
+
+	/**
+	 * Extracts model path(s) from a bundle wire's requirement attributes.
+	 * <p>
+	 * The {@code models} attribute may be a single {@link String} or a {@link List} of strings.
+	 * Falls back to the default model path ({@code "model/"}) if no attribute is specified.
+	 *
+	 * @param wire the bundle wire containing the requirement attributes
+	 * @return set of model paths
 	 */
 	@SuppressWarnings("unchecked")
 	private static Set<String> extractModelPath(final BundleWire wire) {
 		requireNonNull(wire);
 		final Object val = wire.getRequirement().getAttributes().get(EMF_MODEL_EXTENDER_PROP_MODELS_NAME);
-		if ( nonNull(val) ) {
-		    if ( val instanceof String ) {
-		        return Collections.singleton((String)val);
-		    }
-		    if ( val instanceof List ) {
-		        final List<String> paths = (List<String>)val;
-		        final Set<String> result = new HashSet<>();
-		        for(final String p : paths) {
-		            result.add(p);
-		        }
-		        return result;
-		    }
-		    logger.severe(()->"Attribute " + EMF_MODEL_EXTENDER_PROP_MODELS_NAME + " for EMF models requirement has an invalid type: " + val +
-		                       ". Using default model path.");
+		if (val != null) {
+			if (val instanceof String s) {
+				return Collections.singleton(s);
+			}
+			if (val instanceof List<?> list) {
+				return new HashSet<>((List<String>) list);
+			}
+			logger.severe(() -> "Attribute " + EMF_MODEL_EXTENDER_PROP_MODELS_NAME
+					+ " for EMF models requirement has an invalid type: " + val
+					+ ". Using default model path.");
 		}
 		return Collections.singleton(EMF_MODEL_EXTENDER_DEFAULT_PATH);
 	}

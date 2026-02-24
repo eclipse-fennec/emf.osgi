@@ -106,6 +106,26 @@ The framework registers EMF components as OSGi services:
 
 This allows EMF models to be dynamically added/removed as bundles are installed/uninstalled, unlike EMF's static approach.
 
+## Agent Prompts
+
+- **Test Coverage Agent:** `docs/agents/test-coverage-agent.md` - invoke after code changes to ensure test coverage
+- **Code Quality Agent:** `docs/agents/code-quality-agent.md` - invoke to check Java 21 usage, imports, null-safety, resource leaks, testability, license headers, OSGi package-info
+
+## Critical Rules
+
+- **Always use Java imports** - never use fully-qualified class names in code
+- **No wildcard imports** - except for static imports (`import static ....*`)
+- **`src-gen/` folders are generated code** - never hand-edit files in src-gen
+- **Plain JUnit 5 first** - only use OSGi tests when OSGi container is actually required
+- **Null-safety** - use `java.util.Objects.requireNonNull()` for validation, `Optional<T>` for optional returns
+- **Try-with-resources** - always use for `AutoCloseable` resources
+- **License header** - all Java files must have the EPL-2.0 header
+
+## Key Documents
+
+- **EMF Delegate Registries:** `docs/emf-delegate-registries.md` - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
+- **EMF Delegate User Guide:** `docs/emf-delegate-user-guide.md` - How to use the four delegate types: Ecore annotations, OSGi service implementation, runtime behavior, and caching
+
 ## Development Workflow
 
 1. **Model Development**: Place `.ecore` and `.genmodel` files in `model/` directories

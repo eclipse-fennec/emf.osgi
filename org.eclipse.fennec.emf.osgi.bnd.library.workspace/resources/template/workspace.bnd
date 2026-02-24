@@ -1,9 +1,9 @@
 -plugin.fennecEMF: \
 	aQute.bnd.repository.maven.provider.MavenBndRepository;\
 		snapshotUrl=https://central.sonatype.com/repository/maven-snapshots/; \
-        releaseUrl=https://central.sonatype.com/; \
+        releaseUrl=https://repo.maven.apache.org/maven2/; \
 		index            = "\${.}/fennecEMF.maven" ;\
 		readOnly            = true;\
 		name="Eclipse Fennec EMF Dependencies - ${Bundle-Version}"
 		
--require-bnd: "(version>=7.0.0)"
+-require-bnd: "(version>=7.2.0)"

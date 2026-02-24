@@ -7,7 +7,21 @@
       "Bash(.gradlew.bat :org.eclipse.fennec.emf.gecko.compatibility.api:build)",
       "Bash(ls:*)",
       "Bash(dir:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(ls:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(while read f)",
+      "Bash(do head -20 \"$f\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(xargs:*)",
+      "Bash(jar xf:*)",
+      "Bash(jar tf:*)",
+      "Bash(javap:*)",
+      "Bash(test:*)"
     ],
     "deny": []
   }

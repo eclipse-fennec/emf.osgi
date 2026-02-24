@@ -1,16 +1,15 @@
-/**
- * Copyright (c) 2012 - 2022 Data In Motion and others.
- * All rights reserved. 
- * 
+/********************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation.
+ *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
- * 
+ *
  * Contributors:
- *     Data In Motion - initial API and implementation
- */
+ *   Data In Motion Consulting - initial implementation
+ ********************************************************************/
 package org.eclipse.fennec.emf.osgi.constants;
 
 import org.eclipse.fennec.emf.osgi.annotation.EMFModel;
@@ -43,6 +42,7 @@ public class EMFNamespaces {
 	// Attribute PREFIX for the EMF models and confiogurators
 	public static final String EMF_PREFIX = "emf.";
 	// Attribute name constants for {@link EMFConfigurator} annotation
+	public static final String EMF_CONFIGURATOR_TYPE = EMF_PREFIX + "configuratorType"; //$NON-NLS-1$
 	public static final String EMF_CONFIGURATOR_NAME = EMF_PREFIX + "configuratorName"; //$NON-NLS-1$
 	// Attribute PREFIX for the EMF model
 //	public static final String EMF_MODEL_PREFIX = "emf.model.";

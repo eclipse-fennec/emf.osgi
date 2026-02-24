@@ -10,8 +10,8 @@
 
 ### Core Build Configuration
 - **Build Tool**: Gradle + BND Workspace hybrid setup
-- **Java Version**: 17 (source and target)
-- **BND Version**: 7.1.0+ required
+- **Java Version**: 21 (source and target)
+- **BND Version**: 7.2.1+ required
 - **Encoding**: UTF-8 for all compilation
 
 ### Primary Build Commands
@@ -158,13 +158,13 @@ EMF_MODEL_FEATURE = "emf.feature"        // String[] - feature identifiers
 ### Core EMF Dependencies
 ```xml
 <!-- EMF Core -->
-org.eclipse.emf:org.eclipse.emf.ecore:2.40.0
-org.eclipse.emf:org.eclipse.emf.common:2.43.0
-org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.38.0
+org.eclipse.emf:org.eclipse.emf.ecore:2.41.0
+org.eclipse.emf:org.eclipse.emf.common:2.44.0
+org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.39.0
 
 <!-- EMF Code Generation (for codegen module) -->
-org.eclipse.emf:org.eclipse.emf.codegen.ecore:2.42.0
-org.eclipse.emf:org.eclipse.emf.codegen:2.26.0
+org.eclipse.emf:org.eclipse.emf.codegen.ecore:2.44.0
+org.eclipse.emf:org.eclipse.emf.codegen:2.27.0
 ```
 
 ### OSGi Framework Dependencies
@@ -193,9 +193,9 @@ org.apache.felix:org.apache.felix.configurator:1.0.18
 
 ### BND Build Tools
 ```xml
-biz.aQute.bnd:biz.aQute.bndlib:7.1.0
-biz.aQute.bnd:aQute.libg:7.1.0
-biz.aQute.bnd:biz.aQute.bnd.annotation:7.1.0
+biz.aQute.bnd:biz.aQute.bndlib:7.2.1
+biz.aQute.bnd:aQute.libg:7.2.1
+biz.aQute.bnd:biz.aQute.bnd.annotation:7.0.0
 ```
 
 ## Testing Framework
@@ -217,7 +217,7 @@ biz.aQute.bnd:biz.aQute.bnd.annotation:7.1.0
 -library: enableOSGi-Test
 -runrequires: bnd.identity;id='org.eclipse.fennec.emf.osgi.itest'
 -runfw: org.apache.felix.framework;version='[7.0.5,7.0.5]'
--runee: JavaSE-17
+-runee: JavaSE-21
 ```
 
 ## Model Registration Patterns
@@ -316,7 +316,12 @@ sonar.host.url=https://sonarcloud.io
 
 ### CI/CD
 - **Platform**: GitHub Actions
-- **Workflow**: `.github/workflows/snapshot.yml`
+- **Workflows**:
+  - `.github/workflows/build.yml` - CI build for all branches except main/snapshot, and all pull requests
+  - `.github/workflows/snapshot.yml` - Snapshot build and release on push to `snapshot` branch
+  - `.github/workflows/release.yml` - Release build on push to `main` branch (publishes to Maven Central via Sonatype)
+  - `.github/workflows/license.yml` - License checks
+- **Java**: Temurin JDK 21
 - **Badge**: Build status in README.md
 
 This specification provides all necessary information for a developer to recreate the Eclipse Fennec EMF OSGi project, including its sophisticated service architecture, build system, and testing framework.

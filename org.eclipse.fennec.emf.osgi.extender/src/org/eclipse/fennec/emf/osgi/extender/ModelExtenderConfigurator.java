@@ -1,64 +1,58 @@
-/**
- * Copyright (c) 2012 - 2022 Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
- * Eclipse Public License v2.0 which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v20.html
- * 
+/********************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
  * Contributors:
- *     Data In Motion - initial API and implementation
- */
+ *   Data In Motion Consulting - initial implementation
+ ********************************************************************/
 package org.eclipse.fennec.emf.osgi.extender;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import static java.util.Objects.requireNonNull;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 
 /**
- * Implementation for Gecko EMF configurators, used by the extender.
+ * {@link EPackageConfigurator} implementation used by the EMF model extender.
+ * <p>
+ * Wraps a single {@link EPackage} and registers/unregisters it in an
+ * {@link EPackage.Registry} by its namespace URI. This allows the extender
+ * to integrate discovered ecore models into the EMF package registry
+ * through the OSGi whiteboard pattern.
+ *
  * @author Mark Hoffmann
  * @since 13.10.2022
+ * @see EMFModelExtender
  */
 public class ModelExtenderConfigurator implements EPackageConfigurator {
-	
-	private static Logger logger = Logger.getLogger(ModelExtenderConfigurator.class.getName());
+
 	private final EPackage ePackage;
+	private final String nsURI;
 
 	/**
-	 * Creates a new instance.
+	 * Creates a new configurator for the given package.
+	 *
+	 * @param ePackage the EMF package to register, must not be {@code null} and must have a non-null nsURI
+	 * @throws NullPointerException if {@code ePackage} or its nsURI is {@code null}
 	 */
 	public ModelExtenderConfigurator(EPackage ePackage) {
-		this.ePackage = ePackage;
+		this.ePackage = requireNonNull(ePackage, "EPackage must not be null");
+		this.nsURI = requireNonNull(ePackage.getNsURI(), "EPackage nsURI must not be null");
 	}
 
-
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.EPackageConfigurator#configureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
-	 */
 	@Override
-	public void configureEPackage(org.eclipse.emf.ecore.EPackage.Registry registry) {
-		if (ePackage != null) {
-			registry.put(ePackage.getNsURI(), ePackage);
-		} else {
-			logger.log(Level.SEVERE, ()->"Error registering a NULL package, that should never happen");
-		}
+	public void configureEPackage(EPackage.Registry registry) {
+		registry.put(nsURI, ePackage);
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.osgi.EPackageConfigurator#unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry)
-	 */
 	@Override
-	public void unconfigureEPackage(org.eclipse.emf.ecore.EPackage.Registry registry) {
-		if (ePackage != null) {
-			registry.remove(ePackage.getNsURI());
-		} else {
-			logger.log(Level.SEVERE, ()->"Error un-registering a NULL package, that should never happen");
-		}
+	public void unconfigureEPackage(EPackage.Registry registry) {
+		registry.remove(nsURI);
 	}
 
 }
