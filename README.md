@@ -1,249 +1,225 @@
- ![Build Status](https://github.com/eclipse-fennec/emf.osgi/actions/workflows/snapshot.yml/badge.svg)
+[![Build Status](https://github.com/eclipse-fennec/emf.osgi/actions/workflows/snapshot.yml/badge.svg)](https://github.com/eclipse-fennec/emf.osgi/actions/workflows/snapshot.yml)
 
-# EMF for pure OSGi
+# Eclipse Fennec EMF OSGi
 
-## FennecEMF
+Eclipse Fennec EMF OSGi enables the [Eclipse Modeling Framework (EMF)](https://eclipse.dev/modeling/emf/) in pure OSGi environments without any Eclipse PDE or Equinox dependencies. EMF models, packages, and factories are registered and consumed as standard OSGi services.
 
-EMF is one of the most powerful MDSD tools. Unfortunately it comes with strong ties to Eclipse and Equinox, because it uses Extension Points. It can be used in Java SE and other OSGi frameworks, but it usually requires a lot of manual work to register EPackages, ResoureFactories etc.
+> **Note:** This project was formerly known as *GeckoEMF*. It has been donated to the Eclipse Foundation and transitioned to the [Eclipse Fennec](https://projects.eclipse.org/projects/technology.fennec) project. A [compatibility layer](#gecko-emf-compatibility) is provided for migration.
 
-### Usage
+## Overview
 
-GeckoEMF sets out to provide a way to use EMF in pure OSGi environments regardless of the framework you use. It is an extension on top of EMF, so EMF can be used as before, without any changes. The project is based on the [eModelling](https://github.com/BryanHunt/eModeling) project of Bryan Hunt.
+EMF relies on static global registries (`EPackage.Registry.INSTANCE`, `Resource.Factory.Registry.INSTANCE`) and Eclipse extension points. This makes it difficult to use in non-Equinox OSGi runtimes and prevents dynamic, service-oriented architectures.
 
-The sense of Gecko EMF is to register all EMF models as OSGi services. So EMF `ResourceSet` can be injected as service using:
+Fennec EMF OSGi replaces these static registries with dynamic OSGi services:
 
-```java
-@Reference
-private ResourceSet resourceSet;
-```
-
-This is achieved registering a prototype service factory for the resource sets. Alternatively a `ResourceSetFactory` can also be injected. 
-
-To ensure that a model is regsitered in a resource set, the target filtering against the *emf.name* and other supported properties can be used:
+- **`ResourceSet`** is available as a prototype-scoped OSGi service, injectable via `@Reference`
+- **`ResourceSetFactory`** creates pre-configured `ResourceSet` instances on demand
+- **`EPackage`** and **`EFactory`** instances are registered as services with metadata properties
+- **`Resource.Factory`** registrations are managed through the service registry
+- Service properties are **dynamically updated** as models appear and disappear at runtime
 
 ```java
-@Reference(target="(emf.name=foo)")
+// Inject a ResourceSet that has the "mymodel" EPackage registered
+@Reference(target = "(emf.name=mymodel)")
 private ResourceSet resourceSet;
+
+// Or inject the factory for programmatic creation
+@Reference(target = "(emf.name=mymodel)")
+private ResourceSetFactory resourceSetFactory;
 ```
-### Configurators
 
-There are different interfaces that can be implemented and registered as service. For them the *emf.configurator.name* property can be set, to give the implamantation a name. This can be used for filtering afterwards:
+## Getting Started
 
-* `org.gecko.emf.osgi.ResourceFactoryConfigurator` - Configurator for a resource factory. The used ResourceFactory registry will be provided by the framework.
-* `org.gecko.emf.osgi.ResourceSetConfigurator` - Configurator for a resource set. These configurators are usually called before creating a new *ResourceSet* instance
-* `org.gecko.emf.osgi.EPackageConfigurator` - Configurator for registering a new model using the EPeckage and the EPackageRegsitry.
+### BND Library (Recommended)
 
-There are additional properties that can be provided.
+Add the Fennec EMF library to your BND workspace (`cnf/build.bnd`):
 
-### Service Properties
+```properties
+-library: fennec
+```
 
-Supported properties are defined in the *EMFNamespaces* constant:
+This provides the required dependencies and the code generator. For individual modules, add to your project's `bnd.bnd`:
 
-* **emf.name** - the model name (String[])
-* **emf.nsUri** - the model package namenspace uri
-* **emf.fileExtension** - file extension for resource factories
-* **emf.protocol** - protocol value for resource factories
-* **emf.contentType** - content type definition for resource factories
-* **emf.version** - the model version
-* **emf.feature** - property for special feature of a model
-* **emf.configuratorName** - name of the configurator, when creating an own one
-* **emf.dynamicEcoreUri** - Uri to the *ecore* when using the dynamic pacakge registration
+```properties
+-library: enable-emf
+```
 
-Usually the right properties are autoamtically set during registration via code generator or extender or the configuration based model registration.
+### Gradle/Maven
 
-When you create an own configurator based implementation, these properties can be used and are forwarded to the service factory for set *ResourceSet*. The properties are merged to a list of values in the factory service property map.
+Maven coordinates (group ID: `org.eclipse.fennec.emf`):
 
-If a configurator disappears, the properties of the *ResourceSet* service factory are updated in a way that the removed properties also disappear. 
+```
+org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bom:${fennec.version}
+```
 
-Example:
+## Model Registration
 
-* *FooEPackageConfigurator* with **emf.configuratorName=foo**
-* *BarEPackageConfigurator* with **emf.configuratorName=bar**
-* *ResourceSet* would get merged property **emf.configuratorName=[foo, bar]**
+There are three ways to register EMF models with Fennec EMF OSGi:
 
-The service lifecycle dynamics are handled by Gecko EMF!
+### 1. Code Generator
 
-### The emf.feature Prefix Property for emf.feature.* 
+The Fennec EMF code generator extends the standard EMF generator to produce OSGi-compatible code. Enable it by setting **GenModel > All > OSGi Compatible** to `true`.
 
-As described above, the *emf.feature* property can indicate any feature-string. You can filter against this in the *ResourceSet* or *ResourceSetFactory*.
+The generator creates:
 
-In addition to that sometimes you may want to forward a certain, self defined property to the whole Gecko EMF. You can use the prefix *emf.feature.* for your property:
+- **`EPackageConfigurator`** -- registers the EPackage in the appropriate registry
+- **`ConfigurationComponent`** -- DS component that registers all model services
 
-Puttinf *emf.feature.foo=bar* as service property of a configurator, will end up as *foo=bar* in the *ResourceSet* or *ResourceSetFactory* service properties.
+The following services are registered per model:
 
-This functionality works for all configurators and also for the dynamic model registration.
+| Service | Properties |
+|---------|------------|
+| `EPackage` | `emf.name`, `emf.nsURI`, `emf.fileExtension`, `emf.contentType`, `emf.protocol` |
+| `EFactory` | same as EPackage |
+| `Resource.Factory` (if generated) | same as EPackage |
+| `Condition` | all model-related properties |
 
-### Model Registration
+In a BND workspace, code generation is configured in `bnd.bnd`:
 
-The model registration can happen:
+```properties
+-generate: \
+    model/mymodel.genmodel; \
+        generate=geckoEMF; \
+        genmodel=model/mymodel.genmodel; \
+        output=src
 
-* using the **GeckoEMF Code Generator**
-* using the **GeckoEMF Extender** from *org.gecko.emf.osgi.extender*
-* using **Dynamic Model Registration** with a configuration based setup
+-includeresource: model=model
+```
 
+### 2. Model Extender
 
+The extender (`org.eclipse.fennec.emf.osgi.extender`) automatically discovers and registers `.ecore` models from bundles at runtime -- no code generation required.
 
-## Gecko EMF Code Generator
+Add this to your bundle's `bnd.bnd`:
 
-The provided Code generator is based on the default EMF code generator as declared in the dependencies. As the use is not intended for Eclipse PDE use, no Manifest, plugin.xml or any other PDE Project specific files will be created. 
+```properties
+Require-Capability: \
+    osgi.extender; \
+    filter:="(osgi.extender=emf.model)"
 
-A few additions have been made though. It will create a Component that will register your EPackage, EPackageFactory and a Condition for you. If a ResourceFactory is generated, it will be an OSGi Component as well. All generated Packages will be served with a `package-info.java` as well. If a `EAnnotation` with the source `Version` and a detailed entry with `value` as key is present on any `EPackage` this will define you exported version. If non is present the default is `1.0`.
+-includeresource: model=model
+```
 
-This generator is triggered setting the *Genmodel - All - OSGi Campatible* to *true*.
+Place `.ecore` files in the `model/` folder and the extender will register them as `EPackage` and `EPackageConfigurator` services automatically.
 
-After that a new *configuration* package is created and two two classes are generated:
+See the full [Extender Documentation](org.eclipse.fennec.emf.osgi.extender/readme.md) for custom paths, inline properties, and annotations.
 
-* *EPackageConfigurator* - Class to configure the EPackage in a proper way
-* *ConfigurationComponent* - to register all needed stuff as service in a safe way
+### 3. Dynamic Package Registration
 
-The following services are registered with the generated code and can be used:
-
-* *EPackage, GeneratedEPackage* - Service with the generated EPackage instance, with the provided properties e.g. *emf.name, emf.fileExt, emf.contentType, emf.protocol*
-* *EFactory, GeneratedEFactory* - Service with the generated EFactory instance, with the provided properties e.g. *emf.name, emf.fileExt, emf.contentType, emf.protocol*
-* *Resource.Factory, GeneratedResourceFactory* - Service with the generated ResourceFactory and provided properties e.g. *emf.name, emf.fileExt, emf.contentType, emf.protocol*
-* *Condition* - OSGi Condition service with all model related properties
-
-Compared to the static access to EFactory or EPackage, one can access these instances using services, by either injecting the generated EPackage or EFactory interface or the abstract EFactory or EPackage directly. To filter the right model the target filter can be used against the service properties e.g. *emf.name=<your-model>*
-
-## Gecko EMF Extender
-
-To use this mechanism the bundle *org.gecko.emf.osgi.extender* is needed.
-
-Follow the instructions here: [Extender Documentation](org.gecko.emf.osgi.extender/readme.md)
-
-## Dynamic Package Registration
-
-To dynamically register a EMF model package via configuration you can use a configuration PID **DynamicModelConfigurator** with a custom identifier. A sample configuration can look like this:
+Register models dynamically via OSGi Configuration Admin using the `DynamicPackageLoader` factory PID:
 
 ```json
 {
-	":configurator:resource-version": 1,
-	":configurator:symbolicname": "org.gecko.emf.osgi.demo",
-	":configurator:version": "0.0.0",
-	"DynamicPackageLoader~demo": {
-		"emf.dynamicEcoreUri": "https://mymodelpage.org/demo/demo.ecore",
-		"emf.feature": ["foo", "bar"],
-		"emf.feature.my": "own"
-	}
+    "DynamicPackageLoader~demo": {
+        "emf.dynamicEcoreUri": "https://example.org/demo/demo.ecore",
+        "emf.feature": ["foo", "bar"],
+        "emf.feature.my": "own"
+    }
 }
-
 ```
 
-This configuration registers a model package loaded from the given *dynamicEcoreUri* property. The package is then registered with the given properties as *EPackage* and *EPackageConfigurator* service. The package nsUri is also provided from the package.
+The model is loaded from the given URI and registered with the following properties derived from the `EPackage`:
 
-In this case the properties are:
+| Property | Source |
+|----------|--------|
+| `emf.name` | `EPackage.getName()` |
+| `emf.nsURI` | `EPackage.getNsURI()` |
+| `emf.feature` | forwarded from configuration |
+| `emf.feature.*` | prefix-stripped and forwarded (e.g., `emf.feature.my=own` becomes `my=own`) |
 
-* *emf.name* - `EPackage#getName()`
-* *emf.nsUri* - `EPackage#getNsUri()`
-* *emf.feature* - forwarded from the configuration, if set
-* *emf.feature.\** - forwarded as described in the feature property section. From the example above the result of *emf.feature.my* would be *my=own*
+Changing `dynamicEcoreUri` triggers unregistration of the old model and re-registration from the new URI. Changing other properties updates the service properties without re-loading.
 
-This setup works with the configurator as well with the config admin. 
+## Configurators
 
-If a package location uri via *dynamicEcoreUri* property changes, this will lead into an un-registration of the former model and a try to reload the model from the new location.
+Configurators are services that customize the EMF setup. Register your own implementations with the `emf.configuratorName` property:
 
-If some of the other properties change, the properties will be updated without any re-registration of the *EPackage*.
+| Interface | Purpose |
+|-----------|---------|
+| `EPackageConfigurator` | Registers an EPackage in the EPackage registry |
+| `ResourceFactoryConfigurator` | Registers resource factories in the ResourceFactory registry |
+| `ResourceSetConfigurator` | Configures a ResourceSet before it is handed to consumers |
 
+## Service Properties
+
+All EMF services use standardized properties defined in `EMFNamespaces`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `emf.name` | `String+` | Model name(s) |
+| `emf.nsURI` | `String+` | Model namespace URI(s) |
+| `emf.fileExtension` | `String+` | File extensions for resource factories |
+| `emf.protocol` | `String+` | Protocol schemes for resource factories |
+| `emf.contentType` | `String+` | Content type identifiers |
+| `emf.version` | `String` | Model version |
+| `emf.feature` | `String+` | Feature tags for filtering |
+| `emf.configuratorName` | `String` | Configurator name |
+| `emf.dynamicEcoreUri` | `String` | URI for dynamic model loading |
+
+Properties are automatically propagated: when a configurator is added or removed, the `ResourceSet` and `ResourceSetFactory` service properties are updated to reflect the current set of available models.
+
+### The `emf.feature.*` Prefix
+
+Custom properties can be forwarded through the Fennec EMF stack using the `emf.feature.` prefix. For example, setting `emf.feature.foo=bar` on a configurator results in `foo=bar` appearing on the `ResourceSet` and `ResourceSetFactory` service properties. This works for all configurators and dynamic model registration.
+
+## Configuration Admin Components
+
+For advanced scenarios, Fennec EMF provides configurable DS components that create dedicated, isolated EMF stacks via OSGi Configuration Admin. This is useful for multi-tenant applications or when multiple independent model sets are needed.
+
+See the [Configuration Guide](docs/configuration-guide.md) for full details, factory PIDs, and JSON examples.
+
+## Project Modules
+
+| Module | Description |
+|--------|-------------|
+| `org.eclipse.fennec.emf.osgi.api` | Public API: interfaces, configurators, constants, annotations |
+| `org.eclipse.fennec.emf.osgi` | Core implementation: DS components, registries, ResourceSet factories |
+| `org.eclipse.fennec.emf.osgi.codegen` | BND-based EMF code generator for OSGi-compatible model code |
+| `org.eclipse.fennec.emf.osgi.extender` | OSGi extender for automatic `.ecore` model registration |
+| `org.eclipse.fennec.emf.osgi.model.info` | Runtime model introspection (EClassifier lookup by Java class) |
+| `org.eclipse.fennec.emf.gecko.compatibility.api` | Compatibility layer for migrating from GeckoEMF |
 
 ## Documentation
 
-- [Configuration Guide](docs/configuration-guide.md) — How to configure EMF components via OSGi Configuration Admin
-- [EMF Delegate Registries](docs/emf-delegate-registries.md) — Analysis of EMF's four delegate registries and whiteboard populator implementation
-- [EMF Delegate User Guide](docs/emf-delegate-user-guide.md) — How to use invocation, setting, validation, and conversion delegates
+- [Configuration Guide](docs/configuration-guide.md) -- Configuring EMF components via OSGi Configuration Admin
+- [Extender Documentation](org.eclipse.fennec.emf.osgi.extender/readme.md) -- Automatic model registration from bundles
+- [EMF Delegate Registries](docs/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries
+- [EMF Delegate User Guide](docs/emf-delegate-user-guide.md) -- Using invocation, setting, validation, and conversion delegates
 
-## Dependencies
+## Building
 
-The latest Version is named here:
+The project uses a Gradle + BND workspace:
 
-https://github.com/geckoprojects-org/org.geckoprojects.emf/blob/master/cnf/ext/version.bnd#L1
-
-### Maven BOM
-
-We provide a maven BOM on central under the following coordinates:
-
-
-```xml
-<dependency>
-      <groupId>org.geckoprojects.emf</groupId>
-      <artifactId>org.gecko.emf.osgi.bom</artifactId>
-      <version>${geckoemf.version}</version>
-</dependency>
+```bash
+./gradlew build       # Full build
+./gradlew test        # Run unit tests
+./gradlew clean       # Clean build artifacts
 ```
 
-or as short GAV
+Requires Java 21.
 
-```
-org.geckoprojects.emf:org.gecko.emf.osgi.bom:${geckoemf.version}
-```
+## Gecko EMF Compatibility
 
-### BND
-
-Besides the BOM we provide an  [OSGi Repository](http://devel.data-in-motion.biz/public/repository/gecko/release/geckoEMF/) as well.
-
-We additionally provide a Workspace extension that provides some more comfort including a bnd code generator and project templates for EMF projects.
-
-### BND Library
-
-Since bnd Version 6.1.0 the concept of [libraries](https://bnd.bndtools.org/instructions/library.html) was introduced, which provides some easy extensions for your bnd workspace setup.
-
-Add the following maven dependency from maven central to you workspace:
-
-```
-org.geckoprojects.emf:org.gecko.emf.osgi.bnd.library.workspace:${geckoemf.version}
-```
-
-You can now activate the library bi adding the following instruction to your workspace (e.g. build.bnd) 
-
-
-
-```properties
-# If you are brave you can use the develop for the latest and greatest. We are ususally pretty stable
--library: geckoEMF
-```
-
-This will include a repository with all required dependencies together with the codegenerator and BND Tools Template for an example Project (klick next in the wizard or you will miss the required template variables).
-
-An example project bnd file can look as follows:
-
-```properties
-# sets the usually required buildpath, you can extend it with the normal -buildpath to your liking
--library: enable-emf
-
-# The code generation takes a bit of time and makes the build a bit slower.
-# It might be a good idea to put comments around it, when you don't need it
--generate:\
-	model/mymodel.genmodel;\
-		generate=geckoEMF;\
-		genmodel=model/mymodel.genmodel;\
-		output=src
-# Add this attribute to find some logging information
-#		logfile=test.log;\
-
-# always add the model in the same folder in jar as in your project
--includeresource: model=model
-
-Bundle-Version: 1.0.0.SNAPSHOT
-```
+The module `org.eclipse.fennec.emf.gecko.compatibility.api` provides wrapper interfaces that map the old `org.gecko.emf.osgi` package names to the new `org.eclipse.fennec.emf.osgi` packages. This allows existing GeckoEMF consumers to migrate incrementally.
 
 ## Links
 
-* [Documentation](https://https://github.com/eclipse-fennec/emf.osgi)
-* [Source Code](https://https://github.com/eclipse-fennec/emf.osgi) (clone with `scm:git:git@github.com:geckoprojects-org/org.gecko.emf.git`)
+- [Eclipse Fennec Project](https://projects.eclipse.org/projects/technology.fennec)
+- [Source Code](https://github.com/eclipse-fennec/emf.osgi)
+- [Issue Tracker](https://github.com/eclipse-fennec/emf.osgi/issues)
 
+## Contributors
 
-## Developers
+- **Juergen Albert** (jalbert) / [j.albert@data-in-motion.biz](mailto:j.albert@data-in-motion.biz) @ [Data In Motion](https://www.datainmotion.de) -- architect, developer
+- **Mark Hoffmann** (mhoffmann) / [m.hoffmann@data-in-motion.biz](mailto:m.hoffmann@data-in-motion.biz) @ [Data In Motion](https://www.datainmotion.de) -- developer, architect
+- **Stefan Bischof** (bipolis) / [stbischof@bipolis.org](mailto:stbischof@bipolis.org) -- developer
 
-* **Juergen Albert** (jalbert) / [j.albert@data-in-motion.biz](mailto:j.albert@data-in-motion.biz) @ [Data In Motion](https://www.datainmotion.de) - *architect*, *developer*
-* **Mark Hoffmann** (mhoffmann) / [m.hoffmann@data-in-motion.biz](mailto:m.hoffmann@data-in-motion.biz) @ [Data In Motion](https://www.datainmotion.de) - *developer*, *architect*
-* **Stefan Bischof** (bipolis) / [stbischof@bipolis.org](mailto:stbischof@bipolis.org) - *developer*
-## Licenses
+## License
 
-**EPL 2.0**
+[Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/)
 
 ## Copyright
 
-Data In Motion Consuling GmbH - All rights reserved
+Copyright (c) Contributors to the Eclipse Foundation.
 
 ---
-Data In Motion Consuling GmbH - [info@data-in-motion.biz](mailto:info@data-in-motion.biz)
-
+Data In Motion Consulting GmbH - [info@data-in-motion.biz](mailto:info@data-in-motion.biz)
