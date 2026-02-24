@@ -15,6 +15,8 @@ package org.eclipse.fennec.emf.osgi.components;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertyContext;
 import org.osgi.framework.Bundle;
@@ -31,6 +33,7 @@ import org.osgi.service.component.ComponentConstants;
  */
 public abstract class SelfRegisteringServiceComponent {
 
+	private static final Logger LOG = Logger.getLogger(SelfRegisteringServiceComponent.class.getName());
 	private final ServicePropertyContext propertyContext;
 	private ServiceRegistration<?> serviceRegistration;
 	private long serviceChangeCount = 0;
@@ -62,8 +65,7 @@ public abstract class SelfRegisteringServiceComponent {
 				try {
 					bundle.start();
 				} catch (BundleException e) {
-					System.err.println("Could not start Bundle org.eclipse.emf.ecore, something seems seriously wrong: " + e.getMessage());
-					e.printStackTrace();
+					LOG.log(Level.SEVERE, "Could not start Bundle org.eclipse.emf.ecore, something seems seriously wrong", e);
 				}
 				break;
 			}

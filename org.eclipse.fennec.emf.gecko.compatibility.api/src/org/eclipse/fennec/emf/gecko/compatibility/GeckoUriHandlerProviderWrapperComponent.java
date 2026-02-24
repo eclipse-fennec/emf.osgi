@@ -1,6 +1,5 @@
-/**
- * Copyright (c) 2012 - 2025 Data In Motion and others.
- * All rights reserved.
+/********************************************************************
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation.
  *
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -9,14 +8,11 @@
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
- *     Data In Motion - initial API and implementation
- */
+ *   Data In Motion Consulting - initial implementation
+ ********************************************************************/
 package org.eclipse.fennec.emf.gecko.compatibility;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +42,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 @SuppressWarnings("deprecation")
 public class GeckoUriHandlerProviderWrapperComponent {
 
-	private static final Set<String> EXCLUDED_PROPERTIES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(
 			Constants.SERVICE_ID,
 			Constants.SERVICE_BUNDLEID,
 			Constants.SERVICE_SCOPE,
@@ -54,7 +50,7 @@ public class GeckoUriHandlerProviderWrapperComponent {
 			Constants.SERVICE_PID,
 			ComponentConstants.COMPONENT_NAME,
 			ComponentConstants.COMPONENT_ID
-	)));
+	);
 
 	private final BundleContext ctx;
 	

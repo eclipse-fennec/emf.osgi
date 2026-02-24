@@ -16,7 +16,6 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -61,7 +60,7 @@ public class DefaultResourceFactoryRegistryComponent extends SelfRegisteringServ
 	public DefaultResourceFactoryRegistryComponent(BundleContext ctx,
 			@Reference(name="ePackageRegistry")
 			EPackage.Registry packageRegistry) {
-		super(ctx, COMPONENT_NAME, Collections.emptyMap());
+		super(ctx, COMPONENT_NAME, Map.of());
 		registry = new ResourceFactoryRegistryImpl();
 		registerService(ctx, Registry.class, registry);
 		addFactory(new FennecXMLResourceFactory(packageRegistry), FennecXMLResourceFactory.PROPERTIES);

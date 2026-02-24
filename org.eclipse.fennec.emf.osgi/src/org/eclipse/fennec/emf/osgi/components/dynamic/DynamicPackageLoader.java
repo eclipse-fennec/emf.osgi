@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.URI;
@@ -60,7 +59,7 @@ import aQute.bnd.annotation.service.ServiceCapability;
  * @since 16.03.2022
  */
 @Component(name=DYNAMIC_MODEL_CONFIGURATOR_CONFIG_NAME, configurationPolicy = ConfigurationPolicy.REQUIRE)
-@Designate(ocd = org.eclipse.fennec.emf.osgi.components.dynamic.DynamicEMFModel.class, factory = true)
+@Designate(ocd = DynamicEMFModel.class, factory = true)
 @RequireConfigurationAdmin
 @Requirement(namespace = ImplementationNamespace.IMPLEMENTATION_NAMESPACE, //
 	name = ConfigurationConstants.CONFIGURATION_ADMIN_IMPLEMENTATION, //
@@ -213,7 +212,7 @@ public class DynamicPackageLoader{
 		packageRegistration.unregister();
 		configuratorRegistration.unregister();
 		EPackage.Registry.INSTANCE.remove(dynamicPackage.getNsURI());
-		if (Objects.nonNull(dynamicPackage.eResource())) {
+		if (dynamicPackage.eResource() != null) {
 			dynamicPackage.eResource().unload();
 			dynamicPackage = null;
 		}

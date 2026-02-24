@@ -113,7 +113,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	}
 	
 	private Map<String, Object> getProperties(EPackage ePackage) {
-		Map<String, Object> properties = new HashMap<String, Object>();
+		Map<String, Object> properties = new HashMap<>();
 		properties.put(Constants.SERVICE_ID, Long.valueOf(ePackage.hashCode()));
 		properties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
@@ -156,11 +156,9 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	 */
 	public EPackage getEPackage(String nsURI) {
 		Object ePackage = get(nsURI);
-		if (ePackage instanceof EPackage) {
-			EPackage result = (EPackage) ePackage;
+		if (ePackage instanceof EPackage result) {
 			return result;
-		} else if (ePackage instanceof EPackage.Descriptor) {
-			EPackage.Descriptor ePackageDescriptor = (EPackage.Descriptor) ePackage;
+		} else if (ePackage instanceof EPackage.Descriptor ePackageDescriptor) {
 			EPackage result = ePackageDescriptor.getEPackage();
 			if (result != null) {
 				put(nsURI, result);
@@ -176,11 +174,9 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	 */
 	public EFactory getEFactory(String nsURI) {
 		Object ePackage = get(nsURI);
-		if (ePackage instanceof EPackage) {
-			EPackage result = (EPackage) ePackage;
+		if (ePackage instanceof EPackage result) {
 			return result.getEFactoryInstance();
-		} else if (ePackage instanceof EPackage.Descriptor) {
-			EPackage.Descriptor ePackageDescriptor = (EPackage.Descriptor) ePackage;
+		} else if (ePackage instanceof EPackage.Descriptor ePackageDescriptor) {
 			return ePackageDescriptor.getEFactory();
 		} else {
 			return null;

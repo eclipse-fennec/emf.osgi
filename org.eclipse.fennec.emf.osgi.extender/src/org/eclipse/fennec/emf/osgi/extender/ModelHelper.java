@@ -85,7 +85,7 @@ public class ModelHelper {
 			final Set<String> paths,
 			final Diagnostic diagnostic) {
 		if (paths == null) {
-			return Collections.emptyList();
+			return List.of();
 		}
 		// J1: use .toList() instead of Collectors.toList()
 		return paths.stream()
@@ -125,7 +125,7 @@ public class ModelHelper {
 			if (url == null) {
 				urls = bundle.findEntries(plainPath, "*.ecore", false);
 			} else {
-				urls = Collections.enumeration(Collections.singleton(url));
+				urls = Collections.enumeration(List.of(url));
 			}
 		} else {
 			urls = bundle.findEntries(plainPath, "*.ecore", false);
@@ -241,18 +241,18 @@ public class ModelHelper {
 	public static Set<String> isModelBundle(final Bundle bundle, final long extenderBundleId) {
 		final BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
 		if (bundleWiring == null) {
-			return Collections.emptySet();
+			return Set.of();
 		}
 
 		final List<BundleRequirement> requirements = bundleWiring.getRequirements(ExtenderNamespace.EXTENDER_NAMESPACE);
 		if (requirements == null || requirements.isEmpty()) {
-			return Collections.emptySet();
+			return Set.of();
 		}
 
 		// N2 fix: getRequiredWires() can return null per OSGi spec
 		final List<BundleWire> wires = bundleWiring.getRequiredWires(ExtenderNamespace.EXTENDER_NAMESPACE);
 		if (wires == null) {
-			return Collections.emptySet();
+			return Set.of();
 		}
 		for (final BundleWire wire : wires) {
 			if (wire.getProviderWiring() != null
@@ -260,7 +260,7 @@ public class ModelHelper {
 				return extractModelPath(wire);
 			}
 		}
-		return Collections.emptySet();
+		return Set.of();
 	}
 
 	/**
@@ -278,7 +278,7 @@ public class ModelHelper {
 		final Object val = wire.getRequirement().getAttributes().get(EMF_MODEL_EXTENDER_PROP_MODELS_NAME);
 		if (val != null) {
 			if (val instanceof String s) {
-				return Collections.singleton(s);
+				return Set.of(s);
 			}
 			if (val instanceof List<?> list) {
 				return new HashSet<>((List<String>) list);
@@ -287,6 +287,6 @@ public class ModelHelper {
 					+ " for EMF models requirement has an invalid type: " + val
 					+ ". Using default model path.");
 		}
-		return Collections.singleton(EMF_MODEL_EXTENDER_DEFAULT_PATH);
+		return Set.of(EMF_MODEL_EXTENDER_DEFAULT_PATH);
 	}
 }

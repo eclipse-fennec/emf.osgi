@@ -151,8 +151,8 @@ public class HughDataResourceSetImpl extends ResourceSetImpl implements HughData
 				}
 			}
 		} else {
-			if (resourceLocator instanceof HughDataResourceLocator) {
-				((HughDataResourceLocator)resourceLocator).dispose();
+			if (resourceLocator instanceof HughDataResourceLocator locator) {
+				locator.dispose();
 				resourceLocator = null;
 			}
 		}

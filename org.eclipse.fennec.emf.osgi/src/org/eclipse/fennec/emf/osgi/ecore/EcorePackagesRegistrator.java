@@ -75,7 +75,7 @@ public class EcorePackagesRegistrator {
 				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), XMLNamespacePackage.class.getName()}, XMLNamespacePackage.eINSTANCE, getServiceProperties(XMLNamespacePackage.eINSTANCE, null, null, new Version("1998"))));
 				
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), XMIResourceFactoryImpl.class.getName()}, new XMIResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"*", "xmi"}, "application/xmi", new Version("2002"))));
-				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), EcoreResourceFactoryImpl.class.getName()}, new EcoreResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"ecore"}, EcorePackage.eCONTENT_TYPE, new Version("2002"))));
+				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), EcoreResourceFactoryImpl.class.getName()}, new EcoreResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{ECORE}, EcorePackage.eCONTENT_TYPE, new Version("2002"))));
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), EMOFResourceFactoryImpl.class.getName()}, new EMOFResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"emof"}, "org.eclipse.emf.emof", new Version("2002"))));
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName()}, BINARY_FACTORY, getServiceProperties(EcorePackage.eINSTANCE, new String[]{"bin"}, OCTET_STREAM, new Version("2002"))));
 			}
@@ -87,7 +87,7 @@ public class EcorePackagesRegistrator {
 	 * @generated
 	 */
 	public static Dictionary<String, Object> getServiceProperties(EPackage ePackage, String[] fileExt, String contentType, Version version) {
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
+		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
 		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 		properties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_PROVIDED);
@@ -104,7 +104,7 @@ public class EcorePackagesRegistrator {
 	public static void stop() {
 		synchronized (activateCount) {
 			if(activateCount.decrementAndGet() == 0) {
-				for (int i = registrations.size(); i >= 0 ; --i) {
+				for (int i = registrations.size() - 1; i >= 0 ; --i) {
 					ServiceRegistration<?> serviceRegistration = registrations.get(i);
 					serviceRegistration.unregister();
 				}

@@ -13,8 +13,8 @@
 package org.eclipse.fennec.emf.osgi.ecore;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.URI;
@@ -43,9 +43,9 @@ public class FennecXMLResourceFactory extends XMLResourceFactoryImpl implements 
 	private static Map<String, Object> getProperties(){
 		HashMap<String, Object> result = new HashMap<>();
 		result.put(EMFNamespaces.EMF_CONFIGURATOR_NAME,"GeckoXMLResourceFactory"); 
-		result.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, Arrays.asList( 
-				"application/xml")); 
-		result.put(EMFNamespaces.EMF_MODEL_FILE_EXT, Arrays.asList( 
+		result.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, List.of(
+				"application/xml"));
+		result.put(EMFNamespaces.EMF_MODEL_FILE_EXT, List.of(
 				"xml")); 
 		result.put(EMFNamespaces.EMF_MODEL_VERSION, "1.0.0");
 		if (random == null) {
@@ -55,7 +55,7 @@ public class FennecXMLResourceFactory extends XMLResourceFactoryImpl implements 
 		return result;
 	}
 	
-	private org.eclipse.emf.ecore.EPackage.Registry registry;
+	private EPackage.Registry registry;
 
 	/**
 	 * Creates a new instance.

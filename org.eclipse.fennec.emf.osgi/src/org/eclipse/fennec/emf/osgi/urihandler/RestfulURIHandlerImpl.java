@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
@@ -83,15 +82,15 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	@SuppressWarnings("unchecked")
 	@Override
 	public OutputStream createOutputStream(URI uri, final Map<?, ?> options) throws IOException {
-		URL url = new URL(uri.toString());
-		final HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+		java.net.URI netUri = java.net.URI.create(uri.toString());
+		final HttpURLConnection httpURLConnection = (HttpURLConnection) netUri.toURL().openConnection();
 		String method = HTTP_PUT;
 		if (options.containsKey(EMFUriHandlerConstants.OPTION_HTTP_METHOD)) {
 			method = options.get(EMFUriHandlerConstants.OPTION_HTTP_METHOD).toString().toUpperCase();
 		}
 		httpURLConnection.setRequestMethod(method);
 		setTimeout(httpURLConnection, options);
-		httpURLConnection.setDoOutput(Boolean.TRUE);
+		httpURLConnection.setDoOutput(true);
 		setRequestHeaders(httpURLConnection,
 				(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 		if (options.containsKey(PROP_ECLASS)) {
@@ -109,7 +108,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 						response.put(PROP_HTTP_RESPONSE_CODE, responseCode);
 						response.putAll(httpURLConnection.getHeaderFields());
 					}
-					InputStream in = extreactStreamAndLogResponse(options, httpURLConnection);
+					InputStream in = extractStreamAndLogResponse(options, httpURLConnection);
 					switch (responseCode) {
 					case HttpURLConnection.HTTP_OK:
 					case HttpURLConnection.HTTP_CREATED:
@@ -160,8 +159,8 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	@Override
 	public InputStream createInputStream(URI uri, Map<?, ?> options) throws IOException {
 		try {
-			URL url = new URL(uri.toString());
-			final HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+			java.net.URI netUri = java.net.URI.create(uri.toString());
+			final HttpURLConnection httpURLConnection = (HttpURLConnection) netUri.toURL().openConnection();
 			setTimeout(httpURLConnection, options);
 			setRequestHeaders(httpURLConnection,
 					(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
@@ -170,7 +169,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 			if (response != null) {
 				setLastModified(httpURLConnection, response);
 			}
-			InputStream result = extreactStreamAndLogResponse(options, httpURLConnection);
+			InputStream result = extractStreamAndLogResponse(options, httpURLConnection);
 			return new FilterInputStream(result) {
 
 				/*
@@ -233,7 +232,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	 * @return
 	 * @throws IOException
 	 */
-	private InputStream extreactStreamAndLogResponse(Map<?, ?> options, final HttpURLConnection httpURLConnection)
+	private InputStream extractStreamAndLogResponse(Map<?, ?> options, final HttpURLConnection httpURLConnection)
 			throws IOException {
 		InputStream result = httpURLConnection.getErrorStream();
 		if (result == null) {
@@ -264,8 +263,8 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	@Override
 	public void delete(URI uri, Map<?, ?> options) throws IOException {
 		try {
-			URL url = new URL(uri.toString());
-			final HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+			java.net.URI netUri = java.net.URI.create(uri.toString());
+			final HttpURLConnection httpURLConnection = (HttpURLConnection) netUri.toURL().openConnection();
 			setTimeout(httpURLConnection, options);
 			httpURLConnection.setDoOutput(true);
 			setRequestHeaders(httpURLConnection,
@@ -302,14 +301,13 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 		Map<String, Object> result = new HashMap<>();
 		Set<String> requestedAttributes = getRequestedAttributes(options);
 		try {
-			URL url = new URL(uri.toString());
+			java.net.URI netUri = java.net.URI.create(uri.toString());
 			URLConnection urlConnection = null;
 			if (requestedAttributes == null || requestedAttributes.contains(URIConverter.ATTRIBUTE_READ_ONLY)) {
 
-				urlConnection = url.openConnection();
+				urlConnection = netUri.toURL().openConnection();
 				setTimeout(urlConnection, options);
-				if (urlConnection instanceof HttpURLConnection) {
-					HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
+				if (urlConnection instanceof HttpURLConnection httpURLConnection) {
 					httpURLConnection.setRequestMethod(HTTP_OPTIONS);
 					setRequestHeaders(httpURLConnection,
 							(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
@@ -326,10 +324,9 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 
 			if (requestedAttributes == null || requestedAttributes.contains(URIConverter.ATTRIBUTE_TIME_STAMP)) {
 				if (urlConnection == null) {
-					urlConnection = url.openConnection();
+					urlConnection = netUri.toURL().openConnection();
 					setTimeout(urlConnection, options);
-					if (urlConnection instanceof HttpURLConnection) {
-						HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
+					if (urlConnection instanceof HttpURLConnection httpURLConnection) {
 						setRequestHeaders(httpURLConnection,
 								(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 						httpURLConnection.setRequestMethod(HTTP_HEAD);
@@ -343,10 +340,9 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 
 			if (requestedAttributes == null || requestedAttributes.contains(URIConverter.ATTRIBUTE_LENGTH)) {
 				if (urlConnection == null) {
-					urlConnection = url.openConnection();
+					urlConnection = netUri.toURL().openConnection();
 					setTimeout(urlConnection, options);
-					if (urlConnection instanceof HttpURLConnection) {
-						HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
+					if (urlConnection instanceof HttpURLConnection httpURLConnection) {
 						setRequestHeaders(httpURLConnection,
 								(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 						httpURLConnection.setRequestMethod(HTTP_HEAD);
@@ -374,8 +370,8 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	@Override
 	public boolean exists(URI uri, Map<?, ?> options) {
 		try {
-			URL url = new URL(uri.toString());
-			HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+			java.net.URI netUri = java.net.URI.create(uri.toString());
+			HttpURLConnection httpURLConnection = (HttpURLConnection) netUri.toURL().openConnection();
 			setTimeout(httpURLConnection, options);
 			httpURLConnection.setRequestMethod(HTTP_HEAD);
 			setRequestHeaders(httpURLConnection,

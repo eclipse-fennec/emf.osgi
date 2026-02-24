@@ -12,7 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.helper;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
@@ -372,7 +371,7 @@ public class EcoreHelper {
 	 * @return the plain path without properties, or the original path if no properties found
 	 */
 	public static String extractProperties(String path, Map<String, String> properties) {
-		if (isNull(path) || path.isEmpty()) {
+		if (path == null || path.isEmpty()) {
 			return path;
 		}
 		String[] parts = path.split(";");

@@ -12,8 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.helper;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper.appendToDictionary;
 import static org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper.filterProperties;
@@ -43,19 +41,17 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 	// Map with service.id and corresponding sub-context instance as value
 	private final Map<Long, ServicePropertyContext> subContextMap = new ConcurrentHashMap<>();
 	// Set of all available properties in EMF OSGi
-	private static Set<String> validKeys = new HashSet<>();
+	private static final Set<String> validKeys = Set.of(
+		EMFNamespaces.EMF_CONFIGURATOR_NAME,
+		EMFNamespaces.EMF_NAME,
+		EMFNamespaces.EMF_MODEL_NSURI,
+		EMFNamespaces.EMF_MODEL_FEATURE,
+		EMFNamespaces.EMF_MODEL_VERSION,
+		EMFNamespaces.EMF_MODEL_CONTENT_TYPE,
+		EMFNamespaces.EMF_MODEL_FILE_EXT,
+		EMFNamespaces.EMF_MODEL_PROTOCOL
+	);
 	private final Map<String, Object> customFeatureProperties = new ConcurrentHashMap<>();
-	
-	static {
-		validKeys.add(EMFNamespaces.EMF_CONFIGURATOR_NAME);
-		validKeys.add(EMFNamespaces.EMF_NAME);
-		validKeys.add(EMFNamespaces.EMF_MODEL_NSURI);
-		validKeys.add(EMFNamespaces.EMF_MODEL_FEATURE);
-		validKeys.add(EMFNamespaces.EMF_MODEL_VERSION);
-		validKeys.add(EMFNamespaces.EMF_MODEL_CONTENT_TYPE);
-		validKeys.add(EMFNamespaces.EMF_MODEL_FILE_EXT);
-		validKeys.add(EMFNamespaces.EMF_MODEL_PROTOCOL);
-	}
 	
 	/**
 	 * Creates a new instance.
@@ -90,7 +86,7 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 		} else {
 			ServicePropertyContext[] subContexts;
 			synchronized (subContextMap) {
-				subContexts = subContextMap.values().toArray(new ServicePropertyContext[subContextMap.size()]);
+				subContexts = subContextMap.values().toArray(new ServicePropertyContext[0]);
 			}
 			return merge(subContexts).getDictionary(false);
 		}
@@ -138,14 +134,14 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 	 */
 	@Override
 	public ServicePropertyContext merge(ServicePropertyContext ...toMerge) {
-		if (isNull(toMerge)) {
+		if (toMerge == null) {
 			return this;
 		}
 		ServicePropertyContextImpl merged = new ServicePropertyContextImpl();
 		doMerge(this, merged);
 		for (ServicePropertyContext mergeCtx : toMerge) {
-			if (mergeCtx instanceof ServicePropertyContextImpl) {
-				doMerge((ServicePropertyContextImpl) mergeCtx, merged);
+			if (mergeCtx instanceof ServicePropertyContextImpl impl) {
+				doMerge(impl, merged);
 			}
 		}
 		return merged;
@@ -165,7 +161,7 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 				Set<Object> result = new HashSet<>();
 				result.addAll(Arrays.asList((Object[])customValue));
 				Object[] newValue = ServicePropertiesHelper.createObjectPlusValue(value);
-				if (nonNull(newValue)) {
+				if (newValue != null) {
 					result.addAll(Arrays.asList(newValue));
 				}
 				return result.toArray();
@@ -185,10 +181,10 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 		requireNonNull(serviceId);
 		
 		Set<String> nameSet = getStringPlusValue(serviceProperties, key);
-		if (nonNull(nameSet)) {
+		if (nameSet != null) {
 			nameSet = new HashSet<>(nameSet);
 			Map<Long, Set<String>> keyValueMap = keyMapPairs.get(key);
-			if (nonNull(keyValueMap)) {
+			if (keyValueMap != null) {
 				ServicePropertiesHelper.updateNameMap(keyValueMap, nameSet, serviceId);
 			}
 		}
@@ -201,7 +197,7 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 	 * @return the {@link ServicePropertyContext} instance
 	 */
 	protected ServicePropertyContext addSubContext(long serviceId, Map<String, Object> subContextProperties) {
-		ServicePropertyContext subContext = nonNull(subContextProperties) ? 
+		ServicePropertyContext subContext = subContextProperties != null ?
 				ServicePropertyContext.create(subContextProperties) : 
 					new ServicePropertyContextImpl() ;
 		synchronized (subContextMap) {
@@ -220,7 +216,7 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 		synchronized (subContextMap) {
 			subContext = subContextMap.remove(serviceId);
 		}
-		return isNull(subContext) ? null : subContext;
+		return subContext;
 	}
 
 	/**
@@ -231,7 +227,7 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 	 */
 	protected Long validateServiceId(Map<String, Object> serviceProperties) {
 		Optional<Long> serviceIdOpt = ServicePropertiesHelper.getServiceId(serviceProperties);
-		if (!serviceIdOpt.isPresent()) {
+		if (serviceIdOpt.isEmpty()) {
 			throw new IllegalStateException("Service Properties must contains an entry for the service.id");
 		}
 		return serviceIdOpt.get();

@@ -35,7 +35,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-
 import org.osgi.service.metatype.annotations.Designate;
 
 import aQute.bnd.annotation.service.ServiceCapability;
@@ -49,8 +48,6 @@ import aQute.bnd.annotation.service.ServiceCapability;
 @ProviderType
 @ServiceCapability(EPackage.Registry.class)
 public class ConfigurationEPackageRegistryComponent extends SelfRegisteringServiceComponent{
-
-	private static final long serialVersionUID = 1L;
 
 	private final Set<EPackageConfigurator> ePackageConfigurators = new CopyOnWriteArraySet<>();
 	

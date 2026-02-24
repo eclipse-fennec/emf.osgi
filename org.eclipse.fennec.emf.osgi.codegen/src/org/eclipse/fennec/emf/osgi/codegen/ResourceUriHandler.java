@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
@@ -162,8 +161,10 @@ public class ResourceUriHandler implements URIHandler {
 				//maybe we look at the generated class folder with a Manifest
 				File manifestFile = new File(c.getFile(), "META-INF/MANIFEST.MF");
 				if(manifestFile.exists()) {
-					manifest = new Manifest(new FileInputStream(manifestFile));
-				} 
+					try (FileInputStream fis = new FileInputStream(manifestFile)) {
+						manifest = new Manifest(fis);
+					}
+				}
 			}
 				
 			String symbolicName = null;
@@ -234,7 +235,7 @@ public class ResourceUriHandler implements URIHandler {
 	@Override
 	public Map<String, ?> contentDescription(URI uri, Map<?, ?> options) throws IOException {
 //		GeckoEmfGenerator.info("Asked for content Descriptor " + uri); //$NON-NLS-1$
-		return Collections.singletonMap(ContentHandler.CONTENT_TYPE_PROPERTY, UriSanatizer.APPLICATION_XMI);
+		return Map.of(ContentHandler.CONTENT_TYPE_PROPERTY, UriSanatizer.APPLICATION_XMI);
 	}
 
 	/* 
@@ -274,7 +275,7 @@ public class ResourceUriHandler implements URIHandler {
 	 */
 	@Override
 	public Map<String, ?> getAttributes(URI uri, Map<?, ?> options) {
-		return Collections.emptyMap();
+		return Map.of();
 	}
 
 

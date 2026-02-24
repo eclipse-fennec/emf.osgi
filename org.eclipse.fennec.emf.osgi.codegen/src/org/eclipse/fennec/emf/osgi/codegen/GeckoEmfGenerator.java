@@ -385,9 +385,8 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 			error(prefix + diagnostic.getMessage() + " - " + diagnostic.getSource()); //$NON-NLS-1$
 			if(diagnostic.getException() != null) {
 				error(prefix, diagnostic.getException());
-				if(diagnostic.getException() instanceof NullPointerException) {
-					Throwable t = diagnostic.getException(); 
-					StackTraceElement stackTraceElement = t.getStackTrace()[0];
+				if(diagnostic.getException() instanceof NullPointerException npe) {
+					StackTraceElement stackTraceElement = npe.getStackTrace()[0];
 					if(stackTraceElement.getClassName().equals(GenModelImpl.class.getName()) && stackTraceElement.getMethodName().equals("setImportManager")) {
 						String message = prefix + "|-> Nullpointer Exception while setting Import Manager on the Genmodel indicates that the genmodel may need to be reloaded. This usually happens when a referenced Genmodel can't be loaded.";
 						error(message);

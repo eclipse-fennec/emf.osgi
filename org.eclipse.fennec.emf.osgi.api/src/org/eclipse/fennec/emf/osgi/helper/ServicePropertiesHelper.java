@@ -12,8 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.helper;
 
-import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
@@ -65,7 +63,7 @@ public class ServicePropertiesHelper {
 		requireNonNull(serviceId);
 		
 		Set<String> nameSet = nameMap.get(serviceId);
-		if (isNull(nameSet)) {
+		if (nameSet == null) {
 			nameSet = new HashSet<>();
 			nameMap.put(serviceId, nameSet);
 		}
@@ -107,20 +105,20 @@ public class ServicePropertiesHelper {
 	 * @return a {@link Set} of {@link Object} or <code>null</code>, if the key is not available
 	 */
 	public static Set<String> getStringPlusValue(Map<String, Object> options, String key) {
-		if (isNull(options) || isNull(key)) {
+		if (options == null || key == null) {
 			return null;
 		}
 		Object value = options.get(key);
-		if (isNull(value)) {
+		if (value == null) {
 			return null;
 		}
 		Collection<?> values;
-		if (value instanceof String) {
-			values = Collections.singletonList((String) value);
+		if (value instanceof String s) {
+			values = Collections.singletonList(s);
 		} else if(value.getClass().isArray()){
 			values = Arrays.asList((Object[])value);
-		} else if (value instanceof Collection<?>) {
-			values = (Collection<?>)value;
+		} else if (value instanceof Collection<?> c) {
+			values = c;
 		} else {
 			values =  Collections.singletonList(value.toString());
 		}
@@ -138,7 +136,7 @@ public class ServicePropertiesHelper {
 	 * @return a {@link Set} of {@link Object} or <code>null</code>, if the key is not available
 	 */
 	public static Object[] createObjectPlusValue(Object value) {
-		if (isNull(value)) {
+		if (value == null) {
 			return null;
 		}
 		Collection<?> values;
@@ -168,7 +166,7 @@ public class ServicePropertiesHelper {
 		requireNonNull(sourceMap);
 		requireNonNull(key);
 		String[] stringArrayValues = ServicePropertiesHelper.getNamesArray(sourceMap);
-		if (nonNull(stringArrayValues) && stringArrayValues.length > 0) {
+		if (stringArrayValues != null && stringArrayValues.length > 0) {
 			dictionary.put(key, stringArrayValues);
 		}
 		return dictionary;
@@ -180,7 +178,7 @@ public class ServicePropertiesHelper {
 	 * @return an {@link Optional} of the service id
 	 */
 	public static Optional<Long> getServiceId(Map<String, Object> properties) {
-		if (isNull(properties)) {
+		if (properties == null) {
 			return Optional.empty();
 		}
 		Long serviceId = (Long) properties.get(Constants.SERVICE_ID);
@@ -196,7 +194,7 @@ public class ServicePropertiesHelper {
 	 * @return the normalized properties or an empty property map
 	 */
 	public static Map<String, Object> filterProperties(String prefix, Map<String, Object> properties) {
-		if (isNull(prefix) || isNull(properties)) {
+		if (prefix == null || properties == null) {
 			return Collections.emptyMap();
 		}
 		return properties
@@ -215,7 +213,7 @@ public class ServicePropertiesHelper {
 	 * @return the normalized properties or an empty property map
 	 */
 	public static Map<String, Object> normalizeProperties(String prefix, Map<String, Object> properties) {
-		if (isNull(prefix) || isNull(properties)) {
+		if (prefix == null || properties == null) {
 			return Collections.emptyMap();
 		}
 		return filterProperties(prefix, properties)

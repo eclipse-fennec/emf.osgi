@@ -68,7 +68,7 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 
 	private Dictionary<String, Object> properties;
 	private BundleContext cxt;
-	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
+	private ServiceReference<EPackage.Registry> defaultResourceSetRegistry;
 	private ServiceReference<Resource.Factory.Registry> resourceFactoryRegistryReference;
 	private RegistryTrackingService registryTracker;
 
@@ -144,7 +144,7 @@ public class ConfigurationResourceSetFactoryComponent extends DefaultResourceSet
 		EcorePackagesRegistrator.stop();
 	}
 
-	protected void unsetRegistry(org.eclipse.emf.ecore.EPackage.Registry registry) {
+	protected void unsetRegistry(EPackage.Registry registry) {
 		// Handle registry unset if needed
 	}
 	

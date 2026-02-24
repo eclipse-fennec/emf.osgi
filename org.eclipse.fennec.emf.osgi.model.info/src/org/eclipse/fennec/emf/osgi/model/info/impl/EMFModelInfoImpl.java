@@ -67,7 +67,12 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 	 */
 	@Override
 	public Optional<EClassifier> getEClassifierForClass(Class<?> clazz) {
-		return classes.entrySet().stream().filter(e -> e.getKey().equals(clazz)).map(Entry::getValue).findFirst();
+		lock.readLock().lock();
+		try {
+			return Optional.ofNullable(classes.get(clazz));
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	/*
@@ -99,7 +104,7 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 		}
 	}
 
-	private synchronized void refresh() {
+	private void refresh() {
 		classes = new ConcurrentHashMap<>();
 		upperHierarchy = new ConcurrentHashMap<>();
 		needsRevisiting = new ConcurrentHashMap<>();
@@ -126,14 +131,13 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 	 */
 	@Override
 	public Object put(String uri, Object value) {
-		if (value instanceof EPackage) {
-			EPackage ePackage = (EPackage) value;
+		if (value instanceof EPackage ePackage) {
 			addEClassesOfEPackage(ePackage);
 		}
 		return null;
 	}
 
-	private synchronized void addEClassesOfEPackage(EPackage ePackage) {
+	private void addEClassesOfEPackage(EPackage ePackage) {
 		ePackage.getEClassifiers().stream().filter(ec -> ec.getInstanceClass() != null).forEach(ec -> {
 			analyseHirachy(ec);
 			Class<?> instanceClass = ec.getInstanceClass();
@@ -147,13 +151,12 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 	 * @param ec EClass to analyze the Hierarchy for
 	 */
 	private void analyseHirachy(EClassifier ec) {
-		if (!(ec instanceof EClass) || ec.getEPackage().equals(EcorePackage.eINSTANCE)) {
+		if (!(ec instanceof EClass eClass) || ec.getEPackage().equals(EcorePackage.eINSTANCE)) {
 			return;
 		}
-		EClass eClass = (EClass) ec;
 		List<EClass> thisHirachy = needsRevisiting.remove(eClass);
 		if (thisHirachy == null) {
-			thisHirachy = Collections.synchronizedList(new LinkedList<EClass>());
+			thisHirachy = Collections.synchronizedList(new LinkedList<>());
 		}
 		upperHierarchy.put(eClass, thisHirachy);
 		eClass.getEAllSuperTypes().forEach(superEClass -> {
@@ -167,7 +170,7 @@ public class EMFModelInfoImpl extends HashMap<String, Object> implements EMFMode
 				}
 			} else {
 				List<EClass> otherHierachy = needsRevisiting.getOrDefault(superEClass,
-						Collections.synchronizedList(new LinkedList<EClass>()));
+						Collections.synchronizedList(new LinkedList<>()));
 				otherHierachy.add(eClass);
 				needsRevisiting.put(superEClass, otherHierachy);
 			}

@@ -12,7 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.components;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -58,7 +57,7 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 	 */
 	@Activate
 	public DefaultEPackageRegistryComponent(BundleContext ctx) {
-		super(ctx, NAME, Collections.singletonMap("default.resourceset.epackage.registry", true));
+		super(ctx, NAME, Map.of("default.resourceset.epackage.registry", true));
 		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
 	}

@@ -66,7 +66,7 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 	
 	private ServiceReference<Registry> resourceFactoryRegistryReference;
 	private BundleContext cxt;
-	private ServiceReference<org.eclipse.emf.ecore.EPackage.Registry> defaultResourceSetRegistry;
+	private ServiceReference<EPackage.Registry> defaultResourceSetRegistry;
 	private RegistryTrackingService registryTracker;
 
 	/**
@@ -88,7 +88,7 @@ public class DefaultResourceSetFactoryComponent extends DefaultResourceSetFactor
 		this.registryTracker = registryTracker;
 		super.setEPackageRegistry(ctx.getService(defaultResourceSetRegistry), FrameworkUtil.asMap(defaultResourceSetRegistry.getProperties()));
 		super.setResourceFactoryRegistry(ctx.getService(resourceFactoryRegistryReference), FrameworkUtil.asMap(resourceFactoryRegistryReference.getProperties()));
-		//TODO: Tut dat note, dass das so rumoxidiert?
+		// TODO: Verify this activation order works correctly
 		EcorePackagesRegistrator.start();
 
 		// Register for property change notifications on the services we care about

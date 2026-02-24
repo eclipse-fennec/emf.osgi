@@ -12,8 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.provider;
 
-import static java.util.Objects.isNull;
-
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -270,7 +268,7 @@ public class DefaultResourceSetFactory implements ResourceSetFactory{
 	@Override
 	public ResourceSet createResourceSet() {
 		Factory.Registry rfr = resourceFactoryRegistry.get();
-		if (isNull(rfr)) {
+		if (rfr == null) {
 			throw new IllegalStateException("There is no Resource Factory Registry available. This should not happen");
 		}
 		ResourceSet resourceSet = internalCreateResourceSet();

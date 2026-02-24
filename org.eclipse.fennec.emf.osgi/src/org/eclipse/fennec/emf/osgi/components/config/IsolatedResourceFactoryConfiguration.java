@@ -12,7 +12,6 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.components.config;
 
-import static java.util.Objects.isNull;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EPACKAGE_REGISTRY_CONFIG_NAME;
 import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EPACKAGE_REGISTRY_TARGET;
@@ -47,7 +46,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.metatype.annotations.Designate;
 
 /**
- * COnfiguration component for a Isolated
+ * Configuration component for an Isolated
  * @author mark
  * @since 14.10.2018
  */
@@ -141,7 +140,7 @@ public class IsolatedResourceFactoryConfiguration {
 	 */
 	private String getFilter(Map<String, Object> properties) throws ConfigurationException {
 		String filterString = (String) properties.get(PROP_MODEL_TARGET_FILTER);
-		if (isNull(filterString)) {
+		if (filterString == null) {
 			filterString = "(" + EMF_NAME + "=*)";
 		}
 		filterString = "(&(!(" + EMF_NAME + "=ecore))" + filterString + ")";
