@@ -10,7 +10,7 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-package org.eclipse.fennec.emf.osgi.model.info;
+package org.gecko.emf.osgi.model.info;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +21,9 @@ import org.osgi.annotation.bundle.Requirement;
 
 /**
  * A Model repository, with some searching capability to find Models by there Classname
- * @deprecated will be replaced soon by a separate Project.
+ * 
+ * @deprecated Use {@link org.eclipse.fennec.emf.osgi.model.info.EMFModelInfo} instead
+ * 
  * @author Jürgen Albert
  * @since 8 Nov 2018
  */
@@ -32,7 +34,7 @@ import org.osgi.annotation.bundle.Requirement;
 @Deprecated
 public interface EMFModelInfo {
 
-	public static final String NAMESPACE = "org.eclipse.fennec.emf.osgi";
+	public static final String NAMESPACE = "org.gecko.emf.osgi";
 	public static final String NAME = "model.info";
 	
 	/**

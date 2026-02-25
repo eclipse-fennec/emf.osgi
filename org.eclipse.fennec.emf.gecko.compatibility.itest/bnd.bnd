@@ -7,6 +7,7 @@ Bundle-Description: Integration tests for the Eclipse Fennec EMF Gecko compatibi
 -buildpath: \
 	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
 	org.eclipse.fennec.emf.gecko.compatibility.api;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.model.info;version=snapshot,\
 	org.eclipse.emf.common;version=latest,\
 	org.eclipse.emf.ecore;version=latest,\
 	org.osgi.framework;version=latest

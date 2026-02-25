@@ -21,11 +21,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.URIHandler;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -316,5 +321,33 @@ public class GeckoCompatibilityWrapperTest {
 		// The Fennec wrapper should disappear
 		boolean gone = waitForNoServiceReference(org.eclipse.fennec.emf.osgi.UriMapProvider.class, "(test.id=removal-test)", TIMEOUT_MS);
 		assertTrue(gone, "Fennec UriMapProvider wrapper should disappear after Gecko service is unregistered");
+	}
+
+	// --- Test 8: EMFModelInfo Fennec→Gecko wrapper via real service ---
+
+	@Test
+	public void testEMFModelInfoFennecToGecko() throws Exception {
+		// The real Fennec EMFModelInfo service is registered by EMFModelInfoImpl.
+		// The wrapper should automatically re-register it under the Gecko interface.
+		ServiceReference<org.gecko.emf.osgi.model.info.EMFModelInfo> geckoRef =
+				waitForServiceReference(org.gecko.emf.osgi.model.info.EMFModelInfo.class, null, TIMEOUT_MS);
+
+		assertNotNull(geckoRef, "Gecko EMFModelInfo wrapper should appear for the real Fennec EMFModelInfo service");
+
+		org.gecko.emf.osgi.model.info.EMFModelInfo geckoModelInfo = bundleContext.getService(geckoRef);
+		assertNotNull(geckoModelInfo, "Should be able to get the Gecko EMFModelInfo service");
+
+		// Verify delegation works - no EPackageConfigurators are registered in this test runtime,
+		// so lookups return empty, but the calls should not throw
+		Optional<EClassifier> classifier = geckoModelInfo.getEClassifierForClass(String.class);
+		assertNotNull(classifier);
+
+		Optional<EClassifier> classifierByName = geckoModelInfo.getEClassifierForClass("java.lang.String");
+		assertNotNull(classifierByName);
+
+		// Verify hierarchy lookup delegates without error
+		EClass eClassEClass = EcorePackage.Literals.ECLASS;
+		List<EClass> hierarchy = geckoModelInfo.getUpperTypeHierarchyForEClass(eClassEClass);
+		assertNotNull(hierarchy);
 	}
 }
