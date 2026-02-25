@@ -1,5 +1,5 @@
 -runfw: org.apache.felix.framework;version='[7.0.5,7.0.5]'
--runee: JavaSE-17
+-runee: JavaSE-21
 
 -runrequires: \
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.api',\
@@ -9,14 +9,14 @@
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.model.info',\
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.bnd.library.project',\
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.bnd.templates.project',\
-	bnd.identity;id='org.eclipse.fennec.emf.osgi.component.minimal'
+	bnd.identity;id='org.eclipse.fennec.emf.osgi.component.minimal',\
+	bnd.identity;id='org.eclipse.fennec.emf.gecko.compatibility.api'
 -runbundles: \
 	org.eclipse.fennec.emf.osgi.codegen;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.component;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.extender;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.bnd.library.project;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.bnd.templates.project;version=snapshot,\
-	org.osgi.service.coordinator;version='[1.0.2,1.0.3)',\
 	org.apache.felix.scr;version='[2.2.6,2.2.7)',\
 	org.apache.felix.configadmin;version='[1.9.26,1.9.27)',\
 	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
@@ -29,7 +29,8 @@
 	org.eclipse.fennec.emf.osgi.component.minimal;version=snapshot,\
 	org.eclipse.emf.common;version='[2.44.0,2.44.1)',\
 	org.eclipse.emf.ecore;version='[2.41.0,2.41.1)',\
-	org.eclipse.emf.ecore.xmi;version='[2.39.0,2.39.1)'
+	org.eclipse.emf.ecore.xmi;version='[2.39.0,2.39.1)',\
+	org.eclipse.fennec.emf.gecko.compatibility.api;version=snapshot
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
 	bnd.identity;id='ch.qos.logback.core'
