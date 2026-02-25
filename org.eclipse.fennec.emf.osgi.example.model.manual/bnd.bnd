@@ -1,4 +1,4 @@
-#src=${^src},src-gen
+src=${^src},src-gen
 
 -buildpath: \
 	org.eclipse.fennec.emf.osgi;version=project,\
