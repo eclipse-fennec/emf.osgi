@@ -17,4 +17,5 @@
 	org.osgi.resource,\
 	osgi.annotation,\
 	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
-	org.eclipse.fennec.emf.osgi.model.info;version=snapshot
+	org.eclipse.fennec.emf.osgi.model.info;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.model.info

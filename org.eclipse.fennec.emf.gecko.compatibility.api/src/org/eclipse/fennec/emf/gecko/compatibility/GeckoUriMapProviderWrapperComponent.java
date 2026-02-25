@@ -30,6 +30,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import aQute.bnd.annotation.service.ServiceCapability;
+
 /**
  * Compatibility component that tracks legacy {@link org.gecko.emf.osgi.UriMapProvider}
  * services and re-registers them as {@link org.eclipse.fennec.emf.osgi.UriMapProvider}
@@ -40,6 +42,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  */
 @Component(name = "GeckoUriMapProviderWrapper")
 @SuppressWarnings("deprecation")
+@ServiceCapability(org.gecko.emf.osgi.UriMapProvider.class)
 public class GeckoUriMapProviderWrapperComponent {
 
 	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(

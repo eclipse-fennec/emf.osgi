@@ -35,6 +35,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import aQute.bnd.annotation.service.ServiceCapability;
+
 /**
  * Compatibility component that tracks new Fennec {@link EMFModelInfo}
  * services and re-registers them as legacy {@link org.gecko.emf.osgi.model.info.EMFModelInfo}
@@ -49,6 +51,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 @Capability(namespace = org.gecko.emf.osgi.model.info.EMFModelInfo.NAMESPACE, name = org.gecko.emf.osgi.model.info.EMFModelInfo.NAME)
 @Component(name = "GeckoEMFModelInfoWrapper")
 @SuppressWarnings("deprecation")
+@ServiceCapability(org.gecko.emf.osgi.model.info.EMFModelInfo.class)
 public class GeckoEMFModelInfoWrapperComponent {
 
 	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(
