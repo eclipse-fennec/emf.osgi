@@ -17,9 +17,9 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.helper.DelegatingEPackageRegistry;
 import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -58,7 +58,7 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 	@Activate
 	public DefaultEPackageRegistryComponent(BundleContext ctx) {
 		super(ctx, NAME, Map.of("default.resourceset.epackage.registry", true));
-		registry = new EPackageRegistryImpl(EPackage.Registry.INSTANCE);
+		registry = new DelegatingEPackageRegistry(EPackage.Registry.INSTANCE);
 		registerService(ctx, EPackage.Registry.class, registry);
 	}
 	
