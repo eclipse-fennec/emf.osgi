@@ -19,6 +19,6 @@ package org.eclipse.fennec.emf.osgi.constants;
  */
 public class VersionConstant {
 
-	public static final String FENNECPROJECTS_EMF_VERSION = "0.1.1"; //$NON-NLS-1$
+	public static final String FENNECPROJECTS_EMF_VERSION = "0.1.2"; //$NON-NLS-1$
 	public static final String FENNECPROJECTS_EMF_MAJOR_VERSION = "0"; //$NON-NLS-1$
 }
