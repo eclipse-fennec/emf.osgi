@@ -50,7 +50,7 @@ import aQute.bnd.annotation.service.ServiceCapability;
  */
 @Component(name = "GeckoResourceSetFactoryWrapper")
 @SuppressWarnings("deprecation")
-@ServiceCapability(ResourceSetFactory.class)
+@ServiceCapability(org.gecko.emf.osgi.ResourceSetFactory.class)
 public class GeckoResourceSetFactoryWrapperComponent {
 
 	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(
