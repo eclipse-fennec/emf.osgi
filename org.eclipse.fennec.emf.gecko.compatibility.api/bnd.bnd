@@ -18,3 +18,5 @@
 	osgi.annotation,\
 	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.model.info;version=snapshot
+
+Provide-Capability: emf.core;emf.core=osgi;version:Version="6.3.0";deprecated=true
