@@ -15,9 +15,9 @@ package org.eclipse.fennec.emf.gecko.compatibility.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -31,10 +31,13 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.URIHandler;
+import org.eclipse.emf.ecore.resource.impl.ResourceImpl;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.resource.impl.URIHandlerImpl;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.osgi.framework.BundleContext;
@@ -349,5 +352,185 @@ public class GeckoCompatibilityWrapperTest {
 		EClass eClassEClass = EcorePackage.Literals.ECLASS;
 		List<EClass> hierarchy = geckoModelInfo.getUpperTypeHierarchyForEClass(eClassEClass);
 		assertNotNull(hierarchy);
+	}
+
+	// --- Test 9: ResourceFactoryConfigurator Gecko→Fennec Resource.Factory services ---
+
+	@Test
+	public void testResourceFactoryConfiguratorGeckoToFennec() throws Exception {
+		Resource.Factory testFactory = uri -> new ResourceImpl(uri);
+
+		org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator geckoConfigurator =
+				new org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator() {
+					@Override
+					public void configureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getExtensionToFactoryMap().put("testExt", testFactory);
+						registry.getContentTypeToFactoryMap().put("test/content", testFactory);
+						registry.getProtocolToFactoryMap().put("testproto", testFactory);
+					}
+
+					@Override
+					public void unconfigureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getExtensionToFactoryMap().remove("testExt");
+						registry.getContentTypeToFactoryMap().remove("test/content");
+						registry.getProtocolToFactoryMap().remove("testproto");
+					}
+				};
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "rfconfig-g2f");
+		props.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, "testResourceFactoryConfigurator");
+
+		ServiceRegistration<org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator> reg = null;
+		try {
+			reg = bundleContext.registerService(org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator.class, geckoConfigurator, props);
+
+			ServiceReference<Resource.Factory> factoryRef =
+					waitForServiceReference(Resource.Factory.class, "(test.id=rfconfig-g2f)", TIMEOUT_MS);
+
+			assertNotNull(factoryRef, "Resource.Factory service should appear for the wrapped ResourceFactoryConfigurator");
+
+			// Verify the factory is the same instance
+			Resource.Factory registeredFactory = bundleContext.getService(factoryRef);
+			assertThat(registeredFactory).isSameAs(testFactory);
+
+			// Verify the properties are correctly set from the registry entries
+			Object fileExt = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_FILE_EXT);
+			assertNotNull(fileExt, "fileExtension property should be set");
+			assertThat(toStringList(fileExt)).contains("testExt");
+
+			Object contentType = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_CONTENT_TYPE);
+			assertNotNull(contentType, "contentType property should be set");
+			assertThat(toStringList(contentType)).contains("test/content");
+
+			Object protocol = factoryRef.getProperty(EMFNamespaces.EMF_MODEL_PROTOCOL);
+			assertNotNull(protocol, "protocol property should be set");
+			assertThat(toStringList(protocol)).contains("testproto");
+
+			// Verify original properties are forwarded
+			assertThat(factoryRef.getProperty(EMFNamespaces.EMF_CONFIGURATOR_NAME)).isEqualTo("testResourceFactoryConfigurator");
+		} finally {
+			if (reg != null) {
+				reg.unregister();
+			}
+		}
+	}
+
+	// --- Test 10: ResourceFactoryConfigurator with multiple factories ---
+
+	@Test
+	public void testResourceFactoryConfiguratorMultipleFactories() throws Exception {
+		Resource.Factory factoryA = uri -> new ResourceImpl(uri);
+		Resource.Factory factoryB = uri -> new ResourceImpl(uri);
+
+		org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator geckoConfigurator =
+				new org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator() {
+					@Override
+					public void configureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getExtensionToFactoryMap().put("extA", factoryA);
+						registry.getExtensionToFactoryMap().put("extB", factoryB);
+						registry.getContentTypeToFactoryMap().put("type/a", factoryA);
+					}
+
+					@Override
+					public void unconfigureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getExtensionToFactoryMap().remove("extA");
+						registry.getExtensionToFactoryMap().remove("extB");
+						registry.getContentTypeToFactoryMap().remove("type/a");
+					}
+				};
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "rfconfig-multi");
+
+		ServiceRegistration<org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator> reg = null;
+		try {
+			reg = bundleContext.registerService(org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator.class, geckoConfigurator, props);
+
+			// Wait for at least one factory to appear
+			ServiceReference<Resource.Factory> anyRef =
+					waitForServiceReference(Resource.Factory.class, "(test.id=rfconfig-multi)", TIMEOUT_MS);
+			assertNotNull(anyRef, "At least one Resource.Factory service should appear");
+
+			// Collect all Resource.Factory services for this configurator
+			ServiceReference<?>[] allRefs = bundleContext.getServiceReferences(
+					Resource.Factory.class.getName(), "(test.id=rfconfig-multi)");
+			assertNotNull(allRefs, "Should find Resource.Factory services");
+
+			// Two distinct factory instances should produce two service registrations
+			assertThat(allRefs).hasSize(2);
+
+			// Find factoryA's registration - it should have extA extension and type/a content type
+			boolean foundA = false;
+			boolean foundB = false;
+			for (ServiceReference<?> ref : allRefs) {
+				Resource.Factory svc = (Resource.Factory) bundleContext.getService(ref);
+				if (svc == factoryA) {
+					foundA = true;
+					assertThat(toStringList(ref.getProperty(EMFNamespaces.EMF_MODEL_FILE_EXT))).contains("extA");
+					assertThat(toStringList(ref.getProperty(EMFNamespaces.EMF_MODEL_CONTENT_TYPE))).contains("type/a");
+				} else if (svc == factoryB) {
+					foundB = true;
+					assertThat(toStringList(ref.getProperty(EMFNamespaces.EMF_MODEL_FILE_EXT))).contains("extB");
+				}
+			}
+			assertTrue(foundA, "FactoryA should be registered with extension 'extA' and content type 'type/a'");
+			assertTrue(foundB, "FactoryB should be registered with extension 'extB'");
+		} finally {
+			if (reg != null) {
+				reg.unregister();
+			}
+		}
+	}
+
+	// --- Test 11: ResourceFactoryConfigurator service removal ---
+
+	@Test
+	public void testResourceFactoryConfiguratorServiceRemoval() throws Exception {
+		Resource.Factory testFactory = uri -> new ResourceImpl(uri);
+
+		org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator geckoConfigurator =
+				new org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator() {
+					@Override
+					public void configureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getExtensionToFactoryMap().put("removeExt", testFactory);
+					}
+
+					@Override
+					public void unconfigureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getExtensionToFactoryMap().remove("removeExt");
+					}
+				};
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "rfconfig-removal");
+
+		ServiceRegistration<org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator> reg =
+				bundleContext.registerService(org.gecko.emf.osgi.configurator.ResourceFactoryConfigurator.class, geckoConfigurator, props);
+
+		ServiceReference<Resource.Factory> factoryRef =
+				waitForServiceReference(Resource.Factory.class, "(test.id=rfconfig-removal)", TIMEOUT_MS);
+		assertNotNull(factoryRef, "Resource.Factory service should appear");
+
+		// Now unregister the Gecko configurator
+		reg.unregister();
+
+		// The Resource.Factory wrapper should disappear
+		boolean gone = waitForNoServiceReference(Resource.Factory.class, "(test.id=rfconfig-removal)", TIMEOUT_MS);
+		assertTrue(gone, "Resource.Factory service should disappear after ResourceFactoryConfigurator is unregistered");
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<String> toStringList(Object value) {
+		if (value instanceof List) {
+			return (List<String>) value;
+		} else if (value instanceof Collection) {
+			return List.copyOf((Collection<String>) value);
+		} else if (value instanceof String[]) {
+			return List.of((String[]) value);
+		} else if (value instanceof String) {
+			return List.of((String) value);
+		}
+		return List.of();
 	}
 }
