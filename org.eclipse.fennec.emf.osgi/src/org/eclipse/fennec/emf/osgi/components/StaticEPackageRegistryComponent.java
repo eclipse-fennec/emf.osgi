@@ -70,7 +70,10 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 		mapChangeListener = new MapChangeListener<>() {
 			@Override
 			public void entryAdded(String key, Object value) {
-				updateProperties();
+				//Only announce fully initialized Packages
+				if(value instanceof EPackage && readyForAnnouncement((EPackage) value)) {
+					updateProperties();
+				}
 			}
 
 			@Override
@@ -106,7 +109,7 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	 */
 	protected Dictionary<String, Object> getDictionary() {
 		ServicePropertyContext propertyContext = ServicePropertyContext.create();
-		values().stream().filter(EPackage.class::isInstance).map(EPackage.class::cast).map(this::getProperties).forEach(propertyContext::addSubContext);
+		values().stream().filter(EPackage.class::isInstance).map(EPackage.class::cast).filter(this::readyForAnnouncement).map(this::getProperties).forEach(propertyContext::addSubContext);
 		Dictionary<String, Object> properties = propertyContext.getDictionary(true);
 		Map<String, Object> features = ServicePropertiesHelper.normalizeProperties(EMFNamespaces.EMF_MODEL_FEATURE + ".", FrameworkUtil.asMap(properties));
 		features.forEach(properties::put);
@@ -124,6 +127,12 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 		return properties;
 	}
 	
+	/**
+	 * Generated Packages get Registered before any of their attributes are set and we have to avoid announcing them in that moment. 
+	 */
+	private boolean readyForAnnouncement(EPackage ePackage) {
+		return ePackage.getName() != null && ePackage.getNsURI() != null;
+	}
 	
 	/**
 	 * 

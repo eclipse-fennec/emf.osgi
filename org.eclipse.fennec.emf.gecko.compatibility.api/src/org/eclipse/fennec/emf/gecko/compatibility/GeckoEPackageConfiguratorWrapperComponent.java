@@ -30,6 +30,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import aQute.bnd.annotation.service.ServiceCapability;
+
 /**
  * Compatibility component that tracks legacy {@link org.gecko.emf.osgi.configurator.EPackageConfigurator}
  * services and re-registers them as {@link org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator}
@@ -40,6 +42,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  */
 @Component(name = "GeckoEPackageConfiguratorWrapper")
 @SuppressWarnings("deprecation")
+@ServiceCapability(EPackageConfigurator.class)
 public class GeckoEPackageConfiguratorWrapperComponent {
 
 	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(

@@ -34,6 +34,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
+import aQute.bnd.annotation.service.ServiceCapability;
+
 /**
  * Compatibility component that tracks new Fennec {@link org.eclipse.fennec.emf.osgi.ResourceSetFactory}
  * services and re-registers them as legacy {@link org.gecko.emf.osgi.ResourceSetFactory}
@@ -48,6 +50,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  */
 @Component(name = "GeckoResourceSetFactoryWrapper")
 @SuppressWarnings("deprecation")
+@ServiceCapability(org.gecko.emf.osgi.ResourceSetFactory.class)
 public class GeckoResourceSetFactoryWrapperComponent {
 
 	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(
