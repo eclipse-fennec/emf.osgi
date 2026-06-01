@@ -185,6 +185,17 @@ See the [Configuration Guide](docs/configuration-guide.md) for full details, fac
 - [EMF Delegate Registries](docs/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries
 - [EMF Delegate User Guide](docs/emf-delegate-user-guide.md) -- Using invocation, setting, validation, and conversion delegates
 
+## Branches & releases
+
+* `snapshot` is the active development branch. PRs land here first; every
+  push publishes a `-SNAPSHOT` artifact to
+  [Sonatype Central snapshots](https://central.sonatype.com/repository/maven-snapshots/org/eclipse/fennec/emf/).
+* `main` always holds the latest released version. Released artifacts are
+  available on [Maven Central](https://repo1.maven.org/maven2/org/eclipse/fennec/emf/)
+  under `org.eclipse.fennec.emf:*`.
+
+See [docs/ci.md](docs/ci.md) for the full CI / publishing pipeline.
+
 ## Building
 
 The project uses a Gradle + BND workspace:
