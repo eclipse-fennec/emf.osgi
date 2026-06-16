@@ -1,0 +1,29 @@
+# Standalone, plain-Java CLI tool. It is built by bnd as a runnable "fat" jar:
+# all referenced EMF classes are inlined flat into the jar via -conditionalpackage,
+# so the result runs with a plain `java -jar` without an OSGi framework.
+
+-buildpath: \
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.emf.ecore.xmi;version=latest,\
+	org.eclipse.emf.common;version=latest
+
+# Entry point for `java -jar`
+Main-Class: org.eclipse.fennec.emf.ecore.tool.EcoreTool
+
+Private-Package: org.eclipse.fennec.emf.ecore.tool
+
+# Inline all referenced EMF packages into the jar to make it self-contained.
+-conditionalpackage: \
+	org.eclipse.emf.*
+
+# EMF resolves Diagnostician / validation messages from a root "plugin.properties"
+# relative to the plugin class. In a flat fat jar all EMF bundles share one root,
+# so we ship a single merged plugin.properties (see resources/plugin.properties).
+-includeresource: \
+	plugin.properties=resources/plugin.properties
+
+# This is not an OSGi bundle that is meant to be resolved - do not generate imports.
+Import-Package: !*
+
+Bundle-Name: Fennec EMF Ecore Tool
+Bundle-Description: Standalone CLI tool to load, validate, round-trip and inspect Ecore/XMI files
