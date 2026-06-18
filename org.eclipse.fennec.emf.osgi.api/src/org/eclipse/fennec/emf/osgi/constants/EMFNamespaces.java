@@ -27,6 +27,16 @@ public class EMFNamespaces {
 	public static final String EMF_NAMESPACE = "emf.core"; //$NON-NLS-1$
 	// Attribute PREFIX for the different configurators and capability namespace
 	public static final String EMF_CONFIGURATOR_NAMESPACE = "emf.configurator"; //$NON-NLS-1$
+
+	/**
+	 * {@code osgi.condition.id} of the {@link org.osgi.service.condition.Condition}
+	 * that is only published when the runtime is Java 24 or higher - the JDK
+	 * versions where the {@code jdk.xml.*} JAXP processing-limit defaults were
+	 * tightened (see <a href="https://bugs.openjdk.org/browse/JDK-8343006">JDK-8343006</a>).
+	 * Components that should only exist on such a runtime can require it via the
+	 * target filter {@code (osgi.condition.id=fennec.emf.runtime.java24plus)}.
+	 */
+	public static final String RUNTIME_JAVA_24_PLUS_CONDITION_ID = "fennec.emf.runtime.java24plus"; //$NON-NLS-1$
 	
 	/**
 	 * Attribute name constants for {@link EMFConfigurator} annotation
