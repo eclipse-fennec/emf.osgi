@@ -34,7 +34,15 @@
       "Bash(java -jar org.eclipse.fennec.emf.ecore.tool/generated/org.eclipse.fennec.emf.ecore.tool.jar org.eclipse.fennec.emf.osgi.api/test/org/eclipse/fennec/emf/osgi/helper/manual.ecore)",
       "Bash(java -jar org.eclipse.fennec.emf.ecore.tool/generated/org.eclipse.fennec.emf.ecore.tool.jar --validate org.eclipse.fennec.emf.osgi.api/test/org/eclipse/fennec/emf/osgi/helper/manual.ecore)",
       "Bash(java -jar org.eclipse.fennec.emf.ecore.tool/generated/org.eclipse.fennec.emf.ecore.tool.jar --roundtrip -o /tmp/rt.ecore org.eclipse.fennec.emf.osgi.api/test/org/eclipse/fennec/emf/osgi/helper/manual.ecore)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "PowerShell(cd 'n:\\\\git\\\\eclipse\\\\fennec\\\\osgi.emf'; cmd /c \"tools\\\\dash-licenses.bat --summary %TEMP%\\\\DEPENDENCIES.bat.test\" ; Write-Output \"BAT EXIT: $LASTEXITCODE\")",
+      "Bash(ls org.eclipse.fennec.emf.osgi.itest/*.bndrun)",
+      "Bash(grep -rn \"monitoring\" org.eclipse.fennec.emf.osgi.itest/*.bnd*)",
+      "Bash(find cnf/cache -iname \"*assertj*monitoring*\")",
+      "Bash(ls ~/.m2)",
+      "Bash(unzip -l cnf/cache/org.gecko.emf/org.osgi.test.assertj.monitoring-0.0.2.202412030929.jar)",
+      "Bash(export DASH_IPLAB_TOKEN='fYG5jQXVVjXf0_Bm-_o7NG86MQp1OmM2CA.01.0y0ous6a2')",
+      "Bash(bash tools/dash-licenses.sh --review --project eclipse-fennec)"
     ],
     "deny": []
   }
