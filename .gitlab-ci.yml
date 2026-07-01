@@ -1,0 +1,40 @@
+# Eclipse Dash license check (IP Dash) for GitLab CI.
+#
+# Runs `bnd repo deps` (bnd 7.4.0-SNAPSHOT+) to export the workspace's Maven
+# GAVs and feeds them to the Eclipse Dash License Tool. The job fails when any
+# dependency is still "restricted" (i.e. not yet vetted / needs IP review).
+#
+# Regenerate/commit DEPENDENCIES locally with tools/dash-licenses.sh
+# (or tools/dash-licenses.bat on Windows).
+
+stages:
+  - license
+
+dash-licenses:
+  stage: license
+  image: eclipse-temurin:21
+  rules:
+    # Merge requests.
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    # Pushes to the primary branches.
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "snapshot"'
+    # Manual runs from the pipeline UI.
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  variables:
+    GIT_DEPTH: "1"
+  before_script:
+    - apt-get update -y && apt-get install -y --no-install-recommends git curl ca-certificates
+  script:
+    # If DASH_IPLAB_TOKEN (masked CI variable) and DASH_PROJECT_ID are set,
+    # also open IP review issues; otherwise just check and fail on restricted.
+    - |
+      if [ -n "$DASH_IPLAB_TOKEN" ] && [ -n "$DASH_PROJECT_ID" ]; then
+        bash tools/dash-licenses.sh --review --project "$DASH_PROJECT_ID"
+      else
+        bash tools/dash-licenses.sh
+      fi
+  artifacts:
+    when: always
+    paths:
+      - DEPENDENCIES
+    expire_in: 30 days
