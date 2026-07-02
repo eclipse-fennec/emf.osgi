@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 #
+# Copyright (c) 2026 Contributors to the Eclipse Foundation.
+#
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#     Data In Motion - initial API and implementation
+#
 # Generate the Eclipse Dash "DEPENDENCIES" file for this bnd workspace.
 #
 # It uses the new `bnd repo deps` subcommand (bnd 7.4.0-SNAPSHOT or newer) to
@@ -13,14 +24,6 @@
 #
 # Exit code is the number of dependencies that are "restricted" (i.e. not yet
 # vetted / need IP review). 0 means everything is approved. CI relies on this.
-#
-# Copyright (c) 2026 Contributors to the Eclipse Foundation.
-#
-# This program and the accompanying materials are made
-# available under the terms of the Eclipse Public License 2.0
-# which is available at https://www.eclipse.org/legal/epl-2.0/
-#
-# SPDX-License-Identifier: EPL-2.0
 
 set -euo pipefail
 
@@ -36,8 +39,11 @@ PROJECT="${DASH_PROJECT_ID:-}"
 SUMMARY=""
 
 usage() {
-  sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
   cat <<'EOF'
+Generate the Eclipse Dash "DEPENDENCIES" file for this bnd workspace.
+
+Usage:
+  tools/dash-licenses.sh [options]
 
 Options:
   --review              Open IP review issues in the Eclipse GitLab IP Lab.

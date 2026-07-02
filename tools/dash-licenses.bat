@@ -1,6 +1,17 @@
 @echo off
 setlocal enabledelayedexpansion
 rem ==========================================================================
+rem  Copyright (c) 2026 Contributors to the Eclipse Foundation.
+rem
+rem  This program and the accompanying materials are made
+rem  available under the terms of the Eclipse Public License 2.0
+rem  which is available at https://www.eclipse.org/legal/epl-2.0/
+rem
+rem  SPDX-License-Identifier: EPL-2.0
+rem
+rem  Contributors:
+rem      Data In Motion - initial API and implementation
+rem ==========================================================================
 rem  Generate the Eclipse Dash "DEPENDENCIES" file for this bnd workspace.
 rem
 rem  Windows counterpart of tools/dash-licenses.sh. Uses the new
@@ -13,12 +24,6 @@ rem    tools\dash-licenses.bat                       regenerate DEPENDENCIES
 rem    tools\dash-licenses.bat --review --project technology.fennec
 rem
 rem  The exit code is the number of "restricted" dependencies (0 = all approved).
-rem
-rem  Copyright (c) 2026 Contributors to the Eclipse Foundation.
-rem  This program and the accompanying materials are made available under the
-rem  terms of the Eclipse Public License 2.0 which is available at
-rem  https://www.eclipse.org/legal/epl-2.0/
-rem  SPDX-License-Identifier: EPL-2.0
 rem ==========================================================================
 
 rem ---- defaults ------------------------------------------------------------
