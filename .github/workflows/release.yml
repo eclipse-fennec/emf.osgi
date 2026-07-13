@@ -72,8 +72,49 @@ jobs:
     - name: Release
       if: matrix.java-version == 21
       run: ./gradlew release --info
+    - name: Upload release OBR
+      # The release run also populated the local Release OBR (cnf/release)
+      # via '-releaserepo.obr' — the exact bundles that went to Sonatype.
+      if: matrix.java-version == 21
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-obr
+        path: cnf/release
+        if-no-files-found: error
     - name: Delete GPG key from keyring
       if: always() && matrix.java-version == 21
       run: |
         rm -rf ~/.gnupg
       shell: bash
+
+  # Publish the release OBR — the exact bundles the build job released to
+  # Sonatype, taken from its artifact. Force-pushed as a single-commit orphan
+  # branch 'release-obr' (baselining only ever needs the latest release),
+  # reachable at
+  # https://raw.githubusercontent.com/eclipse-fennec/emf.osgi/release-obr/index.xml
+  obr:
+    name: Publish release OBR
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Download release OBR
+      uses: actions/download-artifact@v4
+      with:
+        name: release-obr
+        path: obr
+    - name: Verify the OBR is populated
+      run: |
+        count=$(grep -c '<resource' obr/index.xml || true)
+        echo "OBR contains $count resources"
+        test "$count" -gt 0
+    - name: Push OBR to the release-obr branch
+      run: |
+        cd obr
+        git init -b release-obr
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Release OBR for ${GITHUB_SHA}"
+        git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" release-obr
