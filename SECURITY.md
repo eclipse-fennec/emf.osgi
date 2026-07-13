@@ -33,4 +33,4 @@ This information will help us triage your report more quickly.
 
 Only the most recent release of Eclipse Fennec EMF OSGi receives security updates:
 
-* Latest release (currently the 0.1.x stream)
+* Latest release (currently the 1.0.x stream)
