@@ -127,6 +127,17 @@ gating signal for review.
 * **Secrets used:** same set as `snapshot.yml`.
 * **Result:** signed artifacts pushed to Sonatype Central and (after the
   Central sync) to Maven Central.
+* **Release OBR:** the release run also populates the local `Release`
+  repository (`cnf/release`) — `-releaserepo.obr` in
+  [`cnf/build.bnd`](../cnf/build.bnd) is a merged property, so the single
+  `./gradlew release` publishes the *identical* bundles to Sonatype and the
+  OBR. The build job uploads `cnf/release` as an artifact; a gated `obr`
+  job force-pushes it as the single-commit `release-obr` branch, reachable
+  at
+  `https://raw.githubusercontent.com/eclipse-fennec/emf.osgi/release-obr/index.xml`
+  — this is the baseline repository for bnd baselining (see the commented
+  `-plugin.baseline` block in `cnf/build.bnd`, to be enabled after the
+  1.0.0 release).
 
 ## Published artifacts
 
