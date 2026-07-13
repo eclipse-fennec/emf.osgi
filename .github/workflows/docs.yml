@@ -62,6 +62,11 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
+    # Pages deployments replace the ENTIRE site. Only the snapshot branch may
+    # deploy for now — a dispatch from another branch would publish its slice
+    # and wipe /snapshot/. Remove this guard once the deploy assembles all
+    # published versions.
+    if: github.ref == 'refs/heads/snapshot'
     runs-on: ubuntu-latest
     permissions:
       pages: write
