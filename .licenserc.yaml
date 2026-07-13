@@ -74,5 +74,6 @@ header:
     - 'gradlew'
     - 'gradlew.bat'
     - 'settings.gradle'
+    - 'docs-site/**'
 
   comment: always

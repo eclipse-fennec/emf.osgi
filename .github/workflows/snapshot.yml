@@ -78,3 +78,63 @@ jobs:
       run: |
         rm -rf ~/.gnupg
       shell: bash
+
+  # Build the documentation — only after a successful snapshot build, so the
+  # site is never published from a broken branch.
+  docs:
+    name: Build documentation
+    needs: snapshot
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v4
+      with:
+        # Full history so VitePress `lastUpdated` git timestamps are accurate.
+        fetch-depth: 0
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+        cache-dependency-path: docs-site/package-lock.json
+    - name: Install dependencies
+      working-directory: docs-site
+      run: npm ci
+    - name: Build docs
+      working-directory: docs-site
+      env:
+        # Publishes to /emf.osgi/<branch>/ (see docs-site config.mts).
+        DOCS_BRANCH: ${{ github.ref_name }}
+      run: npm run docs:build
+    - name: Assemble site slice
+      run: |
+        mkdir -p site/${{ github.ref_name }}
+        cp -r docs-site/docs/.vitepress/dist/. site/${{ github.ref_name }}/
+        # Root redirect so the bare Pages URL lands on the built branch.
+        printf '<!doctype html><meta http-equiv="refresh" content="0; url=./%s/">\n' "${{ github.ref_name }}" > site/index.html
+        touch site/.nojekyll
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: site
+
+  # Deploy the documentation to GitHub Pages — only after a successful docs build.
+  deploy:
+    name: Deploy documentation
+    needs: docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy
+      id: deployment
+      uses: actions/deploy-pages@v4
