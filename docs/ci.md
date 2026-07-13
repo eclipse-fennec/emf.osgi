@@ -1,8 +1,9 @@
 # GitHub CI
 
-The repository runs four GitHub Actions workflows. Together they cover
+The repository runs five GitHub Actions workflows. Together they cover
 pull-request validation, license-header enforcement, snapshot publication
-from the `snapshot` branch, and release publication from the `main` branch.
+from the `snapshot` branch, release publication from the `main` branch, and
+documentation publishing to GitHub Pages.
 
 All workflow definitions live in [`.github/workflows`](../.github/workflows).
 
@@ -36,7 +37,7 @@ version, which is available on
              ▼
     ┌─────────────────┐
     │  snapshot.yml   │  →  publishes SNAPSHOT artifacts
-    └─────────────────┘
+    └─────────────────┘  →  builds + deploys the docs site (GitHub Pages)
              │
              │  merge into main
              ▼
@@ -94,6 +95,26 @@ gating signal for review.
 * **Secrets used:**
   * `CENTRAL_SONATYPE_TOKEN_USERNAME`, `CENTRAL_SONATYPE_TOKEN_PASSWORD` — Sonatype Central credentials
   * `GPG_PRIVATE_KEY`, `GPG_PASSPHRASE`, `GPG_KEY_ID` — signing key (imported into the runner's keyring, deleted at the end of the job)
+* **Documentation:** after a successful snapshot build, two gated jobs
+  (`docs` → `deploy`) build the VitePress site from
+  [`docs-site/`](../docs-site) and deploy it to GitHub Pages at
+  <https://eclipse-fennec.github.io/emf.osgi/snapshot/>. The docs are never
+  published from a broken build.
+
+## `docs.yml` — Documentation (manual)
+
+* **File:** [`.github/workflows/docs.yml`](../.github/workflows/docs.yml)
+* **Triggers:** manual `workflow_dispatch` only — the automatic build + deploy
+  runs as gated jobs in `snapshot.yml`.
+* **Purpose:** Rebuild and redeploy the documentation site without waiting
+  for a snapshot build, e.g. after a docs-only fix.
+* **How the site is built:** `docs-site/sync-guides.mjs` copies the curated
+  markdown listed in `docs-site/guides.mjs` (an explicit allowlist — internal
+  dev docs stay unpublished) into the VitePress content root, rewriting
+  cross-links; `vitepress build` renders the site under
+  `/emf.osgi/<branch>/`.
+* **Secrets used:** none — the deploy job uses the GitHub Pages OIDC flow
+  (`pages: write`, `id-token: write`).
 
 ## `release.yml` — Release Build
 
