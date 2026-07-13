@@ -180,6 +180,9 @@ See the [Configuration Guide](docs/configuration-guide.md) for full details, fac
 
 ## Documentation
 
+The user documentation is published at
+**<https://eclipse-fennec.github.io/emf.osgi/snapshot/>**. Sources:
+
 - [Configuration Guide](docs/configuration-guide.md) -- Configuring EMF components via OSGi Configuration Admin
 - [Extender Documentation](org.eclipse.fennec.emf.osgi.extender/readme.md) -- Automatic model registration from bundles
 - [EMF Delegate Registries](docs/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries
