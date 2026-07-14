@@ -46,11 +46,23 @@ This provides the required dependencies and the code generator. For individual m
 
 ### Gradle/Maven
 
-Maven coordinates (group ID: `org.eclipse.fennec.emf`):
+All artifacts are on Maven Central under the group ID `org.eclipse.fennec.emf`
+(current release: **1.0.0**). The BOM provides consistent versions:
 
 ```
-org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bom:${fennec.version}
+org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bom:1.0.0
 ```
+
+The key artifacts:
+
+| Artifact | Purpose |
+|----------|---------|
+| `org.eclipse.fennec.emf.osgi.api` | Public API |
+| `org.eclipse.fennec.emf.osgi.component` | Implementation, all-in-one (includes the Config Admin components) |
+| `org.eclipse.fennec.emf.osgi.component.minimal` | Implementation, minimal component set |
+| `org.eclipse.fennec.emf.osgi.codegen` | Code generator (bnd external plugin, also usable [with Maven](docs/maven-codegen.md)) |
+| `org.eclipse.fennec.emf.osgi.extender` | Model extender |
+| `org.eclipse.fennec.emf.gecko.compatibility.api` | GeckoEMF compatibility layer ([migration guide](docs/gecko-migration-guide.md)) |
 
 ## Model Registration
 
@@ -185,6 +197,8 @@ The user documentation is published at
 
 - [Configuration Guide](docs/configuration-guide.md) -- Configuring EMF components via OSGi Configuration Admin
 - [Extender Documentation](org.eclipse.fennec.emf.osgi.extender/readme.md) -- Automatic model registration from bundles
+- [Migrating from GeckoEMF](docs/gecko-migration-guide.md) -- Artifact mapping, package renames, codegen and the compatibility layer
+- [EMF Code Generation with Maven](docs/maven-codegen.md) -- Using the code generator with the stock bnd-generate-maven-plugin
 - [EMF Delegate Registries](docs/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries
 - [EMF Delegate User Guide](docs/emf-delegate-user-guide.md) -- Using invocation, setting, validation, and conversion delegates
 
@@ -213,7 +227,7 @@ Requires Java 21.
 
 ## Gecko EMF Compatibility
 
-The module `org.eclipse.fennec.emf.gecko.compatibility.api` provides wrapper interfaces that map the old `org.gecko.emf.osgi` package names to the new `org.eclipse.fennec.emf.osgi` packages. This allows existing GeckoEMF consumers to migrate incrementally.
+The module `org.eclipse.fennec.emf.gecko.compatibility.api` provides wrapper interfaces that map the old `org.gecko.emf.osgi` package names to the new `org.eclipse.fennec.emf.osgi` packages. This allows existing GeckoEMF consumers to migrate incrementally. See the [migration guide](docs/gecko-migration-guide.md) for the full artifact mapping and step-by-step instructions.
 
 ## Links
 

@@ -42,8 +42,7 @@ The project consists of several key modules:
 ### Core Implementation (`org.eclipse.fennec.emf.osgi`)
 - Default components for EPackage and ResourceFactory registries
 - Service components with different configurations:
-  - `component.bnd` - Full component set
-  - `component.config.bnd` - Configuration-based components
+  - `component.bnd` - All-in-one component set (includes the Config Admin components)
   - `component.minimal.bnd` - Minimal component set
 - Resource set factory implementations
 

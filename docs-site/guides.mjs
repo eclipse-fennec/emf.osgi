@@ -18,6 +18,8 @@ export const GUIDES = [
     slug: 'model-extender',
   },
   { file: 'docs/emf-delegate-user-guide.md', title: 'EMF Delegates', group: 'User Manual' },
+  { file: 'docs/maven-codegen.md', title: 'Code Generation with Maven', group: 'User Manual' },
+  { file: 'docs/gecko-migration-guide.md', title: 'Migrating from GeckoEMF', group: 'Migration' },
 ];
 
 // Route name for a guide: an explicit `slug`, otherwise the file's base name

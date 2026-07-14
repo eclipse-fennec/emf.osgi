@@ -49,8 +49,8 @@ features:
   - icon: 🔁
     title: Gecko EMF compatibility
     details: "Formerly GeckoEMF: a compatibility layer maps the old org.gecko.emf.osgi package names to org.eclipse.fennec.emf.osgi, so existing consumers migrate incrementally."
-    link: https://github.com/eclipse-fennec/emf.osgi/tree/snapshot/org.eclipse.fennec.emf.gecko.compatibility.api
-    linkText: Compatibility layer
+    link: /guides/gecko-migration-guide
+    linkText: Migration guide
 ---
 
 ## Getting started
@@ -72,10 +72,13 @@ enable it per project:
 -library: enable-emf
 ```
 
-For **Gradle/Maven** builds, use the BOM (group ID `org.eclipse.fennec.emf`):
+For **Gradle/Maven** builds, use the BOM (group ID `org.eclipse.fennec.emf`,
+current release 1.0.0); the implementation ships as
+`org.eclipse.fennec.emf.osgi.component` (all-in-one) or
+`org.eclipse.fennec.emf.osgi.component.minimal`:
 
 ```
-org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bom:${fennec.version}
+org.eclipse.fennec.emf:org.eclipse.fennec.emf.osgi.bom:1.0.0
 ```
 
 Then inject a `ResourceSet` that has your model registered:
