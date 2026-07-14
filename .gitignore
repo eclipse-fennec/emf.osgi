@@ -12,6 +12,8 @@ Archive
 # Build systems
 /.gradle/
 /build/
+/docs-site/build/
+/tools/build/
 
 # BND workspace
 /cnf/cache/
