@@ -27,7 +27,8 @@ github-orga: eclipse-fennec
 
 maven-central: true
 
--baseline: *
+# Baselining against the release OBR — provided by the fennec library.
+fennec-baselining: true
 
 -groupid: org.eclipse.fennec.emf
     	
@@ -45,45 +46,6 @@ maven-central: true
 		overwrite           =true;\
 		pretty              =true;\
 		name            	=local
-
-# Release OBR (cnf/release). '-releaserepo.obr' is a merged property, so it
-# survives the fennec library's '-releaserepo: Sonatype' override and the
-# single release run publishes the identical bundles to Maven Central AND
-# this OBR. The release workflow pushes cnf/release to the 'release-obr'
-# branch, where it serves as the baseline repository.
-# TODO: migrate to the fennec library once proven here.
--plugin.release: \
-	aQute.bnd.deployer.repository.LocalIndexedRepo;\
-		local               =${build}/release;\
-		overwrite           =true;\
-		pretty              =true;\
-		name            	=Release
-
-# Only added for actual releases (DO_RELEASE=true, i.e. the release build on
-# main) — snapshot builds don't populate the OBR. Note: in the release build
-# the Sonatype repo is active, so the merged result is 'Sonatype, Release'.
-# A local DO_RELEASE=true run without the GPG secrets would merge
-# 'Release, Release' and fail on the duplicate name.
--releaserepo.obr: ${if;${env;DO_RELEASE;false};Release}
-
-# Baselining against the last release OBR (published by the release build).
-# Activated by '-baseline: *' further up.
--plugin.baseline: \
-	aQute.bnd.repository.osgi.OSGiRepository;\
-		locations           =https://raw.githubusercontent.com/${github-orga}/${github-project}/release-obr/index.xml;\
-		max.stale           =-1;\
-		poll.time           =-1;\
-		name                =Baseline
--baselinerepo: Baseline
-
-# Only report MINOR and MAJOR package changes. The generated VersionConstant
-# (derived from base-version) is inlined into classes and @Capability
-# annotations across several packages, so their bytecode differs from the
-# released baseline in every development cycle by design — a MICRO-level
-# change bnd would otherwise flag per cycle. Real API additions (MINOR) and
-# breakages (MAJOR) are still enforced.
--diffpackages: *;threshold=MINOR
-		
 -plugin.2.DIM: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
         snapshotUrl=https://devel.data-in-motion.biz/nexus/repository/dim-snapshot/; \
