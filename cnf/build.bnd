@@ -24,7 +24,7 @@ github-orga: eclipse-fennec
 
 maven-central: true
 
-#-baseline: *
+-baseline: *
 
 -groupid: org.eclipse.fennec.emf
     	
@@ -63,16 +63,23 @@ maven-central: true
 # 'Release, Release' and fail on the duplicate name.
 -releaserepo.obr: ${if;${env;DO_RELEASE;false};Release}
 
-# Baselining against the last release OBR — enable after the 1.0.0 release
-# has published the first release-obr branch.
-#-plugin.baseline: \
-#	aQute.bnd.repository.osgi.OSGiRepository;\
-#		locations           =https://raw.githubusercontent.com/${github-orga}/${github-project}/release-obr/index.xml;\
-#		max.stale           =-1;\
-#		poll.time           =-1;\
-#		name                =Baseline
-#-baselinerepo: Baseline
-#-baseline: *
+# Baselining against the last release OBR (published by the release build).
+# Activated by '-baseline: *' further up.
+-plugin.baseline: \
+	aQute.bnd.repository.osgi.OSGiRepository;\
+		locations           =https://raw.githubusercontent.com/${github-orga}/${github-project}/release-obr/index.xml;\
+		max.stale           =-1;\
+		poll.time           =-1;\
+		name                =Baseline
+-baselinerepo: Baseline
+
+# Only report MINOR and MAJOR package changes. The generated VersionConstant
+# (derived from base-version) is inlined into classes and @Capability
+# annotations across several packages, so their bytecode differs from the
+# released baseline in every development cycle by design — a MICRO-level
+# change bnd would otherwise flag per cycle. Real API additions (MINOR) and
+# breakages (MAJOR) are still enforced.
+-diffpackages: *;threshold=MINOR
 		
 -plugin.2.DIM: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
