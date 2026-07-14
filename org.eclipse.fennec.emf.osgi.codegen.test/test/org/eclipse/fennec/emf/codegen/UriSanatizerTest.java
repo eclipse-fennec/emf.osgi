@@ -91,7 +91,7 @@ class UriSanatizerTest {
 	}
 	
 	/**
-	 * Test method for {@link org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator#doGenerate(java.io.File, java.lang.String, java.io.File)}.
+	 * Test method for {@link org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator#doGenerate(java.io.File, java.lang.String, java.io.File)}.
 	 * @throws IOException 
 	 */
 	@Test

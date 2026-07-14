@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator;
-import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator.GeneratorOptions;
+import org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator;
+import org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator.GeneratorOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -61,7 +61,7 @@ class GeneratorTest {
 			attrs.put("genmodel", "model/rdf.genmodel");
 			attrs.put("output", "src");
 			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
-			GeckoEmfGenerator generator = new GeckoEmfGenerator();
+			FennecEmfGenerator generator = new FennecEmfGenerator();
 			generator.generate(bc, new GeneratorOptions() {
 				
 				@Override
@@ -99,7 +99,7 @@ class GeneratorTest {
 			attrs.put("genmodel", "other/main/resources/model/basic.genmodel");
 			attrs.put("output", "src-gen");
 			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
-			GeckoEmfGenerator generator = new GeckoEmfGenerator();
+			FennecEmfGenerator generator = new FennecEmfGenerator();
 			generator.generate(bc, new GeneratorOptions() {
 				
 				@Override

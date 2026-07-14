@@ -24,13 +24,13 @@ import org.eclipse.emf.common.util.URI;
  * @author Juergen Albert
  * @since 13 May 2022
  */
-public class GeckoGenModelGeneratorAdapter extends GenModelGeneratorAdapter {
+public class FennecGenModelGeneratorAdapter extends GenModelGeneratorAdapter {
 
 	/**
 	 * Creates a new instance.
 	 * @param generatorAdapterFactory
 	 */
-	public GeckoGenModelGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
+	public FennecGenModelGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
 		super(generatorAdapterFactory);
 	}
 	
