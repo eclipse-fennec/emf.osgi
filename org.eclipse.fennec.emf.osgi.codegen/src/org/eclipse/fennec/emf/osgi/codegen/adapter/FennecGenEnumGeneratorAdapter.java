@@ -37,7 +37,7 @@ import org.eclipse.emf.common.util.URI;
  * 
  * @since 4.4.0
  */
-public class GeckoGenEnumGeneratorAdapter extends GenEnumGeneratorAdapter {
+public class FennecGenEnumGeneratorAdapter extends GenEnumGeneratorAdapter {
 
 	protected static final int ENUM_CLASS_ID = 0;
 
@@ -49,7 +49,7 @@ public class GeckoGenEnumGeneratorAdapter extends GenEnumGeneratorAdapter {
 	 * 
 	 * @param generatorAdapterFactory
 	 */
-	public GeckoGenEnumGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
+	public FennecGenEnumGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
 		super(generatorAdapterFactory);
 	}
 

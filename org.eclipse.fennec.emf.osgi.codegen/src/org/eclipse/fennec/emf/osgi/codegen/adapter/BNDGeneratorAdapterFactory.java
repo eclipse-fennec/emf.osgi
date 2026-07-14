@@ -15,7 +15,7 @@ package org.eclipse.fennec.emf.osgi.codegen.adapter;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory;
 import org.eclipse.emf.codegen.ecore.genmodel.generator.GenModelGeneratorAdapterFactory;
 import org.eclipse.emf.common.notify.Adapter;
-import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator;
+import org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator;
 
 /**
  * EMF codegen generator adapter factory that is responsible to create the Bnd adapter
@@ -25,7 +25,7 @@ import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator;
 public class BNDGeneratorAdapterFactory extends GenModelGeneratorAdapterFactory {
 
 	public static final GeneratorAdapterFactory.Descriptor DESCRIPTOR = ()->{
-			GeckoEmfGenerator.info("Creating BNDGeneratorAdapterFactory");
+			FennecEmfGenerator.info("Creating BNDGeneratorAdapterFactory");
 			return new BNDGeneratorAdapterFactory();
 		};
 
@@ -35,8 +35,8 @@ public class BNDGeneratorAdapterFactory extends GenModelGeneratorAdapterFactory 
 	public Adapter createGenPackageAdapter() {
 		if (genPackageGeneratorAdapter == null)
 		{
-			GeckoEmfGenerator.info("Creating GeckoGenPackageGeneratorAdapter");
-			genPackageGeneratorAdapter = new GeckoGenPackageGeneratorAdapter(this);
+			FennecEmfGenerator.info("Creating FennecGenPackageGeneratorAdapter");
+			genPackageGeneratorAdapter = new FennecGenPackageGeneratorAdapter(this);
 		}
 		return genPackageGeneratorAdapter;
 	}
@@ -49,8 +49,8 @@ public class BNDGeneratorAdapterFactory extends GenModelGeneratorAdapterFactory 
 	public Adapter createGenModelAdapter() {
 		if (genModelGeneratorAdapter == null)
 		{
-			GeckoEmfGenerator.info("Creating GeckoGenModelGeneratorAdapter");
-			genModelGeneratorAdapter = new GeckoGenModelGeneratorAdapter(this);
+			FennecEmfGenerator.info("Creating FennecGenModelGeneratorAdapter");
+			genModelGeneratorAdapter = new FennecGenModelGeneratorAdapter(this);
 		} 
 		return genModelGeneratorAdapter;
 	}
@@ -63,8 +63,8 @@ public class BNDGeneratorAdapterFactory extends GenModelGeneratorAdapterFactory 
 	public Adapter createGenClassAdapter() {
 		if (genClassGeneratorAdapter == null)
 		{
-			GeckoEmfGenerator.info("Creating GeckoGenClassGeneratorAdapter");
-			genClassGeneratorAdapter = new GeckoGenClassGeneratorAdapter(this);
+			FennecEmfGenerator.info("Creating FennecGenClassGeneratorAdapter");
+			genClassGeneratorAdapter = new FennecGenClassGeneratorAdapter(this);
 		} 
 		return genClassGeneratorAdapter;
 	}
@@ -77,8 +77,8 @@ public class BNDGeneratorAdapterFactory extends GenModelGeneratorAdapterFactory 
 	public Adapter createGenEnumAdapter() {
 		if (genEnumGeneratorAdapter == null)
 		{
-			GeckoEmfGenerator.info("Creating GeckoGenEnumGeneratorAdapter");
-			genEnumGeneratorAdapter = new GeckoGenEnumGeneratorAdapter(this);
+			FennecEmfGenerator.info("Creating FennecGenEnumGeneratorAdapter");
+			genEnumGeneratorAdapter = new FennecGenEnumGeneratorAdapter(this);
 		} 
 		return genEnumGeneratorAdapter;
 	}
