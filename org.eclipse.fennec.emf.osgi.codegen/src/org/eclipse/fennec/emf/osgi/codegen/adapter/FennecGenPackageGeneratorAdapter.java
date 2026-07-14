@@ -46,7 +46,7 @@ import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import org.eclipse.emf.ecore.xmi.impl.URIHandlerImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
-import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator;
+import org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator;
 
 /**
  * EMF codegen generator adapter that is responsible to generate the OSGi
@@ -56,7 +56,7 @@ import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator;
  * @author Mark Hoffmann
  * @since 25.07.2017
  */
-public class GeckoGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter {
+public class FennecGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter {
 
 	/** PACKAGE_INFO_NAME */
 	private static final String PACKAGE_INFO_NAME = "package-info";
@@ -87,7 +87,7 @@ public class GeckoGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter 
 			new JETEmitterDescriptor("model/FactoryClass.javajet",
 					"org.eclipse.fennec.emf.osgi.codegen.templates.model.FactoryClass") };
 
-	public GeckoGenPackageGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
+	public FennecGenPackageGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
 		super(generatorAdapterFactory);
 	}
 
@@ -222,7 +222,7 @@ public class GeckoGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter 
 				final String originalPackageNsURI = originalPackage.getNsURI();
 
 				ResourceSet outputSet = new ResourceSetImpl();
-				GeckoEmfGenerator.info("Setting Uri Handler: " + originalSet.getURIConverter().getURIHandlers().get(0));
+				FennecEmfGenerator.info("Setting Uri Handler: " + originalSet.getURIConverter().getURIHandlers().get(0));
 				outputSet.getURIConverter().getURIHandlers().add(0,
 						originalSet.getURIConverter().getURIHandlers().get(0));
 				outputSet.getResourceFactoryRegistry().getExtensionToFactoryMap()
@@ -359,14 +359,14 @@ public class GeckoGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter 
 				}
 
 				try {
-					GeckoEmfGenerator.info("saving ecore to " + outputResource.getURI().toString());
+					FennecEmfGenerator.info("saving ecore to " + outputResource.getURI().toString());
 					outputResource.save(options);
 				} catch (IOException exception) {
 					// DMS handle this well.
-					GeckoEmfGenerator.error("Could not serialize ecore to " + outputResource.getURI().toString(), exception);
+					FennecEmfGenerator.error("Could not serialize ecore to " + outputResource.getURI().toString(), exception);
 				}
 			} finally {
-				GeckoEmfGenerator.info("Finished Serialization of ecore");
+				FennecEmfGenerator.info("Finished Serialization of ecore");
 				monitor.done();
 			}
 		} else {
@@ -382,9 +382,9 @@ public class GeckoGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter 
 	 */
 	@Override
 	protected URI toPlatformResourceURI(URI uri) {
-		GeckoEmfGenerator.info("toPlatformResourceURI: " + uri.toString());
+		FennecEmfGenerator.info("toPlatformResourceURI: " + uri.toString());
 		URI result = super.toPlatformResourceURI(uri);
-		GeckoEmfGenerator.info("toPlatformResourceURI result: " + result.toString());
+		FennecEmfGenerator.info("toPlatformResourceURI result: " + result.toString());
 		return result;
 	}
 

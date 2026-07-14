@@ -7,7 +7,7 @@ import org.eclipse.emf.codegen.ecore.genmodel.*;
 import org.eclipse.emf.codegen.ecore.genmodel.impl.Literals;
 import org.eclipse.emf.codegen.ecore.genmodel.util.GenModelUtil;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator;
+import org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator;
 import org.eclipse.fennec.emf.osgi.codegen.templates.model.helper.GeneratorHelper;
 
 public class PackageClass
@@ -488,7 +488,7 @@ public class PackageClass
     stringBuffer.append(genModel.getImportedName("org.osgi.annotation.versioning.ProviderType"));
     
 	URI genModelURI = genModel.eResource().getURI();
-    String propModelFolder = (String) props.get(GeckoEmfGenerator.INCLUDE_GEN_MODEL_FOLDER);
+    String propModelFolder = (String) props.get(FennecEmfGenerator.INCLUDE_GEN_MODEL_FOLDER);
 
     // Read configuration properties for annotation parameters (default to true for backward compatibility)
     boolean includeGenModel = !Boolean.FALSE.equals(props.get("includeGenModelAttr"));
@@ -535,8 +535,8 @@ public class PackageClass
         ecoreLocation = ecoreBundleLocation;
     }
 
-    if(props.containsKey(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH)){
-    	String genModelpath = (String) props.get(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH);
+    if(props.containsKey(FennecEmfGenerator.ORIGINAL_GEN_MODEL_PATH)){
+    	String genModelpath = (String) props.get(FennecEmfGenerator.ORIGINAL_GEN_MODEL_PATH);
     	devPaths.add("\"" + genModelpath + "\"");
 
     	URI ePackageUri = genPackage.getEcorePackage().eResource().getURI();
@@ -556,8 +556,8 @@ public class PackageClass
     	    }
     	}
     }
-    if(props.containsKey(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA)){
-    	List<String> paths = (List<String>) props.get(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA);
+    if(props.containsKey(FennecEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA)){
+    	List<String> paths = (List<String>) props.get(FennecEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA);
     	paths.stream().map(s -> "\"" + s + "\"").forEach(devPaths::add);
     }
 

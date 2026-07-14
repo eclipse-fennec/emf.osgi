@@ -27,7 +27,7 @@ import org.eclipse.emf.common.util.URI;
  * @author Juergen Albert
  * @since 13 May 2022
  */
-public class GeckoGenClassGeneratorAdapter extends GenClassGeneratorAdapter {
+public class FennecGenClassGeneratorAdapter extends GenClassGeneratorAdapter {
 
 	protected static final int CLASS_ID = 0;
 
@@ -62,7 +62,7 @@ public class GeckoGenClassGeneratorAdapter extends GenClassGeneratorAdapter {
 	 * 
 	 * @param generatorAdapterFactory
 	 */
-	public GeckoGenClassGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
+	public FennecGenClassGeneratorAdapter(GeneratorAdapterFactory generatorAdapterFactory) {
 		super(generatorAdapterFactory);
 	}
 

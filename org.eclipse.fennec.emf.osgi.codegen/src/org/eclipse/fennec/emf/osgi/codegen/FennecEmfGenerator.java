@@ -43,7 +43,7 @@ import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.fennec.emf.osgi.annotation.provide.EPackage;
-import org.eclipse.fennec.emf.osgi.codegen.GeckoEmfGenerator.GeneratorOptions;
+import org.eclipse.fennec.emf.osgi.codegen.FennecEmfGenerator.GeneratorOptions;
 import org.eclipse.fennec.emf.osgi.codegen.adapter.BNDGeneratorAdapterFactory;
 import org.eclipse.fennec.emf.osgi.constants.VersionConstant;
 import org.osgi.resource.Capability;
@@ -61,7 +61,7 @@ import aQute.bnd.service.generate.Options;
 import aQute.lib.io.IO;
 
 @ExternalPlugin(name = "fennecEMF", objectClass = Generator.class, version = VersionConstant.FENNECPROJECTS_EMF_VERSION)
-public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
+public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 
 	public static final String ORIGINAL_GEN_MODEL_PATH = "originalGenModelPath";
 	public static final String ORIGINAL_GEN_MODEL_PATHS_EXTRA = "originalGenModelPathsExtra";
@@ -347,12 +347,12 @@ public class GeckoEmfGenerator implements Generator<GeneratorOptions> {
 			// Only set path properties when corresponding config is true
 			// The template will include annotation attributes only when these values are present
 			if (includeGenModelAttr || includeEcoreAttr || includeEcoreSourceLocationsAttr) {
-				props.put(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATH, genmodelPath);
+				props.put(FennecEmfGenerator.ORIGINAL_GEN_MODEL_PATH, genmodelPath);
 			}
 			if (includeGenModelSourceLocationsAttr) {
-				props.put(GeckoEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA, Arrays.asList(base.getName() + "/" + genmodelPath));
+				props.put(FennecEmfGenerator.ORIGINAL_GEN_MODEL_PATHS_EXTRA, Arrays.asList(base.getName() + "/" + genmodelPath));
 			}
-			props.put(GeckoEmfGenerator.INCLUDE_GEN_MODEL_FOLDER, genmodelLocation);
+			props.put(FennecEmfGenerator.INCLUDE_GEN_MODEL_FOLDER, genmodelLocation);
 			// Pass boolean flags to control annotation attributes independently
 			props.put("includeGenModelAttr", includeGenModelAttr);
 			props.put("includeEcoreAttr", includeEcoreAttr);
