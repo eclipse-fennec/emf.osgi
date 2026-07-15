@@ -1,5 +1,8 @@
-javac.source: 21
-javac.target: 21
+# Lowest feasible compile level so downstream JDK 17 toolchains can consume
+# the released bundles (see issue #37); the build JDK itself stays at 21.
+# The code uses records and instanceof patterns (Java 16), so 17 is the floor.
+javac.source: 17
+javac.target: 17
 
 # Copyright (c) 2012 - 2025 Data In Motion and others.
 # All rights reserved. 

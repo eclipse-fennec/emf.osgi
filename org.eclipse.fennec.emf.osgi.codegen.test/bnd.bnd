@@ -1,6 +1,3 @@
-javac.source: 17
-javac.target: 17
-
 -testpath: \
 	slf4j.api;version=latest,\
 	org.osgi.service.repository;version=latest,\

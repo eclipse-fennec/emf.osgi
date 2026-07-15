@@ -209,7 +209,9 @@ The project uses a Gradle + BND workspace:
 ./gradlew clean       # Clean build artifacts
 ```
 
-Requires Java 21.
+Building requires Java 21. The released bundles are compiled for Java 17
+(`osgi.ee=JavaSE-17`), so consuming them — including running the code
+generator — works on JDK 17 and newer.
 
 ## Gecko EMF Compatibility
 

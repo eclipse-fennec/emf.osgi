@@ -1,8 +1,5 @@
 src=${^src}
 
-javac.source: 17
-javac.target: 17
-
 -buildpath: \
 	org.osgi.annotation.bundle;version=latest,\
 	org.osgi.annotation.versioning;version=latest,\
