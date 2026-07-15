@@ -27,8 +27,25 @@ github-orga: eclipse-fennec
 
 maven-central: true
 
-# Baselining against the release OBR — provided by the fennec library.
-fennec-baselining: true
+# Baselining against the release OBR. TEMPORARY (see issue #41): the library's
+# baseline block is disabled and inlined here with 'tags=baseline', so the
+# resolver no longer considers the release OBR (untagged repos default to
+# 'resolve' and leak released bundles into resolve/buildpath lookups).
+# Revert to 'fennec-baselining: true' once the fennec bnd library tags its
+# Baseline repository itself.
+fennec-baselining: false
+
+-plugin.baseline: \
+	aQute.bnd.repository.osgi.OSGiRepository;\
+		locations	=https://raw.githubusercontent.com/${github-orga}/${github-project}/release-obr/index.xml;\
+		max.stale	=-1;\
+		poll.time	=-1;\
+		tags		=baseline;\
+		name		=Baseline
+
+-baselinerepo: Baseline
+-baseline: *
+-diffpackages: *;threshold=MINOR
 
 -groupid: org.eclipse.fennec.emf
     	
