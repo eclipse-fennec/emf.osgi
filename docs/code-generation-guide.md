@@ -1,6 +1,6 @@
 # Code Generation Guide
 
-This guide explains how to generate OSGi-compatible EMF model code with the Fennec EMF code generator (`fennecEMF`) in a bnd workspace — from the basic `-generate` setup to referencing models that live in **other bundles**.
+This guide explains how to generate OSGi-compatible EMF model code with the Fennec EMF code generator (`fennecEMF`) — from the basic setup in a bnd workspace or Maven build to referencing models that live in **other bundles**.
 
 The generator (`org.eclipse.fennec.emf.osgi.codegen`) extends the standard EMF generator. In addition to the plain model code it produces:
 
@@ -8,9 +8,11 @@ The generator (`org.eclipse.fennec.emf.osgi.codegen`) extends the standard EMF g
 - a **`ConfigurationComponent`** — a DS component that registers all model services (`EPackage`, `EFactory`, `Resource.Factory`, `Condition`)
 - an **`@EPackage` annotation** on the generated package interface, which bnd turns into an `org.eclipse.emf.ecore.generated_package` **Provide-Capability** on the bundle
 
+The generator can be driven from a **bnd workspace** (via `-generate` in `bnd.bnd`) or from a **plain Maven build** (via the `bnd-generate-maven-plugin`). Both are covered below.
+
 ---
 
-## Basic Setup
+## Setup in a bnd Workspace
 
 ### Prerequisites
 
@@ -53,7 +55,78 @@ The first line of the instruction (`model/mymodel.genmodel`) is the **source** b
 
 In addition, bnd's own `-generate` attributes (e.g. `clean`) apply as usual — see the [bnd documentation](https://bnd.bndtools.org/instructions/generate.html).
 
-### The `generated_package` Capability
+---
+
+## Setup in a Maven Build
+
+In a Maven build the generator is invoked through bnd's [`bnd-generate-maven-plugin`](https://github.com/bndtools/bnd/tree/master/maven-plugins/bnd-generate-maven-plugin), which loads `fennecEMF` as an external plugin from the codegen artifact:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.eclipse.fennec.emf</groupId>
+        <artifactId>org.eclipse.fennec.emf.osgi.api</artifactId>
+        <version>${fennec.emf.version}</version>
+    </dependency>
+    <!-- provider bundles whose models you reference (see next section) -->
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>biz.aQute.bnd</groupId>
+            <artifactId>bnd-maven-plugin</artifactId>
+        </plugin>
+        <plugin>
+            <groupId>biz.aQute.bnd</groupId>
+            <artifactId>bnd-generate-maven-plugin</artifactId>
+            <version>${bnd.version}</version>
+            <configuration>
+                <externalPlugins>
+                    <dependency>
+                        <groupId>org.eclipse.fennec.emf</groupId>
+                        <artifactId>org.eclipse.fennec.emf.osgi.codegen</artifactId>
+                        <version>${fennec.emf.version}</version>
+                    </dependency>
+                </externalPlugins>
+                <steps>
+                    <step>
+                        <trigger>src/main/resources/model/mymodel.genmodel</trigger>
+                        <generateCommand>fennecEMF</generateCommand>
+                        <output>src/main/java</output>
+                        <clear>false</clear>
+                        <properties>
+                            <genmodel>src/main/resources/model/mymodel.genmodel</genmodel>
+                            <logfile>codegen.log</logfile>
+                        </properties>
+                    </step>
+                </steps>
+            </configuration>
+            <executions>
+                <execution>
+                    <phase>generate-sources</phase>
+                    <goals>
+                        <goal>generate</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+Notes:
+
+- `<trigger>` plays the role of the instruction source (the generator re-runs when it changes), `<generateCommand>` selects the `fennecEMF` plugin, and everything from the [attribute table](#instruction-attributes) above goes into `<properties>`.
+- The module needs a **`bnd.bnd` file in its root** (an empty one is fine) so the generate plugin treats it as a valid bnd project.
+- With `<output>src/main/java</output>` the generated code lands in the regular source folder; models placed under `src/main/resources/model/` end up at `model/` inside the jar automatically, so no extra include instruction is needed.
+- The module's **Maven `<dependencies>` play the role of the `-buildpath`** when the generator resolves references to models of other bundles (next section).
+
+A complete real-world example is the [sensiNact `testdata` module](https://github.com/eclipse-sensinact/org.eclipse.sensinact.gateway/tree/master/core/models/testdata), whose genmodel additionally references the model of its `provider` dependency (it still uses the generator's former GeckoEMF coordinates — `org.geckoprojects.emf:org.gecko.emf.osgi.codegen` with `generateCommand=geckoEMF`; for Fennec use the coordinates shown above).
+
+---
+
+## The `generated_package` Capability
 
 The generated package interface carries the `@EPackage` annotation from `org.eclipse.fennec.emf.osgi.annotation.provide`. bnd translates it into a bundle capability like:
 
@@ -93,7 +166,7 @@ All forms are normalized to `resource://<name>/<path>`, and **`<name>` — the f
 For each referenced model URI the generator tries, in order:
 
 1. **The current project** — if `<name>` equals the project's own BSN, the file is read from the project directory.
-2. **The `-buildpath`** — every buildpath container whose manifest `Bundle-SymbolicName` equals `<name>` is checked, and the referenced file is read **from inside that jar**. The candidate model files per jar are collected from:
+2. **The `-buildpath`** (in Maven builds: the module's dependencies) — every buildpath container whose manifest `Bundle-SymbolicName` equals `<name>` is checked, and the referenced file is read **from inside that jar**. The candidate model files per jar are collected from:
    - the `org.eclipse.emf.ecore.generated_package` capability (`genModel`, `genModelSourceLocations`, `ecore`, `ecoreSourceLocations`, `uri` attributes), and
    - a scan of the jar for `*.ecore`, `*.genmodel`, and `*.uml` resources.
 3. **A relative filesystem path** as a last resort — the original URI is resolved relative to the project directory, so `../../<siblingProject>/model/other.genmodel` finds the checked-out sibling project in the same workspace directly on disk.
@@ -108,9 +181,9 @@ For a bundle consumed from a repository (Maven, OBR, …) to be referencable, it
    -includeresource.model: model=model
    ```
 
-   The path inside the jar must match the path part of the reference URI (after the BSN segment): a reference `../../<bsn>/model/other.genmodel` expects `model/other.genmodel` inside the jar.
+   The path part of the reference URI (after the BSN segment) must match either the location **inside the jar** — a reference `../../<bsn>/model/other.genmodel` expects `model/other.genmodel` in the jar — or one of the **source locations** advertised by the capability (see below).
 
-2. Ideally, **provide the `generated_package` capability** — automatic when the provider's code was generated with `fennecEMF`. The jar scan in step 2 above finds `*.genmodel`/`*.ecore` files even without the capability, but the capability makes the contract explicit and adds the source-location mappings.
+2. Ideally, **provide the `generated_package` capability** — automatic when the provider's code was generated with `fennecEMF`. The jar scan in step 2 above finds `*.genmodel`/`*.ecore` files even without the capability, but the capability makes the contract explicit and adds the **source-location mappings**: `genModelSourceLocations` / `ecoreSourceLocations` map source-tree paths to the actual jar location. This matters for Maven-built providers, where the genmodel lives at `src/main/resources/model/other.genmodel` in the source tree but at `model/other.genmodel` inside the jar — the capability lets a reference using the source-tree path (as the Eclipse editor writes it) resolve against the jar anyway.
 
 ### Consumer-Side Setup
 
@@ -150,11 +223,17 @@ usedGenPackages="../../org.eclipse.fennec.emf.osgi.example.model.basic/other/mai
                  ../../org.eclipse.emf.ecore/model/Ecore.genmodel#//ecore"
 ```
 
+For a Maven-based pair, see the sensiNact [`testdata` module](https://github.com/eclipse-sensinact/org.eclipse.sensinact.gateway/tree/master/core/models/testdata) (consumer) referencing the model of its `provider` Maven dependency using a source-tree path that resolves through the capability's source-location mapping:
+
+```xml
+usedGenPackages="../../../../../org.eclipse.sensinact.gateway.core.models.provider/src/main/resources/model/sensinact.genmodel#//provider"
+```
+
 ---
 
 ## Troubleshooting
 
-Set the `logfile` attribute on the `-generate` instruction. The generator logs its complete setup (BSN, project directory, all buildpath containers with their candidate model files) and **every resolution attempt** for every referenced URI — which containers were compared, which paths were tried, and where it gave up. When a reference does not resolve, this log is the place to look.
+Set the `logfile` attribute on the `-generate` instruction (in Maven: the `<logfile>` property of the step). The generator logs its complete setup (BSN, project directory, all buildpath containers with their candidate model files) and **every resolution attempt** for every referenced URI — which containers were compared, which paths were tried, and where it gave up. When a reference does not resolve, this log is the place to look.
 
 Common pitfalls:
 
