@@ -10,6 +10,7 @@
 // ci.md, ip-dash notes, root-level working documents) are deliberately NOT
 // listed here and stay unpublished (browsed on GitHub).
 export const GUIDES = [
+  { file: 'docs/code-generation-guide.md', title: 'Code Generation', group: 'User Manual' },
   { file: 'docs/configuration-guide.md', title: 'Configuration Guide', group: 'User Manual' },
   {
     file: 'org.eclipse.fennec.emf.osgi.extender/readme.md',
