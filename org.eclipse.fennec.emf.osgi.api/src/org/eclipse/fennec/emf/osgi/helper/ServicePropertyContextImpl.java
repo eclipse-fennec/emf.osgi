@@ -47,6 +47,7 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 		EMFNamespaces.EMF_MODEL_NSURI,
 		EMFNamespaces.EMF_MODEL_FEATURE,
 		EMFNamespaces.EMF_MODEL_VERSION,
+		EMFNamespaces.EMF_MODEL_FINGERPRINT,
 		EMFNamespaces.EMF_MODEL_CONTENT_TYPE,
 		EMFNamespaces.EMF_MODEL_FILE_EXT,
 		EMFNamespaces.EMF_MODEL_PROTOCOL
