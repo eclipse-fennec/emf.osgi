@@ -12,6 +12,7 @@ Export-Package: \
 	org.eclipse.fennec.emf.osgi.annotation.*,\
 	org.eclipse.fennec.emf.osgi.constants,\
 	org.eclipse.fennec.emf.osgi.fingerprint,\
+	org.eclipse.fennec.emf.osgi.fingerprint.util,\
 	org.eclipse.fennec.emf.osgi.artifact,\
 	org.eclipse.fennec.emf.osgi.provider
 	

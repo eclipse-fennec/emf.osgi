@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.ModelHelper;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.Test;
 
@@ -146,6 +147,9 @@ class ModelHelperTest {
 		assertEquals(EMFNamespaces.MODEL_REGISTRATION_EXTENDER, svcProps.get(EMFNamespaces.EMF_MODEL_REGISTRATION));
 		// Default scope should be "static" when not specified in properties
 		assertEquals(EMFNamespaces.EMF_MODEL_SCOPE_STATIC, svcProps.get(EMFNamespaces.EMF_MODEL_SCOPE));
+		// The fingerprint is part of the shared property core and must match the
+		// static helper's value for the loaded package (issue #54)
+		assertEquals(FingerprintHelper.fingerprint(ePackage), svcProps.get(EMFNamespaces.EMF_MODEL_FINGERPRINT));
 
 		// No errors or warnings expected for a valid ecore
 		assertTrue(diagnostic.errors.isEmpty(), "Expected no errors, got: " + diagnostic.errors);

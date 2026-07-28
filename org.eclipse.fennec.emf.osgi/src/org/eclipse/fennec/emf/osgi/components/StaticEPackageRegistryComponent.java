@@ -15,7 +15,6 @@ package org.eclipse.fennec.emf.osgi.components;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +25,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.ModelPropertiesHelper;
 import org.eclipse.fennec.emf.osgi.helper.DelegatingHashMap;
 import org.eclipse.fennec.emf.osgi.helper.MapChangeListener;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper;
@@ -120,10 +120,10 @@ public class StaticEPackageRegistryComponent implements EPackage.Registry {
 	}
 	
 	private Map<String, Object> getProperties(EPackage ePackage) {
-		Map<String, Object> properties = new HashMap<>();
+		// Shared core (name, nsURI, fingerprint) — the fingerprint is cached per package
+		// instance, so re-running this on every whiteboard change stays cheap.
+		Map<String, Object> properties = ModelPropertiesHelper.modelProperties(ePackage);
 		properties.put(Constants.SERVICE_ID, Long.valueOf(ePackage.getNsURI().hashCode() & 0xFFFFFFFFL));
-		properties.put(EMFNamespaces.EMF_NAME, ePackage.getName());
-		properties.put(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI());
 		return properties;
 	}
 	

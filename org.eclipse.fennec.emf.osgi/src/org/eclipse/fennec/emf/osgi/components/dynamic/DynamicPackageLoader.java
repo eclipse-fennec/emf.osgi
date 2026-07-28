@@ -28,6 +28,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.ModelPropertiesHelper;
 import org.eclipse.fennec.emf.osgi.helper.ServicePropertiesHelper;
 import org.osgi.annotation.bundle.Requirement;
 import org.osgi.framework.BundleContext;
@@ -158,8 +159,9 @@ public class DynamicPackageLoader{
 		requireNonNull(properties);
 		
 		Dictionary<String, Object> props = new Hashtable<>();
-		props.put(EMFNamespaces.EMF_NAME, dynamicPackage.getName());
-		props.put(EMFNamespaces.EMF_MODEL_NSURI, dynamicPackage.getNsURI());
+		// Shared core (name, nsURI, fingerprint). A dynamic package is fingerprinted at
+		// registration; mutating it afterwards is out of contract (M4).
+		ModelPropertiesHelper.modelProperties(dynamicPackage).forEach(props::put);
 		props.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_DYNAMIC);
 		if (config.feature().length > 0) {
 			props.put(EMFNamespaces.EMF_MODEL_FEATURE, config.feature());

@@ -35,6 +35,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.ModelPropertiesHelper;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleRequirement;
@@ -197,17 +198,13 @@ public class ModelHelper {
 			if (properties != null) {
 				properties.forEach(serviceProperties::put);
 			}
-			// N4 fix: guard against null name/nsURI which would cause Hashtable NPE
-			String name = ePackage.getName();
-			if (name != null) {
-				serviceProperties.put(EMFNamespaces.EMF_NAME, name);
-			} else {
+			// Shared core (name, nsURI, fingerprint); the helper skips null name/nsURI —
+			// the diagnostics below keep reporting them (N4 fix: Hashtable NPE guard).
+			ModelPropertiesHelper.modelProperties(ePackage).forEach(serviceProperties::put);
+			if (ePackage.getName() == null) {
 				diagnostic.warnings.add("EPackage at " + url + " has no name");
 			}
-			String nsURI = ePackage.getNsURI();
-			if (nsURI != null) {
-				serviceProperties.put(EMFNamespaces.EMF_MODEL_NSURI, nsURI);
-			} else {
+			if (ePackage.getNsURI() == null) {
 				diagnostic.warnings.add("EPackage at " + url + " has no nsURI");
 			}
 			serviceProperties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
