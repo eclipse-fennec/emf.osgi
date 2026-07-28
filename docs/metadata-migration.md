@@ -528,7 +528,13 @@ computation — it unblocks everything and carries no risk. Then the equivalence
 the non-generated paths.
 
 **Decision:** **(a) decided 2026-07-28** (with M3) — static helper in the core impl bundle,
-runtime computation in Phase 1. **(b)/(c) remain open** until the equivalence gate is green.
+runtime computation in Phase 1. **The equivalence gate is green (2026-07-28, #57,
+`FingerprintEquivalenceGateTest`)**: basic, extended (cross-references to basic and Ecore,
+ExtendedMetaData/Version annotations), Ecore itself and XMLType all yield identical fingerprints
+for `.ecore` and generated code. The predicted proxy risk materialized and is handled: the
+workspace-relative references (`../../org.eclipse.emf.ecore/model/Ecore.ecore`) degrade to
+`"#null"` without codegen-style URI resolution — conservative (false-different), and the gate
+asserts full resolution before comparing. **(b)/(c) are unblocked** and proceed as #58/#59.
 
 ---
 
