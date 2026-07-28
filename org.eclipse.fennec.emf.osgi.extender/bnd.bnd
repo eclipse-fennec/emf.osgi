@@ -7,7 +7,8 @@
 	org.eclipse.emf.common;version=latest,\
 	org.eclipse.emf.ecore;version=latest,\
 	org.eclipse.emf.ecore.xmi;version=latest,\
-	org.eclipse.fennec.emf.osgi.api;version=snapshot
+	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
+	org.eclipse.fennec.emf.osgi;version=project
 	
 Bundle-Name: EMF OSGI Model Extender
 Bundle-Description: EMF OSGi extender implementation for EMF Models

@@ -30,6 +30,7 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.emf.ecore.xml.namespace.XMLNamespacePackage;
 import org.eclipse.emf.ecore.xml.type.XMLTypePackage;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.ModelPropertiesHelper;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;
@@ -70,9 +71,9 @@ public class EcorePackagesRegistrator {
 	public static void start() {
 		synchronized (activateCount) {
 			if(activateCount.incrementAndGet() == 1) {
-				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), EcorePackage.class.getName()}, EcorePackage.eINSTANCE, getServiceProperties(EcorePackage.eINSTANCE, null, EcorePackage.eCONTENT_TYPE, new Version("2002"))));
-				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), XMLTypePackage.class.getName()}, XMLTypePackage.eINSTANCE, getServiceProperties(XMLTypePackage.eINSTANCE, null, null, new Version("2003"))));
-				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), XMLNamespacePackage.class.getName()}, XMLNamespacePackage.eINSTANCE, getServiceProperties(XMLNamespacePackage.eINSTANCE, null, null, new Version("1998"))));
+				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), EcorePackage.class.getName()}, EcorePackage.eINSTANCE, getPackageServiceProperties(EcorePackage.eINSTANCE, EcorePackage.eCONTENT_TYPE, new Version("2002"))));
+				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), XMLTypePackage.class.getName()}, XMLTypePackage.eINSTANCE, getPackageServiceProperties(XMLTypePackage.eINSTANCE, null, new Version("2003"))));
+				registrations.add(bctx.registerService(new String[] {EPackage.class.getName(), XMLNamespacePackage.class.getName()}, XMLNamespacePackage.eINSTANCE, getPackageServiceProperties(XMLNamespacePackage.eINSTANCE, null, new Version("1998"))));
 				
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), XMIResourceFactoryImpl.class.getName()}, new XMIResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{"*", "xmi"}, "application/xmi", new Version("2002"))));
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName(), EcoreResourceFactoryImpl.class.getName()}, new EcoreResourceFactoryImpl(), getServiceProperties(EcorePackage.eINSTANCE, new String[]{ECORE}, EcorePackage.eCONTENT_TYPE, new Version("2002"))));
@@ -80,6 +81,24 @@ public class EcorePackagesRegistrator {
 				registrations.add(bctx.registerService(new String[] {Resource.Factory.class.getName()}, BINARY_FACTORY, getServiceProperties(EcorePackage.eINSTANCE, new String[]{"bin"}, OCTET_STREAM, new Version("2002"))));
 			}
 		}
+	}
+
+	/**
+	 * Properties for an {@link EPackage} <b>model</b> registration: the shared core
+	 * (name, nsURI, fingerprint) plus registration kind, content type and version. The
+	 * resource-factory registrations deliberately stay on
+	 * {@link #getServiceProperties(EPackage, String[], String, Version)} — a factory is
+	 * not a model version and carries no fingerprint.
+	 */
+	private static Dictionary<String, Object> getPackageServiceProperties(EPackage ePackage, String contentType, Version version) {
+		Dictionary<String, Object> properties = new Hashtable<>();
+		ModelPropertiesHelper.modelProperties(ePackage).forEach(properties::put);
+		properties.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_PROVIDED);
+		if(contentType != null) {
+			properties.put(EMFNamespaces.EMF_MODEL_CONTENT_TYPE, contentType);
+		}
+		properties.put(EMFNamespaces.EMF_MODEL_VERSION, version);
+		return properties;
 	}
 
 	/**
