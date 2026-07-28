@@ -587,8 +587,13 @@ of a published contract. Cost is low and verified: golden-neutral (see M9).
 **Decision (2026-07-28):** **confirmed** — criterion, two-tier list shape and initial content as
 stated above (both GenModel sources out, global `documentation` key out, everything else in;
 `.ecore` is the semantic reference; any content change to the list = new scheme tag).
-Remaining work item: implement in the donor repo before the port, re-verify golden neutrality
-(M9).
+
+**Execution order inverted (2026-07-28): implemented in emf.osgi, not in the donor repo.** The
+donor state stays untouched — the new version simply moves. The proof chain works in either
+order and stays two separate steps: the verbatim port first (goldens prove the port, #53), the
+ignorelist on top (goldens prove neutrality, #52). Precondition holds: no fp1 values circulate
+yet — service properties, manifests and persisted logs all start with Phase 1 in emf.osgi. The
+ignorelist must land **before Phase 1 exit**; after values circulate it is a scheme bump.
 
 ## 4. Clarified understanding — identity semantics (discussion 2026-07-28)
 
@@ -671,8 +676,9 @@ document.
 **Before any code moves**
 
 1. ~~**M11** (seam check)~~ — **decided**: seam confirmed, no pre-freeze signature change;
-   `CanonicalizationScheme` stays internal (source-doc promotion dropped). Remaining pre-freeze
-   work: the **M14 implementation** in the donor repo (golden-neutral per M9).
+   `CanonicalizationScheme` stays internal (source-doc promotion dropped). Remaining work: the
+   **M14 implementation in emf.osgi, after the verbatim port** (#53 → #52; golden-neutral per
+   M9; donor repo stays untouched).
 2. ~~**M6** (property name)~~ — **decided**: `emf.fingerprint`; communicate to the atlas team in
    the weekly.
 3. ~~**M12** (branch hygiene)~~ — **decided**: no branch split, work continues on
@@ -743,6 +749,7 @@ Cross-check before deleting: `grep -rn "metadata-migration" .` in both repos, an
 | 2026-07-28 | Document created. M1–M12 opened from the review of `migration-to-emf-osgi.md` against the verified emf.osgi state. |
 | 2026-07-28 | **M13** opened (static helper, build-time constant, manifest capability, equivalence gate, pin test). **M14** opened (representation independence, annotation ignorelist, scheme-tag rule) as a second Phase 0 gate. **M10 withdrawn** — its rationale was wrong, superseded by M13. M2/M3 gained the build-time caller argument; M4 reduced in scope to the non-generated paths; M9 gained the golden-neutrality check for M14. §1 extended with the verified facts these rest on. Sequencing and §5 updated. |
 | 2026-07-28 | **M1 extended**: one api package per concern (`…osgi.fingerprint`, `…osgi.artifact`). **Work tracking created**: parent issue #51, sub-issues #52–#63. |
+| 2026-07-28 | **M14 execution order inverted**: implemented in emf.osgi on top of the verbatim port (#53 → #52) instead of in the donor repo — the donor state stays untouched, the proof chain (goldens) covers both steps in either order. |
 | 2026-07-28 | **M11 decided** after the seam check: no signature change needed — composite root hashes `(uri, fp)` pairs from single-package calls, Merkle root fits the value format, extensions are additive under `@ProviderType`. Condition: `CanonicalizationScheme` stays internal; the source doc's API promotion is dropped. |
 | 2026-07-28 | **M14 confirmed** (criterion, two-tier ignorelist, initial content; implementation in donor repo pending). **M12 decided**: no branch split — snapshot workflow, recommendation not adopted. **M6 decided**: `emf.fingerprint` in the semantics of the existing `emf.*` properties; atlas informed via weekly. |
 | 2026-07-28 | **M8 decided**: operation-level attachment point stays in the slim model. |
