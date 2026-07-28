@@ -237,8 +237,22 @@ scoped to the JVM run (rebuilds itself through normal re-registration after a re
 warm-up); the cache is internal and **not a seam** — the only pluggable persistence point is the
 `ArtifactStore`; mutation after registration is out of contract, no invalidation machinery.
 Identity semantics underlying this are recorded in §4 (presence-at-registration by ordering,
-benign races, keying rule). The **measurement** on a realistic model set remains a Phase 1 exit
-criterion — record the number here.
+benign races, keying rule).
+
+**Measured (2026-07-28, #56, via `FingerprintCostMeasurement`, warmup 100 / 500 runs, local
+dev machine):**
+
+| Model | uncached median | p95 |
+|---|---|---|
+| Ecore (`EcorePackage`, incl. generics) | 127 µs | 179 µs |
+| XMLType (~55 data types) | 91 µs | 108 µs |
+| synthetic 200 classes × 10 attributes | 507 µs | 755 µs |
+| **cached lookup** (the re-aggregation hot path) | **0.2 µs** | 0.2 µs |
+
+Conclusion: the uncached computation is a one-time cost per registration in the 0.1–0.5 ms
+range (50 large models ≈ 25 ms once); the cached lookup makes the whiteboard re-aggregation
+path effectively free. No further optimization warranted. The measurement class stays in the
+repo `@Disabled` for re-runs.
 
 ---
 
