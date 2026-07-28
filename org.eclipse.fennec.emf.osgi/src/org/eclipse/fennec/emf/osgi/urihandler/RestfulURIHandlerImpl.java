@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -70,6 +71,8 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	private static final String PROP_ECLASS = "EClass";
 	/** HTTP_PUT */
 	private static final String HTTP_PUT = "PUT";
+	/** Upper bound for the error body appended to exception messages */
+	private static final int MAX_ERROR_BODY_BYTES = 8 * 1024;
 	private static final Logger LOG = Logger.getLogger(RestfulURIHandlerImpl.class.getName());
 
 	/*
@@ -123,8 +126,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 						break;
 					}
 					default: {
-						throw new IOException(httpURLConnection.getRequestMethod() + ERROR_WITH_RESPONSE_CODE
-								+ responseCode);
+						throw httpError(httpURLConnection, responseCode, readErrorBody(in));
 					}
 					}
 				} finally {
@@ -187,10 +189,8 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 
 				@Override
 				public void close() throws IOException {
-					super.close();
-
 					int responseCode = httpURLConnection.getResponseCode();
-					httpURLConnection.disconnect();
+					IOException failure = null;
 					switch (responseCode) {
 					case HttpURLConnection.HTTP_OK:
 					case HttpURLConnection.HTTP_CREATED:
@@ -198,9 +198,15 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 						break;
 					}
 					default: {
-						throw new IOException(httpURLConnection.getRequestMethod() + ERROR_WITH_RESPONSE_CODE
-								+ responseCode);
+						// the wrapped stream is the error stream here; drain what the
+						// caller has not consumed before it is closed
+						failure = httpError(httpURLConnection, responseCode, readErrorBody(in));
 					}
+					}
+					super.close();
+					httpURLConnection.disconnect();
+					if (failure != null) {
+						throw failure;
 					}
 				}
 
@@ -236,7 +242,14 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 			throws IOException {
 		InputStream result = httpURLConnection.getErrorStream();
 		if (result == null) {
-			result = httpURLConnection.getInputStream();
+			if (httpURLConnection.getResponseCode() >= HttpURLConnection.HTTP_BAD_REQUEST) {
+				// error response without a body (e.g. with output streaming);
+				// getInputStream() would throw the raw JDK exception here, so let
+				// the callers report the failure from the status code instead
+				result = InputStream.nullInputStream();
+			} else {
+				result = httpURLConnection.getInputStream();
+			}
 		}
 		if (Boolean.TRUE.equals(options.get(EMFUriHandlerConstants.OPTIONS_LOG_RESPONSE))) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -252,9 +265,46 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 		return result;
 	}
 
+	/**
+	 * Reads the HTTP error body from the given stream, capped at
+	 * {@link #MAX_ERROR_BODY_BYTES}. Never throws: the response body is
+	 * best-effort context and must not mask the status code.
+	 *
+	 * @param in the error stream, may be <code>null</code> or already partly
+	 *            consumed
+	 * @return the remaining body content, or an empty string
+	 */
+	private String readErrorBody(InputStream in) {
+		if (in == null) {
+			return "";
+		}
+		try {
+			return new String(in.readNBytes(MAX_ERROR_BODY_BYTES), StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			return "";
+		}
+	}
+
+	/**
+	 * Creates the {@link IOException} for a non-2xx response, appending the error
+	 * body to the message if one is available
+	 *
+	 * @param httpURLConnection the connection that returned the error
+	 * @param responseCode      the HTTP status code
+	 * @param errorBody         the response body, may be empty
+	 * @return the exception to throw
+	 */
+	private IOException httpError(HttpURLConnection httpURLConnection, int responseCode, String errorBody) {
+		String message = httpURLConnection.getRequestMethod() + ERROR_WITH_RESPONSE_CODE + responseCode;
+		if (!errorBody.isBlank()) {
+			message += ": " + errorBody;
+		}
+		return new IOException(message);
+	}
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.eclipse.emf.ecore.resource.impl.URIHandlerImpl#delete(org.eclipse.emf.
 	 * common.util.URI, java.util.Map)
@@ -271,17 +321,20 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 					(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 			httpURLConnection.setRequestMethod(HTTP_DELETE);
 			int responseCode = httpURLConnection.getResponseCode();
-			httpURLConnection.disconnect();
-			switch (responseCode) {
-			case HttpURLConnection.HTTP_OK:
-			case HttpURLConnection.HTTP_ACCEPTED:
-			case HttpURLConnection.HTTP_NO_CONTENT: {
-				break;
-			}
-			default: {
-				throw new IOException(
-						httpURLConnection.getRequestMethod() + ERROR_WITH_RESPONSE_CODE + responseCode);
-			}
+			try {
+				switch (responseCode) {
+				case HttpURLConnection.HTTP_OK:
+				case HttpURLConnection.HTTP_ACCEPTED:
+				case HttpURLConnection.HTTP_NO_CONTENT: {
+					break;
+				}
+				default: {
+					throw httpError(httpURLConnection, responseCode,
+							readErrorBody(httpURLConnection.getErrorStream()));
+				}
+				}
+			} finally {
+				httpURLConnection.disconnect();
 			}
 		} catch (RuntimeException exception) {
 			throw new Resource.IOWrappedException(exception);

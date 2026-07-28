@@ -86,6 +86,8 @@ In a BND workspace, code generation is configured in `bnd.bnd`:
 -includeresource: model=model
 ```
 
+See the [Code Generation Guide](docs/code-generation-guide.md) for all instruction attributes and for referencing models from other bundles (`usedGenPackages`).
+
 ### 2. Model Extender
 
 The extender (`org.eclipse.fennec.emf.osgi.extender`) automatically discovers and registers `.ecore` models from bundles at runtime -- no code generation required.
@@ -183,6 +185,7 @@ See the [Configuration Guide](docs/configuration-guide.md) for full details, fac
 The user documentation is published at
 **<https://eclipse-fennec.github.io/emf.osgi/snapshot/>**. Sources:
 
+- [Code Generation Guide](docs/code-generation-guide.md) -- Generating OSGi-compatible model code and referencing models from other bundles
 - [Configuration Guide](docs/configuration-guide.md) -- Configuring EMF components via OSGi Configuration Admin
 - [Extender Documentation](org.eclipse.fennec.emf.osgi.extender/readme.md) -- Automatic model registration from bundles
 - [EMF Delegate Registries](docs/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries
