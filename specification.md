@@ -138,6 +138,8 @@ src=${^src},src-gen
 EMF_NAME = "emf.name"                    // String[] - model names
 EMF_MODEL_NSURI = "emf.nsURI"           // String[] - namespace URIs
 EMF_MODEL_VERSION = "emf.version"        // String - model version
+EMF_MODEL_FINGERPRINT = "emf.fingerprint" // String - canonical content-derived
+                                         // model-version fingerprint, e.g. "fp1:9f86d0..."
 
 // Resource Factory Properties  
 EMF_MODEL_FILE_EXT = "emf.fileExtension" // String[] - file extensions
@@ -152,6 +154,37 @@ EMF_MODEL_REGISTRATION = "emf.registration" // provided|dynamic|extender|interna
 EMF_MODEL_FEATURE = "emf.feature"        // String[] - feature identifiers
 // emf.feature.* → forwarded as custom properties
 ```
+
+### Model-Version Fingerprint
+
+Every `EPackage` registered through a framework path (static registry, Ecore packages,
+dynamic loader, extender) carries `emf.fingerprint`: a canonical, content-derived hash of
+the model — value format `<scheme>:<digest>`, currently `fp1:<sha256-hex>`.
+
+Its guarantees, in one line each:
+
+- **Reproducible** — same model content yields the same value on every node, independent
+  of object identity, registration order or serialization form (`.ecore`, generated code).
+- **Identifying** — structurally different content yields a different value; **the nsURI
+  alone is never the key**. Two packages sharing one nsURI carry distinct fingerprints.
+- **Canonical** — irrelevant differences (classifier order, documentation annotations,
+  GenModel tooling configuration such as `basePackage` or `complianceLevel`) do not
+  affect the value. Behaviour-relevant annotations (`ExtendedMetaData`, delegates,
+  mappings) do.
+
+The value is **always computed at registration time** by the framework — an incoming
+`emf.fingerprint` property is never adopted. Like the other identity properties it is
+aggregated up to the registry, `ResourceSetFactory` and `ResourceSet` services, so a
+consumer can bind to an exact model version:
+
+```java
+@Reference(target = "(emf.fingerprint=fp1:9f86d0...)")
+ResourceSetFactory factory;
+```
+
+Programmatic access: `FingerprintService` (OSGi service) or the static
+`FingerprintHelper` / `ModelPropertiesHelper` in
+`org.eclipse.fennec.emf.osgi.fingerprint.util`.
 
 ## Dependency Management
 

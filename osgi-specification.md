@@ -65,6 +65,8 @@ A central concept is the advertisement of capabilities through OSGi service prop
 
 For example, a service registered with the property `(emf.nsURI=http://www.example.org/my/model/1.0)` advertises that it provides the EPackage for that specific namespace.
 
+Because a namespace URI does not change when the model content evolves, every registered `EPackage` additionally carries `emf.fingerprint` — a canonical, content-derived hash of the model version (e.g. `fp1:9f86d0…`), computed by the framework at registration time. Where two packages share one nsURI, their fingerprints differ, so the fingerprint — never the nsURI alone — is the key for exact model-version identity.
+
 Consumers can then use these properties in OSGi filters to find the exact services they need. A consumer wanting a `ResourceSet` capable of handling the model above can use a target filter like `(emf.nsURI=http://www.example.org/my/model/1.0)`. The Fennec EMF OSGi implementation ensures that the delivered `ResourceSet` is correctly configured with the requested model.
 
 ### 2.4 Provider and Consumer Roles
