@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.eclipse.emf.ecore.EAnnotation;
@@ -46,10 +47,14 @@ import org.eclipse.emf.ecore.ETypeParameter;
  *   <li>Structural features, operations, parameters, supertypes, type parameters and enum
  *       literals are emitted in <b>declared order</b> — order is meaningful
  *       (feature/operation IDs, inherited feature order, type-parameter position).</li>
- *   <li>EAnnotations are emitted sorted by source, their details sorted by key; the
- *       GenModel <b>{@code documentation}</b> detail is excluded, and an annotation
- *       left with no remaining details is dropped entirely — so documentation-only
- *       metadata never affects the fingerprint.</li>
+ *   <li>EAnnotations are emitted sorted by source, their details sorted by key.
+ *       <b>Tooling-configuration sources are excluded entirely</b> (the GenModel
+ *       namespaces): they configure how the Java artifact is generated — base package,
+ *       compliance level — never the observable behaviour of the model. An annotation is
+ *       fingerprint-relevant when it affects structure, validation, serialization
+ *       (ExtendedMetaData!), mapping or delegates. The <b>{@code documentation}</b>
+ *       detail is excluded under <em>every</em> source, and an annotation left with no
+ *       remaining details is dropped entirely.</li>
  *   <li>Type references use a stable {@code nsURI#Name} key, so they resolve
  *       identically regardless of resource/serialization state.</li>
  *   <li>Operation exceptions are sorted — they are a set, their order carries no meaning.</li>
@@ -82,6 +87,26 @@ final class Fp1CanonicalizationScheme implements CanonicalizationScheme {
     static final String TAG = "fp1";
 
     private static final String DOCUMENTATION_KEY = "documentation";
+
+    /**
+     * Annotation sources excluded from the canonical form as a whole: everything under
+     * them is tooling configuration (how the Java artifact is generated), never model
+     * content. Two GenModel namespaces exist in the wild (EMF and UML2), hence a list.
+     * <p>
+     * <b>This list is part of the frozen {@code fp1} contract.</b> Any content change
+     * moves the fingerprints of models carrying such annotations and is therefore a new
+     * scheme tag, not an edit here.
+     */
+    private static final Set<String> IGNORED_SOURCES = Set.of(
+            "http://www.eclipse.org/emf/2002/GenModel",
+            "http://www.eclipse.org/uml2/2.2.0/GenModel");
+
+    /**
+     * Second tier of the ignorelist: detail keys excluded per source. Deliberately empty
+     * in {@code fp1} — the tier exists so the shape is settled; populating it is a new
+     * scheme tag for the same reason as above.
+     */
+    private static final Map<String, Set<String>> IGNORED_KEYS_BY_SOURCE = Map.of();
 
     @Override
     public String tag() {
@@ -350,20 +375,31 @@ final class Fp1CanonicalizationScheme implements CanonicalizationScheme {
     }
 
     /**
-     * Emits annotations sorted by source with details sorted by key, excluding the
-     * GenModel {@code documentation} detail. Annotations left without any relevant
-     * detail are dropped, so documentation-only metadata is invisible to the fingerprint.
+     * Emits annotations sorted by source with details sorted by key, applying the
+     * two-tier ignorelist: {@link #IGNORED_SOURCES} drops whole annotations (tooling
+     * configuration), {@link #IGNORED_KEYS_BY_SOURCE} and the global
+     * {@code documentation} key drop single details. Annotations left without any
+     * relevant detail are dropped, so documentation-only metadata is invisible to the
+     * fingerprint.
      */
     private void appendAnnotations(StringBuilder sb, EModelElement element) {
         // Sort annotations by source.
         List<EAnnotation> annotations = new ArrayList<>(element.getEAnnotations());
         annotations.sort(Comparator.comparing(EAnnotation::getSource, Comparator.nullsFirst(Comparator.naturalOrder())));
         for (EAnnotation annotation : annotations) {
+            String source = annotation.getSource();
+            if (source != null && IGNORED_SOURCES.contains(source)) {
+                continue; // tooling configuration -> never model content
+            }
+            Set<String> ignoredKeys = source == null
+                    ? Set.of() : IGNORED_KEYS_BY_SOURCE.getOrDefault(source, Set.of());
             Map<String, String> details = new TreeMap<>();
             for (Map.Entry<String, String> entry : annotation.getDetails()) {
-                if (!DOCUMENTATION_KEY.equals(entry.getKey())) {
-                    details.put(entry.getKey(), entry.getValue());
+                String key = entry.getKey();
+                if (DOCUMENTATION_KEY.equals(key) || (key != null && ignoredKeys.contains(key))) {
+                    continue;
                 }
+                details.put(key, entry.getValue());
             }
             if (details.isEmpty()) {
                 continue; // documentation-only (or empty) annotation -> not log-relevant
