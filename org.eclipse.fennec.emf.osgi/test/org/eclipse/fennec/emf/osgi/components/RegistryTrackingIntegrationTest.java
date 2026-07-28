@@ -55,7 +55,8 @@ public class RegistryTrackingIntegrationTest {
         trackingService = new RegistryTrackingServiceComponent();
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     @Timeout(5)
     void testManualEPackageConfiguratorRegistrationTriggersListener() throws InterruptedException {
         // Given - Simulate the scenario described: manual EPackageConfigurator registration
@@ -119,7 +120,8 @@ public class RegistryTrackingIntegrationTest {
         assertEquals("true", receivedProperties.get("manual.configurator.registered"));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     void testMultipleListenersReceiveNotifications() {
         // Given - Multiple listeners interested in the same service
         Long serviceId = 2000L;

@@ -13,6 +13,8 @@ src=${^src},src-gen
 	org.osgi.annotation.bundle;version=latest
 	
 -includeresource.model: model=model
+
+-diffignore: *
 	
 -dependson: \
 	org.eclipse.fennec.emf.osgi.codegen,\

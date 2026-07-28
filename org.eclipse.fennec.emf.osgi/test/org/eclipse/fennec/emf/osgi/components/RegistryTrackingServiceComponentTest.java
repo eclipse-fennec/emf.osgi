@@ -212,7 +212,8 @@ public class RegistryTrackingServiceComponentTest {
         assertEquals("xml", retrievedProperties.get("resource.factory.extension"));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     void testUpdateResourceFactoryRegistryTriggersListener() {
         // Given
         Long serviceId = 500L;
@@ -237,7 +238,8 @@ public class RegistryTrackingServiceComponentTest {
         );
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     void testListenerNotCalledForUnregisteredServices() {
         // Given
         Long trackedServiceId = 600L;
