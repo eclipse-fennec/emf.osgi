@@ -75,6 +75,9 @@ public class EMFNamespaces {
 	public static final String EMF_MODEL_FILE_EXT = EMF_PREFIX + "fileExtension";
 	// Attribute name for the EMF model version
 	public static final String EMF_MODEL_VERSION = EMF_PREFIX + "version";
+	// Attribute name for the canonical, content-derived model-version fingerprint.
+	// Computed at registration time, never adopted from an incoming property.
+	public static final String EMF_MODEL_FINGERPRINT = EMF_PREFIX + "fingerprint";
 	// Attribute name for the EMF model feature
 	public static final String EMF_MODEL_FEATURE = EMF_PREFIX + "feature";
 	// Attribute name for the EMF dynamic model configurator ecore path '<bsn>:(<version>)/(<path>)/<file>.ecore'
