@@ -12,3 +12,5 @@ Bundle-Name: EMF Model Extender Sample Model
 Bundle-Description: Eclipse Fennec EMF OSGi Model Extender Sample Model
 
 -buildpath: org.eclipse.fennec.emf.osgi.api;version=snapshot
+
+-diffignore: *

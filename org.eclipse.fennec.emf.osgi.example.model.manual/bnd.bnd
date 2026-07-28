@@ -21,3 +21,5 @@ src=${^src},src-gen
 #		generate="fennecEMF  1>out.log 2>err.log";\
 #		genmodel=model/manual.genmodel;\
 #		output=src-gen
+
+-diffignore: *

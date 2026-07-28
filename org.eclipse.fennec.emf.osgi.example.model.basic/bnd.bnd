@@ -24,3 +24,5 @@ src=${^src},src-gen
 		version=${base-version};\
 		clean=false;\
 		logfile=out.log
+		
+-diffignore: *

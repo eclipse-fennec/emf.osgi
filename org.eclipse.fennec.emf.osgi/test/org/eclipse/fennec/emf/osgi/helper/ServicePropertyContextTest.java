@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.eclipse.fennec.emf.osgi.helper.ServicePropertyContext;
 import org.junit.jupiter.api.Test;
 import org.osgi.framework.Constants;
 
@@ -38,7 +37,7 @@ import org.osgi.framework.Constants;
  * @author Mark Hoffmann
  * @since 06.11.2023
  */
-@java.lang.SuppressWarnings({"java:S5786"})
+@SuppressWarnings({"java:S5786"})
 public class ServicePropertyContextTest {
 
 	@Test
