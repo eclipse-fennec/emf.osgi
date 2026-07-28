@@ -2,6 +2,7 @@
 	org.eclipse.fennec.emf.osgi.components,\
 	org.eclipse.fennec.emf.osgi.components.config,\
 	org.eclipse.fennec.emf.osgi.components.dynamic,\
+	org.eclipse.fennec.emf.osgi.components.fingerprint,\
 	org.eclipse.fennec.emf.osgi.ecore,\
 	org.eclipse.fennec.emf.osgi.factory,\
 	org.eclipse.fennec.emf.osgi.urihandler
@@ -12,6 +13,8 @@ Export-Package: \
 	org.eclipse.fennec.emf.osgi.configurator,\
 	org.eclipse.fennec.emf.osgi.annotation.*,\
 	org.eclipse.fennec.emf.osgi.constants,\
+	org.eclipse.fennec.emf.osgi.fingerprint,\
+	org.eclipse.fennec.emf.osgi.artifact,\
 	org.eclipse.fennec.emf.osgi.components.config,\
 	org.eclipse.fennec.emf.osgi.provider,\
 	org.eclipse.fennec.emf.osgi.resourceset

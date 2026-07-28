@@ -11,10 +11,13 @@
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
 /**
- * 
+ * Fingerprint-keyed storage for derived artifacts.
+ * <p>
+ * Ported from {@code org.eclipse.fennec.model.metadata.api}; see
+ * {@code docs/metadata-migration.md}.
+ *
  * @author Mark Hoffmann
- * @since 15.12.2023
  */
-@org.osgi.annotation.versioning.Version("1.1.0")
+@org.osgi.annotation.versioning.Version("1.0")
 @org.osgi.annotation.bundle.Export
-package org.eclipse.fennec.emf.osgi.constants;
+package org.eclipse.fennec.emf.osgi.artifact;
