@@ -106,8 +106,22 @@ public class EMFModelExtenderTest {
 	public void simpleTestEPackageRegistrationProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
 		assertNotNull(epackageAware);
 		assertThat(epackageAware.isEmpty()).isFalse();
-		DictionaryAssert.assertThat(epackageAware.getServiceReference().getProperties()).containsKey(EMFNamespaces.EMF_MODEL_REGISTRATION)	
+		DictionaryAssert.assertThat(epackageAware.getServiceReference().getProperties()).containsKey(EMFNamespaces.EMF_MODEL_REGISTRATION)
 		.extractingByKey(EMFNamespaces.EMF_MODEL_REGISTRATION).isEqualTo(EMFNamespaces.MODEL_REGISTRATION_EXTENDER);
+	}
+
+	/**
+	 * Verifies that the extender path registers the {@link EPackage} service with the
+	 * {@code emf.fingerprint} property present from the first instant (issue #55).
+	 */
+	@Test
+	public void simpleTestEPackageFingerprintProperty(@InjectService(filter = "(" + EMFNamespaces.EMF_NAME + "=manual)") ServiceAware<EPackage> epackageAware) {
+		assertNotNull(epackageAware);
+		assertThat(epackageAware.isEmpty()).isFalse();
+		Object fingerprint = epackageAware.getServiceReference().getProperty(EMFNamespaces.EMF_MODEL_FINGERPRINT);
+		assertNotNull(fingerprint);
+		assertThat(fingerprint).isInstanceOf(String.class);
+		assertThat((String) fingerprint).startsWith("fp1:");
 	}
 	
 	/**
