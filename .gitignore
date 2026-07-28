@@ -35,3 +35,5 @@ Archive
 /generated/
 /bin/
 /bin_test/
+# Local Claude Code settings (per-developer permissions)
+.claude/settings.local.json
