@@ -122,7 +122,8 @@ public class RegistryTrackingServiceComponentTest {
         assertEquals("http://test.example/model", retrievedProperties.get(EMFNamespaces.EMF_MODEL_NSURI));
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     void testUpdateEPackageRegistryTriggersListener() {
         // Given
         Long serviceId = 200L;
