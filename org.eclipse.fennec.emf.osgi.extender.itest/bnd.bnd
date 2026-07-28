@@ -12,4 +12,7 @@ Test-Cases: ${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.
 Bundle-Name: EMF Model Extender Tests
 Bundle-Description: Eclipse Fennec EMF OSGi model extender integration tests
 
--dependson: org.eclipse.fennec.emf.osgi.example.model.extender
+-dependson: \
+	org.eclipse.fennec.emf.osgi.example.model.extender,\
+	org.eclipse.fennec.emf.osgi.extender,\
+	org.eclipse.fennec.emf.osgi
