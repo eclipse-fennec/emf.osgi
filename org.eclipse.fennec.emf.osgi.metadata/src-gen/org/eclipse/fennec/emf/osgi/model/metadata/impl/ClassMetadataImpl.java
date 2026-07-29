@@ -39,6 +39,7 @@ import org.eclipse.fennec.emf.osgi.model.metadata.MetadataDiagnostic;
 import org.eclipse.fennec.emf.osgi.model.metadata.MetadataPackage;
 import org.eclipse.fennec.emf.osgi.model.metadata.OperationMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.ParameterMetadata;
 
 /**
  * <!-- begin-user-doc -->
@@ -274,8 +275,16 @@ public class ClassMetadataImpl extends MinimalEObjectImpl.Container implements C
 		        result.addAll(classMetadata.getAllDiagnostics());
 		    }
 		} else if (eClassType == MetadataPackage.Literals.CLASS_METADATA) {
-		    for (FeatureMetadata featureMetadata : ((ClassMetadata) this).getFeatures()) {
+		    ClassMetadata classMetadata = (ClassMetadata) this;
+		    for (FeatureMetadata featureMetadata : classMetadata.getFeatures()) {
 		        result.addAll(featureMetadata.getAllDiagnostics());
+		    }
+		    for (OperationMetadata operationMetadata : classMetadata.getOperations()) {
+		        result.addAll(operationMetadata.getAllDiagnostics());
+		    }
+		} else if (eClassType == MetadataPackage.Literals.OPERATION_METADATA) {
+		    for (ParameterMetadata parameterMetadata : ((OperationMetadata) this).getParameters()) {
+		        result.addAll(parameterMetadata.getAllDiagnostics());
 		    }
 		}
 		return result;

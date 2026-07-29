@@ -843,6 +843,43 @@ the api bundle on its buildpath — the static `FingerprintHelper` of M3 is for 
 for an ordinary consumer. 13 unit tests cover the invariants that would otherwise fail silently:
 dedupe, coexistence, per-version unbind, pull-path survival, contribution-before-publication.
 
+**Acceptance suite ported 2026-07-29 (#62).** The atlas#156 multi-version tests move over as 20
+tests, invariants unchanged, only `Optional` instead of `null`: unregister-one-keep-the-survivor
+(at service and at index level, in both directions), coexistence of diverging content under one
+nsURI, dedupe of identical content across instances, fingerprint lookup, the stateless pull path,
+version enumeration, and the generics case where two versions differ *only* in a type argument.
+
+**The `allDiagnostics` gap from #60 is closed.** The deferred question was whether the donor's
+omission — operation and parameter diagnostics never reaching `ClassMetadata` — was a decision to
+preserve. It was not: the donor's own diagnostics test never touches operations, so nothing
+depended on it. With operations a first-class attachment point (M8), the roll-up now includes
+them, and `OperationMetadata` rolls up its parameters. Aspect entry diagnostics stay out, now for
+a stated reason rather than by inheritance: an entry belongs to its contributor, and a failure
+while building one says nothing about the health of the element carrying it.
+
+Two findings from making that change, both of which will bite again:
+
+- **The genmodel caches the `get` body, and the build reads the cache.** The derived-feature body
+  lives in the `.ecore` as a GenModel annotation, but the genmodel keeps a copy of it in a
+  `get="…"` attribute on the `GenFeature`, and that copy is what the generator uses. Editing the
+  `.ecore` alone therefore changes nothing, while the *documentation* of the same feature does
+  come from the `.ecore` — one file, two sources, drifting in opposite directions.
+  <br>Deleting the attribute does **not** fix this permanently: Eclipse re-adds it, refreshed from
+  the `.ecore`, whenever the genmodel is opened or saved. So the `.ecore` stays the source of
+  truth and the genmodel is a cache — but a cache the IDE refreshes, not the build. **After
+  editing a body annotation, refresh the genmodel in the IDE and commit it along with the
+  `.ecore`.** Nothing catches a missed refresh: a body change does not move the model fingerprint
+  (see below), so the pin test stays green.
+- **A changed `.ecore` does not trigger regeneration.** The `-generate` instruction names the
+  *genmodel* as its source, so bnd sees no input change when only the `.ecore` is edited, and even
+  `--rerun-tasks` reuses the existing `src-gen` because JMerge keeps existing members. A model
+  change therefore needs `src-gen` removed and regenerated. The pin test from #58 is the safety
+  net: a stale `src-gen` whose fingerprint no longer matches fails the build.
+
+Confirming M14 from the other side: changing the `get` body and the documentation did **not**
+change the model fingerprint. Both are tooling configuration, not model content — exactly the
+representation independence the ignorelist exists for.
+
 Phases 3 (codec) and 4 (decommission) stay as described in the source document; nothing in this
 document changes them — except for one added item: **removing this document** (§6).
 
