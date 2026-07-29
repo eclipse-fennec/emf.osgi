@@ -108,7 +108,8 @@ fi
 # ---- 1) export the dependency list ----------------------------------------
 echo ">> Exporting dependency GAVs with 'bnd repo deps' ..."
 ( cd "$ROOT" && java -jar "$BND_JAR" repo deps -o "$DEPS" )
-echo ">> $(wc -l < "$DEPS" | tr -d ' ') dependencies written to $DEPS"
+DEP_COUNT="$(wc -l < "$DEPS" | tr -d ' ')"
+echo ">> $DEP_COUNT dependencies written to $DEPS"
 
 # ---- 2) run dash-licenses -------------------------------------------------
 DASH_ARGS=("$DEPS" -summary "$SUMMARY")
@@ -129,7 +130,36 @@ RC=$?
 set -e
 
 echo ">> DEPENDENCIES written to $SUMMARY"
-if [[ $RC -ne 0 ]]; then
-  echo ">> $RC dependency/dependencies are restricted (need IP review). See output above."
+
+# dash-licenses returns the number of restricted dependencies as its exit code.
+# That only holds while it terminates normally: a crash, a kill or a missing
+# command produces 1, 126, 127, 137, 143 … — values that are indistinguishable
+# from a count. Reporting those as "N restricted" sends the reader looking for a
+# license problem that does not exist, which is exactly what happened when a
+# ClearlyDefined query hung on 2026-07-28: exit 127 was printed as "127
+# restricted" although the workspace has ~121 dependencies in total.
+#
+# A count can never exceed the number of dependencies we asked about, so that is
+# the discriminator. Tool failures exit 2 — still a red build, but a different
+# message and a different reason.
+SUMMARY_LINES=0
+[[ -f "$SUMMARY" ]] && SUMMARY_LINES="$(wc -l < "$SUMMARY" | tr -d ' ')"
+
+if [[ $RC -eq 0 ]]; then
+  if [[ "$SUMMARY_LINES" -lt "$DEP_COUNT" ]]; then
+    echo ">> WARNING: $SUMMARY holds $SUMMARY_LINES of $DEP_COUNT dependencies — the tool" >&2
+    echo ">>          answered for fewer than we asked about. Treat the result as partial." >&2
+  fi
+  exit 0
 fi
-exit $RC
+
+if [[ $RC -le $DEP_COUNT ]]; then
+  echo ">> $RC of $DEP_COUNT dependency/dependencies are restricted (need IP review). See output above."
+  exit $RC
+fi
+
+echo ">> ERROR: dash-licenses exited with $RC, which cannot be a count — there are only" >&2
+echo ">>        $DEP_COUNT dependencies. The tool terminated abnormally (network timeout," >&2
+echo ">>        killed process, out of memory); this is NOT a license finding." >&2
+echo ">>        $SUMMARY holds $SUMMARY_LINES line(s). Re-run before investigating IP." >&2
+exit 2
