@@ -578,7 +578,7 @@ public class PackageClass
     stringBuffer.append(genPackage.getPackageInterfaceName());
     stringBuffer.append(TEXT_26);
     stringBuffer.append(fingerprintAttribute);
-
+    
 if (hasGenModel) { 
     stringBuffer.append(TEXT_27);
     stringBuffer.append(relativeGenmodelPath);
