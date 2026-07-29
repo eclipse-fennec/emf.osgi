@@ -113,11 +113,18 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 
 	/**
 	 * Creates a service over an existing registry, e.g. one read back from an index.
+	 * <p>
+	 * Starts with an in-memory index already in place. Without one, every URI and name
+	 * lookup would answer empty until something binds an index - a silent, hard-to-place
+	 * gap. A bound index replaces this default.
 	 *
 	 * @param registry the registry to use; must not be {@code null}
 	 */
 	public MetadataServiceImpl(MetadataRegistry registry) {
 		this.registry = Objects.requireNonNull(registry, "registry");
+		MetadataIndex defaultIndex = new MapBasedMetadataIndex();
+		this.registry.getPackages().forEach(defaultIndex::indexPackage);
+		this.index = defaultIndex;
 	}
 
 	/**

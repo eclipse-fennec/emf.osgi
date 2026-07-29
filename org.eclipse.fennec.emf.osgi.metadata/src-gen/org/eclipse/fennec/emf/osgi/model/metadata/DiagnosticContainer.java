@@ -62,9 +62,11 @@ public interface DiagnosticContainer extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * <!-- begin-model-doc -->
-	 * All diagnostics from this element and its contained metadata subtree. For FeatureMetadata and ParameterMetadata: same as diagnostics (leaf node). For ClassMetadata: own diagnostics + all feature diagnostics. For PackageMetadata: own diagnostics + all class allDiagnostics.
+	 * All diagnostics from this element and its contained metadata subtree. For FeatureMetadata and ParameterMetadata: same as diagnostics (leaf node). For OperationMetadata: own diagnostics + all parameter diagnostics. For ClassMetadata: own diagnostics + all feature and operation diagnostics. For PackageMetadata: own diagnostics + all class allDiagnostics.
 	 * 
-	 * Two deliberate gaps, carried over unchanged from the donor model so the WP6 acceptance suite keeps its expected values: aspect entry diagnostics are managed separately and not aggregated here, and operation/parameter diagnostics do not reach ClassMetadata. Revisit both when the suite is ported (issue #62), not before.
+	 * Aspect entry diagnostics are deliberately not aggregated: an entry belongs to its contributor, and a problem while building one says nothing about the health of the metadata element that carries it. Read them from AspectEntry.diagnostics.
+	 * 
+	 * The donor model stopped the aggregation at features, so operation and parameter diagnostics never reached the class - a gap, not a decision, and nothing depended on it (issue #62).
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>All Diagnostics</em>' reference list.
 	 * @see org.eclipse.fennec.emf.osgi.model.metadata.MetadataPackage#getDiagnosticContainer_AllDiagnostics()
