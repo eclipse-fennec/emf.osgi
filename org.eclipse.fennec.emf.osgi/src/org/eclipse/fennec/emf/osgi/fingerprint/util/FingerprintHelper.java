@@ -23,7 +23,7 @@ import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
 
 /**
  * Static entry point to the fingerprint computation — the primary access for the
- * emission sites (decisions M3/M4 in {@code docs/metadata-migration.md}): service
+ * emission sites: service
  * properties are fixed at registration time, so the computation must not depend on a
  * dynamic service reference. The {@code DefaultFingerprintService} component remains
  * registered as a facade for external consumers.

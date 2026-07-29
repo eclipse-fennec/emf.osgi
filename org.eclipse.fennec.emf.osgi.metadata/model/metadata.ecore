@@ -10,7 +10,7 @@
     <details key="oSGiCompatible" value="true"/>
     <details key="basePackage" value="org.eclipse.fennec.emf.osgi.model"/>
     <details key="resource" value="XMI"/>
-    <details key="documentation" value="Pre-computed metadata mirror tree for EPackages. The tree mirrors the Ecore structure (package, class, feature, operation, parameter) with the values a consumer would otherwise recompute on every access, and carries cross-cutting content through generic aspect entries.&#xA;&#xA;Cut from the model.metadata donor model for the migration into emf.osgi (issue #60, decisions M7/M8): the codec vocabulary (Base*Config, SerializationFormat, TypeStrategy, IdStrategy, IdKeyMode, SuperTypeSelection, EnumSerializationStrategy) and the *Profile hierarchy return to the codec repository, and the typed aspect hierarchy (Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect) is replaced by composition through AspectEntry."/>
+    <details key="documentation" value="Pre-computed metadata mirror tree for EPackages. The tree mirrors the Ecore structure (package, class, feature, operation, parameter) with the values a consumer would otherwise recompute on every access, and carries cross-cutting content through generic aspect entries.&#xA;&#xA;Cut from the model.metadata donor model for the migration into emf.osgi (issue #60): the codec vocabulary (Base*Config, SerializationFormat, TypeStrategy, IdStrategy, IdKeyMode, SuperTypeSelection, EnumSerializationStrategy) and the *Profile hierarchy return to the codec repository, and the typed aspect hierarchy (Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect) is replaced by composition through AspectEntry."/>
     <details key="copyrightText" value="Copyright (c) 2026 Contributors to the Eclipse Foundation.&#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;  Data In Motion Consulting - initial implementation"/>
   </eAnnotations>
   <eClassifiers xsi:type="ecore:EEnum" name="DiagnosticSeverity">
@@ -71,7 +71,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="AspectEntry">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-      <details key="documentation" value="A cross-cutting concern attached to a metadata element - the composition replacement for the donor model's typed aspect hierarchy (decision M7).&#xA;&#xA;One concrete class instead of Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect: providers no longer subclass the metadata model to attach their content, they put their own EObject into the content slot. This is what makes the metadata model independent of its consumers - a provider can ship its content model in its own bundle without this model knowing the type.&#xA;&#xA;The owner is the containing metadata element, reachable via eContainer(). There is no typed back-reference, because one entry type is contained at four different levels; an eOpposite would have to name a single container type."/>
+      <details key="documentation" value="A cross-cutting concern attached to a metadata element - the composition replacement for the donor model's typed aspect hierarchy (issue #60).&#xA;&#xA;One concrete class instead of Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect: providers no longer subclass the metadata model to attach their content, they put their own EObject into the content slot. This is what makes the metadata model independent of its consumers - a provider can ship its content model in its own bundle without this model knowing the type.&#xA;&#xA;The owner is the containing metadata element, reachable via eContainer(). There is no typed back-reference, because one entry type is contained at four different levels; an eOpposite would have to name a single container type."/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
@@ -87,7 +87,7 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="transientContent" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"
         transient="true">
       <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-        <details key="documentation" value="Runtime-only content that cannot or should not be serialized - compiled expressions, caches, handles to live services. Never written to an index and never replicated; a consumer reading a persisted metadata tree must be able to work without it, or rebuild it.&#xA;&#xA;Both slots exist on purpose (M7): forcing serializable content into a transient slot loses it across a restart, forcing runtime state into the content slot breaks serialization."/>
+        <details key="documentation" value="Runtime-only content that cannot or should not be serialized - compiled expressions, caches, handles to live services. Never written to an index and never replicated; a consumer reading a persisted metadata tree must be able to work without it, or rebuild it.&#xA;&#xA;Both slots exist on purpose: forcing serializable content into a transient slot loses it across a restart, forcing runtime state into the content slot breaks serialization."/>
       </eAnnotations>
     </eStructuralFeatures>
     <eStructuralFeatures xsi:type="ecore:EReference" name="diagnostics" upperBound="-1"
@@ -303,7 +303,7 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="OperationMetadata" eSuperTypes="#//DiagnosticContainer">
     <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
-      <details key="documentation" value="Pre-computed metadata for an EOperation: cached properties, the resolved return-type metadata, metadata for all EParameters, and the aspect entries contributed by providers. Contained by ClassMetadata.operations.&#xA;&#xA;The operation level is a first-class attachment point (decision M8): it costs one containment feature now and a model version bump later, and it has plausible first users - constraint expressions attached to operations, for instance."/>
+      <details key="documentation" value="Pre-computed metadata for an EOperation: cached properties, the resolved return-type metadata, metadata for all EParameters, and the aspect entries contributed by providers. Contained by ClassMetadata.operations.&#xA;&#xA;The operation level is a first-class attachment point (issue #60): it costs one containment feature now and a model version bump later, and it has plausible first users - constraint expressions attached to operations, for instance."/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EReference" name="classMetadata" eType="#//ClassMetadata"
         eOpposite="#//ClassMetadata/operations">

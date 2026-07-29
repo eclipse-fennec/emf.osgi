@@ -26,8 +26,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Bind-cost measurement for issue #56 (Phase 1 exit criterion, decision M4 in
- * {@code docs/metadata-migration.md}). Measures the <b>uncached</b> canonicalization +
+ * Bind-cost measurement for issue #56 (Phase 1 exit criterion). Measures the <b>uncached</b> canonicalization +
  * SHA-256 per package — the cost every registration pays exactly once — and the cached
  * lookup that every later property re-aggregation pays.
  * <p>
@@ -36,7 +35,7 @@ import org.junit.jupiter.api.Test;
  * {@code ./gradlew :org.eclipse.fennec.emf.osgi:test --tests '*FingerprintCostMeasurement*'}
  * with the {@code @Disabled} line commented out.
  */
-@Disabled("manual measurement, numbers recorded in docs/metadata-migration.md (M4)")
+@Disabled("manual measurement, numbers recorded in docs/model-fingerprint-guide.md")
 class FingerprintCostMeasurement {
 
     private static final int WARMUP = 100;

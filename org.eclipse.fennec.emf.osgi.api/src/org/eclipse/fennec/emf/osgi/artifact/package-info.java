@@ -13,8 +13,7 @@
 /**
  * Fingerprint-keyed storage for derived artifacts.
  * <p>
- * Ported from {@code org.eclipse.fennec.model.metadata.api}; see
- * {@code docs/metadata-migration.md}.
+ * Ported from {@code org.eclipse.fennec.model.metadata.api}.
  *
  * @author Mark Hoffmann
  */

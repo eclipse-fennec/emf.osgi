@@ -36,7 +36,7 @@ import org.eclipse.fennec.emf.osgi.components.fingerprint.DefaultFingerprintServ
 import org.junit.jupiter.api.Test;
 
 /**
- * The static fingerprint entry point (issue #54, decisions M3/M4): value identity with
+ * The static fingerprint entry point (issue #54): value identity with
  * the service facade, cache soundness across equal-content instances, null handling and
  * benign concurrency.
  */

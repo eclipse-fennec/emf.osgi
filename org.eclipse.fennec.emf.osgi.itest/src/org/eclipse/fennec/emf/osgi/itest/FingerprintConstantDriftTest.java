@@ -36,9 +36,8 @@ import org.osgi.test.junit5.context.BundleContextExtension;
 import org.osgi.test.junit5.service.ServiceExtension;
 
 /**
- * The pin test for the build-time fingerprint constant (issue #58, decision M13b in
- * {@code docs/metadata-migration.md}): generated bundles carry the fingerprint as a
- * literal that the generator computed from the {@code .ecore}, so nothing recomputes it
+ * The pin test for the build-time fingerprint constant (issue #58): generated bundles
+ * carry the fingerprint as a literal that the generator computed from the {@code .ecore}, so nothing recomputes it
  * at bind time and nothing would notice if it went stale.
  * <p>
  * This test is that notice. It compares the registered property against the value the
@@ -115,7 +114,7 @@ public class FingerprintConstantDriftTest {
 	}
 
 	/**
-	 * The manifest capability (#59, decision M13c): the fingerprint written into
+	 * The manifest capability (#59): the fingerprint written into
 	 * {@code Provide-Capability} is the same value the runtime computes. This is the
 	 * assertion that makes the manifest usable without a framework — atlas ingestion, OBR
 	 * indexing and {@code Require-Capability} matching all read this value and never see

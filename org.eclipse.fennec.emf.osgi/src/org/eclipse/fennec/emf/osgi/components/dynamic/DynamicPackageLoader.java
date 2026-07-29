@@ -160,7 +160,7 @@ public class DynamicPackageLoader{
 		
 		Dictionary<String, Object> props = new Hashtable<>();
 		// Shared core (name, nsURI, fingerprint). A dynamic package is fingerprinted at
-		// registration; mutating it afterwards is out of contract (M4).
+		// registration; mutating it afterwards is out of contract.
 		ModelPropertiesHelper.modelProperties(dynamicPackage).forEach(props::put);
 		props.put(EMFNamespaces.EMF_MODEL_REGISTRATION, EMFNamespaces.MODEL_REGISTRATION_DYNAMIC);
 		if (config.feature().length > 0) {

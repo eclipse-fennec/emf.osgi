@@ -26,7 +26,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * <!-- begin-model-doc -->
  * Pre-computed metadata for an EOperation: cached properties, the resolved return-type metadata, metadata for all EParameters, and the aspect entries contributed by providers. Contained by ClassMetadata.operations.
  * 
- * The operation level is a first-class attachment point (decision M8): it costs one containment feature now and a model version bump later, and it has plausible first users - constraint expressions attached to operations, for instance.
+ * The operation level is a first-class attachment point (issue #60): it costs one containment feature now and a model version bump later, and it has plausible first users - constraint expressions attached to operations, for instance.
  * <!-- end-model-doc -->
  *
  * <p>

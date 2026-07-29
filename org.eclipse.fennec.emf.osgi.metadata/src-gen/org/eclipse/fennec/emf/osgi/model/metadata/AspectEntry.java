@@ -24,7 +24,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * <!-- end-user-doc -->
  *
  * <!-- begin-model-doc -->
- * A cross-cutting concern attached to a metadata element - the composition replacement for the donor model's typed aspect hierarchy (decision M7).
+ * A cross-cutting concern attached to a metadata element - the composition replacement for the donor model's typed aspect hierarchy (issue #60).
  * 
  * One concrete class instead of Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect: providers no longer subclass the metadata model to attach their content, they put their own EObject into the content slot. This is what makes the metadata model independent of its consumers - a provider can ship its content model in its own bundle without this model knowing the type.
  * 
@@ -104,7 +104,7 @@ public interface AspectEntry extends EObject {
 	 * <!-- begin-model-doc -->
 	 * Runtime-only content that cannot or should not be serialized - compiled expressions, caches, handles to live services. Never written to an index and never replicated; a consumer reading a persisted metadata tree must be able to work without it, or rebuild it.
 	 * 
-	 * Both slots exist on purpose (M7): forcing serializable content into a transient slot loses it across a restart, forcing runtime state into the content slot breaks serialization.
+	 * Both slots exist on purpose: forcing serializable content into a transient slot loses it across a restart, forcing runtime state into the content slot breaks serialization.
 	 * <!-- end-model-doc -->
 	 * @return the value of the '<em>Transient Content</em>' attribute.
 	 * @see #setTransientContent(Object)

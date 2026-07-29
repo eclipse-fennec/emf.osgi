@@ -29,7 +29,7 @@ import org.eclipse.fennec.emf.osgi.model.metadata.MetadataPackage;
  * <!-- begin-model-doc -->
  * Pre-computed metadata mirror tree for EPackages. The tree mirrors the Ecore structure (package, class, feature, operation, parameter) with the values a consumer would otherwise recompute on every access, and carries cross-cutting content through generic aspect entries.
  * 
- * Cut from the model.metadata donor model for the migration into emf.osgi (issue #60, decisions M7/M8): the codec vocabulary (Base*Config, SerializationFormat, TypeStrategy, IdStrategy, IdKeyMode, SuperTypeSelection, EnumSerializationStrategy) and the *Profile hierarchy return to the codec repository, and the typed aspect hierarchy (Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect) is replaced by composition through AspectEntry.
+ * Cut from the model.metadata donor model for the migration into emf.osgi (issue #60): the codec vocabulary (Base*Config, SerializationFormat, TypeStrategy, IdStrategy, IdKeyMode, SuperTypeSelection, EnumSerializationStrategy) and the *Profile hierarchy return to the codec repository, and the typed aspect hierarchy (Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect) is replaced by composition through AspectEntry.
  * <!-- end-model-doc -->
  * @see EPackageConfigurator
  * @generated

@@ -35,8 +35,7 @@ import org.osgi.test.junit5.context.BundleContextExtension;
 import org.osgi.test.junit5.service.ServiceExtension;
 
 /**
- * The {@code emf.fingerprint} property on every model registration path (issue #55,
- * decision M5 in {@code docs/metadata-migration.md}): each emitting site registers the
+ * The {@code emf.fingerprint} property on every model registration path (issue #55): each emitting site registers the
  * {@link EPackage} service with the fingerprint already present, and two packages
  * sharing one nsURI carry distinct values — the property the whole mechanism exists for
  * (the nsURI alone is never the key).

@@ -14,7 +14,7 @@
  * Canonical, content-derived fingerprints of model versions.
  * <p>
  * Ported from {@code org.eclipse.fennec.model.metadata.api} — the fp1 value contract is
- * frozen; see {@code docs/metadata-migration.md}.
+ * frozen; see {@code docs/model-fingerprint-guide.md}.
  *
  * @author Mark Hoffmann
  */

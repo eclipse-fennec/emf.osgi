@@ -22,7 +22,7 @@ import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 /**
  * Builds the common core of the model service properties — the one place every
  * emission site calls, so no site can silently register a model without the
- * fingerprint (decision M5 in {@code docs/metadata-migration.md}). Computing the
+ * fingerprint. Computing the
  * properties <em>before</em> {@code registerService} is what guarantees the property
  * is present from the first instant the service is visible.
  * <p>

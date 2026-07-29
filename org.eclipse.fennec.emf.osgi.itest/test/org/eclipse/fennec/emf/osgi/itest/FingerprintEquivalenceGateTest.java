@@ -34,8 +34,7 @@ import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.junit.jupiter.api.Test;
 
 /**
- * The equivalence gate (issue #57, decisions M13/M14 in
- * {@code docs/metadata-migration.md}): the {@code .ecore} file and the code generated
+ * The equivalence gate (issue #57): the {@code .ecore} file and the code generated
  * from it are the same model version in two representations, so both must yield the
  * <b>same fingerprint</b>. This is what makes a build-time fingerprint constant (#58)
  * and a manifest capability (#59) sound — and it is required regardless, because the
