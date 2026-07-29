@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="metadata" nsURI="https://eclipse.org/fennec/emf/osgi/metadata/1.0.0"
+    nsPrefix="metadata">
+  <eAnnotations source="Version">
+    <details key="value" value="1.0"/>
+  </eAnnotations>
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="complianceLevel" value="17.0"/>
+    <details key="oSGiCompatible" value="true"/>
+    <details key="basePackage" value="org.eclipse.fennec.emf.osgi.model"/>
+    <details key="resource" value="XMI"/>
+    <details key="documentation" value="Pre-computed metadata mirror tree for EPackages. The tree mirrors the Ecore structure (package, class, feature, operation, parameter) with the values a consumer would otherwise recompute on every access, and carries cross-cutting content through generic aspect entries.&#xA;&#xA;Cut from the model.metadata donor model for the migration into emf.osgi (issue #60, decisions M7/M8): the codec vocabulary (Base*Config, SerializationFormat, TypeStrategy, IdStrategy, IdKeyMode, SuperTypeSelection, EnumSerializationStrategy) and the *Profile hierarchy return to the codec repository, and the typed aspect hierarchy (Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect) is replaced by composition through AspectEntry."/>
+    <details key="copyrightText" value="Copyright (c) 2026 Contributors to the Eclipse Foundation.&#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;  Data In Motion Consulting - initial implementation"/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EEnum" name="DiagnosticSeverity">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Severity level for metadata diagnostics. Used by MetadataDiagnostic to classify annotation parsing issues and configuration validation problems."/>
+    </eAnnotations>
+    <eLiterals name="WARNING" literal="WARNING">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Non-fatal issue. The metadata element is usable but may not behave as intended. Examples: unrecognized annotation key (ignored), deprecated configuration."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="ERROR" value="1" literal="ERROR">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Fatal issue. The metadata element has an invalid configuration that will cause incorrect behavior. Examples: invalid key combination, annotation key used at wrong level."/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MetadataDiagnostic">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Diagnostic message for issues detected during metadata construction, annotation parsing, or configuration validation. Contained by the metadata element or aspect entry where the issue was detected."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="severity" eType="#//DiagnosticSeverity"
+        defaultValueLiteral="WARNING">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Severity level of this diagnostic (WARNING or ERROR)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="message" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Human-readable description of the issue."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The annotation key that caused the issue, if applicable. Null for diagnostics not related to a specific annotation key."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DiagnosticContainer" abstract="true"
+      interface="true">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Interface for metadata elements that can contain diagnostics. Implemented by PackageMetadata, ClassMetadata, FeatureMetadata, OperationMetadata and ParameterMetadata. Provides both direct diagnostics and aggregated diagnostics from the containment subtree."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="diagnostics" upperBound="-1"
+        eType="#//MetadataDiagnostic" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Diagnostics directly owned by this metadata element. Does not include diagnostics from contained children or aspect entries."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allDiagnostics" upperBound="-1"
+        eType="#//MetadataDiagnostic" changeable="false" volatile="true" transient="true"
+        derived="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="All diagnostics from this element and its contained metadata subtree. For FeatureMetadata and ParameterMetadata: same as diagnostics (leaf node). For ClassMetadata: own diagnostics + all feature diagnostics. For PackageMetadata: own diagnostics + all class allDiagnostics.&#xA;&#xA;Two deliberate gaps, carried over unchanged from the donor model so the WP6 acceptance suite keeps its expected values: aspect entry diagnostics are managed separately and not aggregated here, and operation/parameter diagnostics do not reach ClassMetadata. Revisit both when the suite is ported (issue #62), not before."/>
+        <details key="get" value="&lt;%org.eclipse.emf.common.util.EList%>&lt;&lt;%org.eclipse.fennec.emf.osgi.model.metadata.MetadataDiagnostic%>> result = new &lt;%org.eclipse.emf.common.util.BasicEList%>&lt;>();&#xA;result.addAll(getDiagnostics());&#xA;&lt;%org.eclipse.emf.ecore.EClass%> eClassType = eClass();&#xA;if (eClassType == &lt;%org.eclipse.fennec.emf.osgi.model.metadata.MetadataPackage%>.Literals.PACKAGE_METADATA) {&#xA;    for (&lt;%org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata%> classMetadata : ((&lt;%org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata%>) this).getClasses()) {&#xA;        result.addAll(classMetadata.getAllDiagnostics());&#xA;    }&#xA;} else if (eClassType == MetadataPackage.Literals.CLASS_METADATA) {&#xA;    for (&lt;%org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata%> featureMetadata : ((&lt;%org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata%>) this).getFeatures()) {&#xA;        result.addAll(featureMetadata.getAllDiagnostics());&#xA;    }&#xA;}&#xA;return result;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AspectEntry">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="A cross-cutting concern attached to a metadata element - the composition replacement for the donor model's typed aspect hierarchy (decision M7).&#xA;&#xA;One concrete class instead of Aspect/PackageAspect/ClassAspect/FeatureAspect/OperationAspect: providers no longer subclass the metadata model to attach their content, they put their own EObject into the content slot. This is what makes the metadata model independent of its consumers - a provider can ship its content model in its own bundle without this model knowing the type.&#xA;&#xA;The owner is the containing metadata element, reachable via eContainer(). There is no typed back-reference, because one entry type is contained at four different levels; an eOpposite would have to name a single container type."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Unique identifier for the aspect type (e.g. 'codec', 'orm', 'history'), taken from the providing component. Used to look up entries by type; the same typeId appears at most once per metadata element."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="content" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"
+        containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The provider's content, as a contained EObject. Serializable by construction: an entry that carries its content here survives writing the metadata tree to an index and reading it back, provided the content's EPackage is available at read time. This is the slot for anything that is part of the metadata (e.g. OCL expressions as EObjects, resolved configuration)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="transientContent" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject"
+        transient="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Runtime-only content that cannot or should not be serialized - compiled expressions, caches, handles to live services. Never written to an index and never replicated; a consumer reading a persisted metadata tree must be able to work without it, or rebuild it.&#xA;&#xA;Both slots exist on purpose (M7): forcing serializable content into a transient slot loses it across a restart, forcing runtime state into the content slot breaks serialization."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="diagnostics" upperBound="-1"
+        eType="#//MetadataDiagnostic" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Diagnostics collected while this entry was built (e.g. annotation parsing warnings, invalid key combinations). Managed separately from the owning element's diagnostics and not part of its allDiagnostics."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PackageMetadata" eSuperTypes="#//DiagnosticContainer">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Pre-computed metadata for an EPackage. Root of the metadata tree for one model version, containing ClassMetadata for all EClasses and the aspect entries contributed by providers. Keyed by fingerprint, not by nsURI: two packages under the same nsURI with different content are two distinct model versions and get two PackageMetadata."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ePackage" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EPackage">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EPackage this metadata describes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nsURI" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached namespace URI of the EPackage. Used for fast lookup without dereferencing the EPackage. Secondary, best-effort index only - it does not identify a model version on its own."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="modelFingerprint" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Canonical fingerprint of the EPackage model version (see FingerprintService and the emf.fingerprint service property), computed at registration. This is the primary key of the metadata tree and the join key that links derived artifacts back to their source model version, e.g. for orphan housekeeping. Distinct from the artifact store key, which additionally folds in derivation inputs."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classes" upperBound="-1"
+        eType="#//ClassMetadata" containment="true" eOpposite="#//ClassMetadata/package">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Metadata for all EClasses in this package. Bidirectional: each ClassMetadata has a back-reference via ClassMetadata.package."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspects" upperBound="-1"
+        eType="#//AspectEntry" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Aspect entries attached to this package by providers, at most one per typeId."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="properties" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStringToStringMapEntry"
+        transient="true" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Transient, runtime-only build context: the OSGi service properties of the incoming EPackage service, captured at registration. Not serialized and not replicated (service properties are node-specific and volatile) - it lets providers decide relevance and read hints while building. Values are stringified."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ClassMetadata" eSuperTypes="#//DiagnosticContainer">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Pre-computed metadata for an EClass: cached properties for fast access, metadata for all features and operations, the resolved supertype closure and ID features, and the aspect entries contributed by providers. Contained by PackageMetadata."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="package" eType="#//PackageMetadata"
+        eOpposite="#//PackageMetadata/classes">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The parent PackageMetadata. Bidirectional opposite of PackageMetadata.classes. Navigate to package.getEPackage() to access the original EPackage."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eClass" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EClass">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EClass this metadata describes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached EClass name. Avoids repeated eClass.getName() calls during lookups."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="classifierID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached EClassifier ID from the EPackage, for consumers that address classifiers numerically. Value -1 indicates uninitialized."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typeURI" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-computed full type URI in the form 'nsURI#//className'. Computed once at registration to avoid string concatenation on every access."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="features" upperBound="-1"
+        eType="#//FeatureMetadata" containment="true" eOpposite="#//FeatureMetadata/classMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Metadata for all EStructuralFeatures of this EClass, in EClass feature order. Bidirectional: each FeatureMetadata has a back-reference via FeatureMetadata.classMetadata."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="operations" upperBound="-1"
+        eType="#//OperationMetadata" containment="true" eOpposite="#//OperationMetadata/classMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Metadata for all EOperations of this EClass, in EClass operation order. Bidirectional: each OperationMetadata has a back-reference via OperationMetadata.classMetadata."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="superTypes" upperBound="-1"
+        eType="#//ClassMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved metadata for the direct supertypes of this EClass. Resolved during package registration after all ClassMetadata are created."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="allSuperTypes" upperBound="-1"
+        eType="#//ClassMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved metadata for all supertypes in the full inheritance hierarchy (transitive closure). Resolved during package registration."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="idFeatures" upperBound="-1"
+        eType="#//FeatureMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved features that form the object ID, in order. Which features these are is a provider decision (eID markers or an explicitly configured combination); the mirror tree only records the outcome."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hasId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether this EClass has at least one ID feature (eID=true). Quick check to avoid iterating features."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspects" upperBound="-1"
+        eType="#//AspectEntry" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Aspect entries attached to this class by providers, at most one per typeId."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FeatureMetadata" abstract="true" eSuperTypes="#//DiagnosticContainer">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Abstract base for pre-computed metadata about an EStructuralFeature: cached properties and the aspect entries contributed by providers. Concrete subclasses: AttributeMetadata for EAttribute, ReferenceMetadata for EReference. Contained by ClassMetadata.features."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classMetadata" eType="#//ClassMetadata"
+        eOpposite="#//ClassMetadata/features">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The parent ClassMetadata. Bidirectional opposite of ClassMetadata.features. Navigate to classMetadata.getPackage() to reach the PackageMetadata."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eFeature" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStructuralFeature">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EStructuralFeature this metadata describes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached feature name. Avoids repeated eFeature.getName() calls."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="extendedMetaDataName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Alternative name from the EMF ExtendedMetaData annotation (source: http://www.eclipse.org/emf/2002/Ecore). Present in XSD-generated models where the XML element/attribute name differs from the Java-friendly EMF feature name. Null if no ExtendedMetaData 'name' annotation exists."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="featureID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached feature ID from the EClass, for fast feature lookup by numeric ID. Value -1 indicates uninitialized."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspects" upperBound="-1"
+        eType="#//AspectEntry" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Aspect entries attached to this feature by providers, at most one per typeId."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AttributeMetadata" eSuperTypes="#//FeatureMetadata">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Pre-computed metadata for an EAttribute. Extends FeatureMetadata with attribute-specific properties such as eID status and the cached default value."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eAttribute" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EAttribute">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EAttribute this metadata describes. Typed convenience reference; the base class eFeature holds the same value as EStructuralFeature."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="isId" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether this EAttribute is marked as eID in the Ecore model. Cached for fast ID feature resolution."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="defaultValue" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached default value of the EAttribute, so consumers can compare against it without recomputing it on every access."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ReferenceMetadata" eSuperTypes="#//FeatureMetadata">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Pre-computed metadata for an EReference. Extends FeatureMetadata with reference-specific properties: containment status, resolved target class and resolved bidirectional opposite."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eReference" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EReference">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EReference this metadata describes. Typed convenience reference; the base class eFeature holds the same value as EStructuralFeature."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="containment" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether this is a containment reference. Containment references own the target object, non-containment references point to objects owned elsewhere."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetClassMetadata" eType="#//ClassMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved metadata for the target EClass of this reference. Resolved during package registration after all ClassMetadata are created. Null if the target class is in an unregistered package."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="oppositeMetadata" eType="#//ReferenceMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved metadata for the opposite EReference in a bidirectional association. Null if this reference has no opposite. Resolved during package registration."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hasBidirectional" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Whether this reference has an opposite reference. Quick check to avoid null-checking oppositeMetadata."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OperationMetadata" eSuperTypes="#//DiagnosticContainer">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Pre-computed metadata for an EOperation: cached properties, the resolved return-type metadata, metadata for all EParameters, and the aspect entries contributed by providers. Contained by ClassMetadata.operations.&#xA;&#xA;The operation level is a first-class attachment point (decision M8): it costs one containment feature now and a model version bump later, and it has plausible first users - constraint expressions attached to operations, for instance."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="classMetadata" eType="#//ClassMetadata"
+        eOpposite="#//ClassMetadata/operations">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The parent ClassMetadata. Bidirectional opposite of ClassMetadata.operations. Navigate to classMetadata.getPackage() to reach the PackageMetadata."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eOperation" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EOperation">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EOperation this metadata describes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached operation name. Avoids repeated eOperation.getName() calls."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="operationID" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"
+        defaultValueLiteral="-1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached operation ID from the EClass, for fast operation lookup by numeric ID. Value -1 indicates uninitialized."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="returnTypeMetadata" eType="#//ClassMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved metadata for the EOperation return type, when the return EClassifier is an EClass in a registered package. Null for void operations, EDataType returns, or unregistered target packages."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parameters" upperBound="-1"
+        eType="#//ParameterMetadata" containment="true" eOpposite="#//ParameterMetadata/operationMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Metadata for all EParameters of this EOperation, in declaration order. Bidirectional: each ParameterMetadata has a back-reference via ParameterMetadata.operationMetadata."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="aspects" upperBound="-1"
+        eType="#//AspectEntry" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Aspect entries attached to this operation by providers, at most one per typeId."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ParameterMetadata" eSuperTypes="#//DiagnosticContainer">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Pre-computed metadata for an EParameter of an EOperation: cached properties and the resolved parameter-type metadata. Contained by OperationMetadata.parameters."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="operationMetadata" eType="#//OperationMetadata"
+        eOpposite="#//OperationMetadata/parameters">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The parent OperationMetadata. Bidirectional opposite of OperationMetadata.parameters."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="eParameter" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EParameter">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="The EParameter this metadata describes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Cached parameter name. Avoids repeated eParameter.getName() calls."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeMetadata" eType="#//ClassMetadata">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Pre-resolved metadata for the parameter type, when the parameter EClassifier is an EClass in a registered package. Null for EDataType parameters or unregistered target packages."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MetadataRegistry">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Root container for pre-computed package metadata. The serializable root for persisting or caching metadata state; contains PackageMetadata instances keyed by their fingerprint, so several versions of the same nsURI coexist."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="packages" upperBound="-1"
+        eType="#//PackageMetadata" containment="true">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="All contained PackageMetadata instances. Each holds the complete metadata tree for one model version (classes, features, operations, aspect entries)."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+</ecore:EPackage>
