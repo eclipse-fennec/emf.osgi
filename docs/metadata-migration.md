@@ -536,6 +536,35 @@ workspace-relative references (`../../org.eclipse.emf.ecore/model/Ecore.ecore`) 
 `"#null"` without codegen-style URI resolution — conservative (false-different), and the gate
 asserts full resolution before comparing. **(b)/(c) are unblocked** and proceed as #58/#59.
 
+**(b) implemented 2026-07-29 (#58).** `GeneratorHelper.getFingerprint(GenPackage)` computes the
+value over the `.ecore`-loaded package at generation time; the JET template emits it as a named
+constant `FINGERPRINT` on the generated `*EPackageConfigurator` and puts it into
+`getServiceProperties()`. Named rather than inlined because the manifest capability (#59) needs
+the same value, and because it is then readable from the class without a running framework.
+
+Two things the implementation settled beyond the decision text:
+
+- **The proxy guard is a skip, not an abort.** The generator runs `resolveAll` and then
+  `UnresolvedProxyCrossReferencer.find(ePackage)`; on a remaining proxy it emits **no** constant
+  and logs a warning (`FennecEmfGenerator.warn`, added next to `info`/`error`), leaving that model
+  on the runtime path. Rationale: a missing fingerprint is recoverable, a wrong one propagates
+  into every downstream consumer as a false identity. Generation is not failed, because the
+  multi-ecore workspaces are exactly the case that would then break.
+- **The pin test is one sweep in the itest, not a generated test per model.** `-generate` writes
+  to `src-gen` only, and `src-gen` is bundle source — a generated JUnit test would force JUnit
+  onto the `-buildpath` of every model bundle. `FingerprintConstantDriftTest` instead compares the
+  advertised property of *every* registered `EPackage` service against
+  `FingerprintHelper.fingerprint(…)`, plus explicit assertions for the two generated example
+  models. No wiring in the model bundles, and models added later are covered the moment they
+  register. Verified to have teeth: with a deliberately wrong constant both new tests fail while
+  the other 66 itests stay green. A generated per-model test for *external* consumers remains
+  possible as a separate opt-in (a `testOutput` parameter); it is not part of #58.
+
+A precondition surfaced while implementing: the example models must compile against the
+**workspace** api bundle, otherwise generated code referencing a new constant silently builds
+against the released one. `basic` and `manual` listed it without a version attribute and were
+fixed to `version=snapshot`.
+
 ---
 
 ### M14 — fp1 must be representation-independent; annotation ignorelist
