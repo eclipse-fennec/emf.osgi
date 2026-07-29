@@ -780,6 +780,39 @@ document.
 - Genericity gate (§2.7) — the spikes now validate M7 rather than reopening it.
 - **Exit:** WP6 suite green, both spikes pass, API reviewed for semantic versioning.
 
+**Model cut executed 2026-07-29 (#60).** 29 classifiers down to 12. Removed: the codec
+vocabulary (`SerializationFormat`, `TypeStrategy`, `IdStrategy`, `IdKeyMode`,
+`SuperTypeSelection`, `EnumSerializationStrategy`, `Base*Config`) and the `*Profile` hierarchy,
+both returning to the codec repository. Replaced: the five typed aspect classes by one
+`AspectEntry` with `typeId`, `content` (containment `EObject`, serializable) and
+`transientContent` (`EJavaObject`, transient) per M7. Kept: the mirror tree with its caches,
+supertype closure and id features, the operation level per M8, `modelFingerprint` as the primary
+key, and the transient `properties` build context.
+
+Three points the cut decided that the decision record did not cover:
+
+- **`AspectEntry` has no typed back-reference.** The donor's aspects each had an `eOpposite` to
+  their owner; one entry type contained at four levels cannot, since an `eOpposite` names exactly
+  one container type. The owner comes from `eContainer()`.
+- **`allDiagnostics` was carried over unchanged, including two gaps** — aspect diagnostics are not
+  aggregated (deliberate in the donor), and operation/parameter diagnostics do not reach
+  `ClassMetadata` although both are `DiagnosticContainer`. The second looks like a donor defect
+  but was *not* silently fixed: the WP6 suite has expectations on it. Decide when porting the
+  suite (#62).
+- **Base package is `org.eclipse.fennec.emf.osgi.model`, not `…osgi.metadata.model`** as the issue
+  proposed. The Java package is `basePackage` + EPackage name, so the issue's layout would have
+  required naming the EPackage `model` and shipping `emf.name=model` — too generic a value for a
+  global service property. The other direction (`basePackage=…osgi`, name `metadata`) collides
+  with the API package, because the generator writes an `@Export`ed `package-info.java` for every
+  model package and a hand-written one would clash. Result: generated code in
+  `org.eclipse.fennec.emf.osgi.model.metadata` — matching the existing
+  `org.eclipse.fennec.emf.osgi.model.info` — and `org.eclipse.fennec.emf.osgi.metadata` left free
+  for the API of #61. nsURI is unchanged from the issue.
+
+The new bundle carries `-generate`, and its generated code is committed rather than ignored. It
+therefore dogfoods #58/#59 on the first build: `MetadataEPackageConfigurator.FINGERPRINT` and the
+`emf.fingerprint` capability attribute are both present, with no generator warnings.
+
 Phases 3 (codec) and 4 (decommission) stay as described in the source document; nothing in this
 document changes them — except for one added item: **removing this document** (§6).
 

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" copyrightText="Copyright (c) 2026 Contributors to the Eclipse Foundation.&#xA;&#xA;This program and the accompanying materials are made&#xA;available under the terms of the Eclipse Public License 2.0&#xA;which is available at https://www.eclipse.org/legal/epl-2.0/&#xA;&#xA;SPDX-License-Identifier: EPL-2.0&#xA;&#xA;Contributors:&#xA;  Data In Motion Consulting - initial implementation"
+    modelDirectory="/org.eclipse.fennec.emf.osgi.metadata/src" modelPluginID="org.eclipse.fennec.emf.osgi.metadata"
+    modelName="Metadata" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
+    importerID="org.eclipse.emf.importer.ecore" complianceLevel="17.0" copyrightFields="false"
+    operationReflection="true" importOrganizing="true" oSGiCompatible="true">
+  <foreignModel>metadata.ecore</foreignModel>
+  <genPackages prefix="Metadata" basePackage="org.eclipse.fennec.emf.osgi.model" resource="XMI"
+      disposableProviderFactory="true" ecorePackage="metadata.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="metadata.ecore#//DiagnosticSeverity">
+      <genEnumLiterals ecoreEnumLiteral="metadata.ecore#//DiagnosticSeverity/WARNING"/>
+      <genEnumLiterals ecoreEnumLiteral="metadata.ecore#//DiagnosticSeverity/ERROR"/>
+    </genEnums>
+    <genClasses ecoreClass="metadata.ecore#//MetadataDiagnostic">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//MetadataDiagnostic/severity"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//MetadataDiagnostic/message"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//MetadataDiagnostic/key"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="metadata.ecore#//DiagnosticContainer">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//DiagnosticContainer/diagnostics"/>
+      <genFeatures property="Readonly" notify="false" createChild="false" ecoreFeature="ecore:EReference metadata.ecore#//DiagnosticContainer/allDiagnostics"
+          get="&lt;%org.eclipse.emf.common.util.EList%>&lt;&lt;%org.eclipse.fennec.emf.osgi.model.metadata.MetadataDiagnostic%>> result = new &lt;%org.eclipse.emf.common.util.BasicEList%>&lt;>();&#xA;result.addAll(getDiagnostics());&#xA;&lt;%org.eclipse.emf.ecore.EClass%> eClassType = eClass();&#xA;if (eClassType == &lt;%org.eclipse.fennec.emf.osgi.model.metadata.MetadataPackage%>.Literals.PACKAGE_METADATA) {&#xA;    for (&lt;%org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata%> classMetadata : ((&lt;%org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata%>) this).getClasses()) {&#xA;        result.addAll(classMetadata.getAllDiagnostics());&#xA;    }&#xA;} else if (eClassType == MetadataPackage.Literals.CLASS_METADATA) {&#xA;    for (&lt;%org.eclipse.fennec.emf.osgi.model.metadata.FeatureMetadata%> featureMetadata : ((&lt;%org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata%>) this).getFeatures()) {&#xA;        result.addAll(featureMetadata.getAllDiagnostics());&#xA;    }&#xA;}&#xA;return result;"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//AspectEntry">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//AspectEntry/typeId"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//AspectEntry/content"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//AspectEntry/transientContent"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//AspectEntry/diagnostics"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//PackageMetadata">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//PackageMetadata/ePackage"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//PackageMetadata/nsURI"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//PackageMetadata/modelFingerprint"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//PackageMetadata/classes"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//PackageMetadata/aspects"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//PackageMetadata/properties"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//ClassMetadata">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/package"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/eClass"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ClassMetadata/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ClassMetadata/classifierID"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ClassMetadata/typeURI"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/features"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/operations"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/superTypes"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/allSuperTypes"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/idFeatures"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ClassMetadata/hasId"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//ClassMetadata/aspects"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="metadata.ecore#//FeatureMetadata">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference metadata.ecore#//FeatureMetadata/classMetadata"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//FeatureMetadata/eFeature"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//FeatureMetadata/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//FeatureMetadata/extendedMetaDataName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//FeatureMetadata/featureID"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//FeatureMetadata/aspects"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//AttributeMetadata">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//AttributeMetadata/eAttribute"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//AttributeMetadata/isId"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//AttributeMetadata/defaultValue"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//ReferenceMetadata">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ReferenceMetadata/eReference"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ReferenceMetadata/containment"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ReferenceMetadata/targetClassMetadata"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ReferenceMetadata/oppositeMetadata"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ReferenceMetadata/hasBidirectional"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//OperationMetadata">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference metadata.ecore#//OperationMetadata/classMetadata"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//OperationMetadata/eOperation"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//OperationMetadata/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//OperationMetadata/operationID"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//OperationMetadata/returnTypeMetadata"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//OperationMetadata/parameters"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//OperationMetadata/aspects"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//ParameterMetadata">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference metadata.ecore#//ParameterMetadata/operationMetadata"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ParameterMetadata/eParameter"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute metadata.ecore#//ParameterMetadata/name"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference metadata.ecore#//ParameterMetadata/typeMetadata"/>
+    </genClasses>
+    <genClasses ecoreClass="metadata.ecore#//MetadataRegistry">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference metadata.ecore#//MetadataRegistry/packages"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
