@@ -26,8 +26,7 @@ import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
 import org.junit.jupiter.api.Test;
 
 /**
- * The fp1 annotation ignorelist (issue #52, decision M14 in
- * {@code docs/metadata-migration.md}): representation independence requires that
+ * The fp1 annotation ignorelist (issue #52): representation independence requires that
  * tooling-configuration annotations — which exist in the {@code .ecore} but configure
  * only how the Java artifact is generated — never affect the fingerprint, while every
  * annotation with behavioural force (serialization, validation, mapping, delegates)

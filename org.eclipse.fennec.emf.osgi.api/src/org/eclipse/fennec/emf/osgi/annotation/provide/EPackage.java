@@ -65,7 +65,7 @@ public @interface EPackage {
 	 * canonicalisation scheme (e.g. {@code fp1:…}), as it is also advertised in the
 	 * {@code emf.fingerprint} service property. Emitted as a capability attribute so the
 	 * model version can be matched at resolve time and read from the JAR without a running
-	 * framework - see decision M13c in {@code docs/metadata-migration.md}.
+	 * framework - see {@code docs/model-fingerprint-guide.md}.
 	 * <p>
 	 * Empty when the provider cannot state it reliably; consumers must treat an absent
 	 * fingerprint as unknown, never as a mismatch.

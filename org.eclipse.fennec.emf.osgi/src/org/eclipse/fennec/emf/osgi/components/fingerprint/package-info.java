@@ -15,8 +15,7 @@
  * default {@link org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService} facade and
  * the in-memory {@link org.eclipse.fennec.emf.osgi.artifact.ArtifactStore}.
  * <p>
- * Deliberately <b>not exported</b> — the canonicalization seam stays internal (decision
- * M11 in {@code docs/metadata-migration.md}). Ported verbatim from
+ * Deliberately <b>not exported</b> — the canonicalization seam stays internal. Ported verbatim from
  * {@code org.eclipse.fennec.model.metadata.service}.
  */
 @org.osgi.annotation.versioning.Version("1.0.0")

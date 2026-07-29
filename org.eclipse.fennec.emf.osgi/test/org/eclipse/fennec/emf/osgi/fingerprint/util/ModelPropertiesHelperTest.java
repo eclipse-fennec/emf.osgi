@@ -25,7 +25,7 @@ import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.Test;
 
 /**
- * The shared model property core (issue #54, decision M5): every emission site builds
+ * The shared model property core (issue #54): every emission site builds
  * name/nsURI/fingerprint through this one helper, so no site can register a model
  * without the fingerprint.
  */

@@ -19,6 +19,12 @@ export const GUIDES = [
     slug: 'model-extender',
   },
   { file: 'docs/emf-delegate-user-guide.md', title: 'EMF Delegates', group: 'User Manual' },
+  {
+    file: 'docs/model-fingerprint-guide.md',
+    title: 'Model Fingerprints',
+    group: 'User Manual',
+    slug: 'model-fingerprints',
+  },
 ];
 
 // Route name for a guide: an explicit `slug`, otherwise the file's base name

@@ -53,7 +53,7 @@ public class GeneratorHelper {
 	/**
 	 * Computes the fingerprint of the {@code .ecore}-loaded package at build time, so the
 	 * generated configurator can carry it as a constant instead of hashing on the bind
-	 * path (decision M13b in {@code docs/metadata-migration.md}, issue #58). Sound because
+	 * path (issue #58). Sound because
 	 * the equivalence gate proves {@code .ecore} and generated code yield the same value.
 	 * <p>
 	 * An unresolved proxy degrades the canonical form (the type key falls back to

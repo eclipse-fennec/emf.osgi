@@ -182,9 +182,17 @@ consumer can bind to an exact model version:
 ResourceSetFactory factory;
 ```
 
+Generated bundles additionally carry the value as a build-time constant on their
+`*EPackageConfigurator` and as an `emf.fingerprint` attribute on their
+`org.eclipse.emf.ecore.generated_package` capability, so a model version can be read from a
+JAR without a running framework and matched at resolve time.
+
 Programmatic access: `FingerprintService` (OSGi service) or the static
 `FingerprintHelper` / `ModelPropertiesHelper` in
 `org.eclipse.fennec.emf.osgi.fingerprint.util`.
+
+See [Model Fingerprints](docs/model-fingerprint-guide.md) for the full contract, the scheme
+tag rule, what enters the hash, and usage recipes.
 
 ## Dependency Management
 
