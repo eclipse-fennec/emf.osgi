@@ -813,6 +813,36 @@ The new bundle carries `-generate`, and its generated code is committed rather t
 therefore dogfoods #58/#59 on the first build: `MetadataEPackageConfigurator.FINGERPRINT` and the
 `emf.fingerprint` capability attribute are both present, with no generator warnings.
 
+**API and impl re-cut 2026-07-29 (#61).** `metadata-api.ecore` is dropped; the API is plain Java
+in `org.eclipse.fennec.emf.osgi.metadata`, the implementation private in `…metadata.impl`. The
+WP6 identity semantics are ported unchanged — fingerprint as primary key, nsURI as secondary
+best-effort index, per-version liveness refcount, and the pull path that builds-and-caches without
+taking a registration. Six decisions shaped the cut:
+
+1. **One extension point, not two.** `AspectProvider` (7 methods) and `MetadataHandler` collapse
+   into `MetadataHandler` alone. With `AspectEntry` a contributor no longer returns typed objects
+   the service must understand — it writes into the tree it is handed, which is exactly what an
+   observer already got. **Consequence for ordering:** handlers now run *before* the tree is
+   published to the lookup maps, registry and index. The donor notified after indexing, which
+   would let a reader observe a model version whose entries are still missing. Documented on the
+   interface: a handler must not call back into `MetadataService` for the package being
+   registered.
+2. **`Optional` for optional returns** (project owner's call, 2026-07-29), against the donor's
+   null-returning style. Cost is known and accepted: the WP6 suite (#62) has to be adapted rather
+   than copied.
+3. **`ArtifactStore` leaves the metadata service.** It only ever anchored profile reuse, and
+   profiles went with #60. It stays in the api bundle for other consumers.
+4. Profile accessors removed with the profiles themselves.
+5. Typed aspect getters replaced by four `Optional<AspectEntry>` getters keyed by type id.
+6. `EList` → `List`; `@ProviderType` on the service/whiteboard/index interfaces, but
+   **`@ConsumerType` on `MetadataHandler`** — the issue said `@ProviderType` throughout, which
+   would formally forbid consumers to implement the very hook they are meant to implement.
+
+`FingerprintService` arrives as a mandatory static DS reference, so the metadata bundle needs only
+the api bundle on its buildpath — the static `FingerprintHelper` of M3 is for emission sites, not
+for an ordinary consumer. 13 unit tests cover the invariants that would otherwise fail silently:
+dedupe, coexistence, per-version unbind, pull-path survival, contribution-before-publication.
+
 Phases 3 (codec) and 4 (decommission) stay as described in the source document; nothing in this
 document changes them — except for one added item: **removing this document** (§6).
 
