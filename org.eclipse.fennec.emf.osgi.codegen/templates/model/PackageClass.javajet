@@ -175,8 +175,13 @@ public class <%=genPackage.getPackageClassName()%> extends <%=genModel.getImport
     boolean hasDevPaths = devPaths.length() > 0;
     boolean hasEcore = ecoreLocation != null && !ecoreLocation.isEmpty() && !"null".equals(ecoreLocation);
     boolean hasEcoreSrc = ecoreSourceLocation != null && !ecoreSourceLocation.isEmpty() && !"null".equals(ecoreSourceLocation);
+    // The build-time fingerprint, emitted as a capability attribute (M13c). Built as one
+    // expression rather than a template block so the attribute stays optional without
+    // splitting the annotation into further text chunks.
+    String modelFingerprint = GeneratorHelper.getFingerprint(genPackage);
+    String fingerprintAttribute = modelFingerprint == null ? "" : ", fingerprint = \"" + modelFingerprint + "\"";
 %>
-@<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.annotation.provide.EPackage")%>(uri = <%=genPackage.getPackageInterfaceName()%>.eNS_URI<%
+@<%=genModel.getImportedName("org.eclipse.fennec.emf.osgi.annotation.provide.EPackage")%>(uri = <%=genPackage.getPackageInterfaceName()%>.eNS_URI<%=fingerprintAttribute%><%
 if (hasGenModel) { %>, genModel = "<%=relativeGenmodelPath%>"<% }
 if (hasDevPaths) { %>, genModelSourceLocations = {<%=devPaths.toString()%>}<% }
 if (hasEcore) { %>, ecore = "<%=ecoreLocation%>"<% }

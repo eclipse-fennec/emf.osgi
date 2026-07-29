@@ -25,8 +25,12 @@ import org.eclipse.fennec.emf.osgi.example.model.extended.ExtendedPackage;
 import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.test.common.annotation.InjectBundleContext;
 import org.osgi.test.junit5.context.BundleContextExtension;
 import org.osgi.test.junit5.service.ServiceExtension;
@@ -50,6 +54,17 @@ import org.osgi.test.junit5.service.ServiceExtension;
 @ExtendWith(BundleContextExtension.class)
 @ExtendWith(ServiceExtension.class)
 public class FingerprintConstantDriftTest {
+
+	/**
+	 * The published capability contract (#59): namespace and attribute names are asserted
+	 * as literals on purpose. They are what foreign tooling filters on, so a rename must
+	 * fail here rather than silently break every consumer — the same rule the fp1 golden
+	 * values follow. Mirrors {@code EPackage.NAMESPACE} and
+	 * {@code EPackage.FINGERPRINT_ATTRIBUTE} in the api bundle.
+	 */
+	private static final String MODEL_CAPABILITY_NAMESPACE = "org.eclipse.emf.ecore.generated_package";
+	private static final String FINGERPRINT_ATTRIBUTE = "emf.fingerprint";
+	private static final String URI_ATTRIBUTE = "uri";
 
 	/**
 	 * The generated path (#58): both generated example models carry the property, and the
@@ -97,6 +112,65 @@ public class FingerprintConstantDriftTest {
 		}
 		assertThat(checked).as("no registered package carried a fingerprint at all").isPositive();
 		assertThat(drifted).as("registered fingerprints must match the computed ones").isEmpty();
+	}
+
+	/**
+	 * The manifest capability (#59, decision M13c): the fingerprint written into
+	 * {@code Provide-Capability} is the same value the runtime computes. This is the
+	 * assertion that makes the manifest usable without a framework — atlas ingestion, OBR
+	 * indexing and {@code Require-Capability} matching all read this value and never see
+	 * the service property.
+	 */
+	@Test
+	public void testManifestCapabilityCarriesTheSameFingerprint(@InjectBundleContext BundleContext context) {
+		List<String> mismatches = new ArrayList<>();
+		List<String> seen = new ArrayList<>();
+		for (Bundle bundle : context.getBundles()) {
+			BundleWiring wiring = bundle.adapt(BundleWiring.class);
+			if (wiring == null) {
+				continue;
+			}
+			for (BundleCapability capability : wiring.getCapabilities(MODEL_CAPABILITY_NAMESPACE)) {
+				Object advertised = capability.getAttributes().get(FINGERPRINT_ATTRIBUTE);
+				if (advertised == null) {
+					// A model that cannot state its fingerprint omits the attribute
+					// entirely rather than advertising an empty one.
+					continue;
+				}
+				String nsURI = String.valueOf(capability.getAttributes().get(URI_ATTRIBUTE));
+				seen.add(nsURI);
+				String computed = computedFor(context, nsURI);
+				if (computed == null) {
+					mismatches.add(nsURI + ": capability declares " + advertised + ", but no package is registered");
+				} else if (!computed.equals(advertised)) {
+					mismatches.add(nsURI + ": capability declares " + advertised + ", computed " + computed);
+				}
+			}
+		}
+		assertThat(seen).as("the generated example models must declare the capability attribute")
+				.contains(BasicPackage.eNS_URI, ExtendedPackage.eNS_URI);
+		assertThat(mismatches).as("manifest fingerprints must match the computed ones").isEmpty();
+	}
+
+	private static String computedFor(BundleContext context, String nsURI) {
+		try {
+			Collection<ServiceReference<EPackage>> references = context.getServiceReferences(EPackage.class,
+					"(" + EMFNamespaces.EMF_MODEL_NSURI + "=" + nsURI + ")");
+			for (ServiceReference<EPackage> reference : references) {
+				EPackage ePackage = context.getService(reference);
+				if (ePackage == null) {
+					continue;
+				}
+				try {
+					return FingerprintHelper.fingerprint(ePackage);
+				} finally {
+					context.ungetService(reference);
+				}
+			}
+			return null;
+		} catch (InvalidSyntaxException e) {
+			throw new IllegalStateException("cannot filter for " + nsURI, e);
+		}
 	}
 
 	private static void assertPinned(BundleContext context, String nsURI, EPackage ePackage) throws Exception {

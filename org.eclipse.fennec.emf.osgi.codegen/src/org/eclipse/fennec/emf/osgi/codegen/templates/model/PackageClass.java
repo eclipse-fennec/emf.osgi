@@ -566,13 +566,19 @@ public class PackageClass
     boolean hasDevPaths = devPaths.length() > 0;
     boolean hasEcore = ecoreLocation != null && !ecoreLocation.isEmpty() && !"null".equals(ecoreLocation);
     boolean hasEcoreSrc = ecoreSourceLocation != null && !ecoreSourceLocation.isEmpty() && !"null".equals(ecoreSourceLocation);
+    // The build-time fingerprint, emitted as a capability attribute (M13c). Built as one
+    // expression rather than a template block so the attribute stays optional without
+    // splitting the annotation into further text chunks.
+    String modelFingerprint = GeneratorHelper.getFingerprint(genPackage);
+    String fingerprintAttribute = modelFingerprint == null ? "" : ", fingerprint = \"" + modelFingerprint + "\"";
 
     stringBuffer.append(TEXT_24);
     stringBuffer.append(genModel.getImportedName("org.eclipse.fennec.emf.osgi.annotation.provide.EPackage"));
     stringBuffer.append(TEXT_25);
     stringBuffer.append(genPackage.getPackageInterfaceName());
     stringBuffer.append(TEXT_26);
-    
+    stringBuffer.append(fingerprintAttribute);
+
 if (hasGenModel) { 
     stringBuffer.append(TEXT_27);
     stringBuffer.append(relativeGenmodelPath);
