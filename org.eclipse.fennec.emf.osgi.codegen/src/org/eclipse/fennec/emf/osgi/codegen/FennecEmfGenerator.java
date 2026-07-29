@@ -95,6 +95,16 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 		}
 	}
 
+	public static void warn(String message) {
+		PrintStream writer = logWriter;
+		if(writer != null) {
+			writer.println("[WARN] " + message); //$NON-NLS-1$
+			writer.flush();
+		} else {
+			System.out.println("[WARN] " + message); //$NON-NLS-1$
+		}
+	}
+
 	public static void error(String message) {
 		PrintStream writer = logWriter;
 		if(writer != null) {
