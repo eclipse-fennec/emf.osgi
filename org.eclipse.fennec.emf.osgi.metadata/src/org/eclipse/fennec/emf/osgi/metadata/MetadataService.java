@@ -187,10 +187,15 @@ public interface MetadataService {
 
 	/**
 	 * A package's aspect entry for one contributor.
+	 * <p>
+	 * One entry per type id is a convention among contributors, not something the model
+	 * enforces - a handler can add a second one. These accessors therefore answer with the
+	 * first match rather than pretending the case cannot arise.
 	 *
 	 * @param ePackage the package
 	 * @param aspectTypeId the contributor's type id, e.g. {@code codec}
-	 * @return the entry, or empty if the package is unknown or carries no such entry
+	 * @return the first entry with that type id, or empty if the package is unknown or
+	 *         carries none
 	 */
 	Optional<AspectEntry> getPackageAspect(EPackage ePackage, String aspectTypeId);
 
@@ -199,7 +204,8 @@ public interface MetadataService {
 	 *
 	 * @param eClass the class
 	 * @param aspectTypeId the contributor's type id
-	 * @return the entry, or empty if the class is unknown or carries no such entry
+	 * @return the first entry with that type id, or empty if the class is unknown or carries
+	 *         none
 	 */
 	Optional<AspectEntry> getClassAspect(EClass eClass, String aspectTypeId);
 
@@ -208,7 +214,8 @@ public interface MetadataService {
 	 *
 	 * @param feature the feature
 	 * @param aspectTypeId the contributor's type id
-	 * @return the entry, or empty if the feature is unknown or carries no such entry
+	 * @return the first entry with that type id, or empty if the feature is unknown or carries
+	 *         none
 	 */
 	Optional<AspectEntry> getFeatureAspect(EStructuralFeature feature, String aspectTypeId);
 
@@ -217,7 +224,8 @@ public interface MetadataService {
 	 *
 	 * @param operation the operation
 	 * @param aspectTypeId the contributor's type id
-	 * @return the entry, or empty if the operation is unknown or carries no such entry
+	 * @return the first entry with that type id, or empty if the operation is unknown or carries
+	 *         none
 	 */
 	Optional<AspectEntry> getOperationAspect(EOperation operation, String aspectTypeId);
 

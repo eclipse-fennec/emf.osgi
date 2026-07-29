@@ -780,6 +780,35 @@ document.
 - Genericity gate (§2.7) — the spikes now validate M7 rather than reopening it.
 - **Exit:** WP6 suite green, both spikes pass, API reviewed for semantic versioning.
 
+**Genericity gate passed 2026-07-29 (#63).** Both spikes live in the metadata bundle's test
+source as permanent gate evidence, and both work through the public API alone, with a content
+model built at *runtime* — so not even a compile-time relationship to the metadata model exists,
+let alone inheritance.
+
+- **(a) eorm-style visitor.** A `MetadataHandler` walks the mirror tree and attaches one table
+  mapping per class as `AspectEntry(typeId="eorm")`. Asserted beyond the mere attachment: the
+  content's `EClass` has no supertype from `metadata.ecore`, the whole tree survives an XMI
+  round-trip through a fresh resource set with the foreign content intact, and
+  `transientContent` is *gone* after that round-trip. The last one is the point of having two
+  slots at all (M7): one for what must travel, one for what must not.
+- **(b) OCL-style artifact cache.** Constraint expressions are derived once, stored in an
+  `ArtifactStore` under `(modelFingerprint, "ocl")` and carried in the content slot. A second
+  service instance sharing only the store reuses the artifact without re-deriving it — the
+  restart-or-second-node case. Two diverging versions of one nsURI get their own artifact, which
+  is what fingerprint keying buys: an artifact can never be served to a version it was not
+  derived from.
+
+Findings fed back into the API, as the gate requires: the model's claim that there is *at most
+one entry per type id* is a convention among contributors, not something the model enforces — a
+handler can add a second. Rather than pretend otherwise, the four aspect accessors now document
+that they answer with the first match. No other change was needed, which is the actual result of
+the gate: `AspectEntry` carries both consumer shapes without the metadata model knowing either.
+
+Two properties worth recording for consumers: `InMemoryArtifactStore` copies on both `put` and
+`resolve`, so a resolved artifact can go straight into a containment slot without aliasing; and
+reading foreign aspect content needs reflective EMF access unless the consumer has generated code
+for its own model — normal EMF, but it is what a consumer sees first.
+
 **Model cut executed 2026-07-29 (#60).** 29 classifiers down to 12. Removed: the codec
 vocabulary (`SerializationFormat`, `TypeStrategy`, `IdStrategy`, `IdKeyMode`,
 `SuperTypeSelection`, `EnumSerializationStrategy`, `Base*Config`) and the `*Profile` hierarchy,
