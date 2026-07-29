@@ -4,6 +4,7 @@
 -buildpath: \
 	org.osgi.dto;version=latest,\
 	org.osgi.framework;version=latest,\
+	org.osgi.resource;version=latest,\
 	org.osgi.service.cm;version=latest,\
 	org.osgi.service.condition;version=latest,\
 	org.osgi.service.component;version=latest,\

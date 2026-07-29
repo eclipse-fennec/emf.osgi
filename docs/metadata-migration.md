@@ -560,6 +560,33 @@ Two things the implementation settled beyond the decision text:
   the other 66 itests stay green. A generated per-model test for *external* consumers remains
   possible as a separate opt-in (a `testOutput` parameter); it is not part of #58.
 
+**(c) implemented 2026-07-29 (#59), with one deviation from this document.** The capability does
+**not** get a new namespace. `org.eclipse.emf.ecore.generated_package` already exists in the
+workspace and is already emitted per generated model by the `@EPackage` provide-annotation, with
+`uri`, `class`, `ecore`, `genModel` and the Fennec-added source locations. One model is one
+capability: the fingerprint became the attribute `emf.fingerprint` on *that* capability rather
+than a second, competing `fennec.emf.model` clause describing the same thing. The attribute name
+is deliberately identical to the service property, so one filter expression works against a
+running framework and against a JAR on disk.
+
+The annotation gained an optional `fingerprint()` element (package version bumped to 1.1.0 —
+baselining flagged the MINOR change) and the generator fills it from the same
+`GeneratorHelper.getFingerprint(…)` the constant uses, so the two emissions cannot diverge by
+construction. When there is no fingerprint the attribute is **omitted entirely** rather than
+written empty — `${if;${#fingerprint};…}` in the capability declaration — because
+`emf.fingerprint=""` would match a presence filter and read as "declared, but blank". `manual`,
+the hand-written model, is the case that proves it.
+
+`FingerprintConstantDriftTest` covers this from the manifest side via `BundleWiring`, and pins
+namespace and attribute names as literals: they are what foreign tooling filters on, so a rename
+must fail the build rather than silently break consumers. Verified with a deliberately wrong
+manifest value — the capability test fails, the constant test stays green, so the two emissions
+are independently pinned.
+
+Not in scope, worth a decision later: a `version:Version` attribute would allow range matching
+(`Require-Capability: …;filter:="(&(uri=…)(version>=1.5))"`), but the model version is a free-form
+string from the `Version` annotation and is not guaranteed to parse as an OSGi version.
+
 A precondition surfaced while implementing: the example models must compile against the
 **workspace** api bundle, otherwise generated code referencing a new constant silently builds
 against the released one. `basic` and `manual` listed it without a version attribute and were
