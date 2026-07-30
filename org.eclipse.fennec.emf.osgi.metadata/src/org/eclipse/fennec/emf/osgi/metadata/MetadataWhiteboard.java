@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -68,6 +69,25 @@ public interface MetadataWhiteboard extends MetadataService {
 	 * @param ePackage the package to unregister
 	 */
 	void unregisterPackage(EPackage ePackage);
+
+	/**
+	 * Binds the service that computes model identity, replacing any previous one.
+	 * <p>
+	 * Mandatory collaborator: without it no package can be registered. In OSGi DS binds it
+	 * before the whiteboard becomes available, and
+	 * {@code MetadataServices.createWhiteboard(MetadataHandler...)} sets the default outside
+	 * OSGi - this method exists for the caller that wants a different one afterwards. A
+	 * replacement discards fingerprints memoized from the previous service, which may have
+	 * used a different scheme; already built trees keep the identity they were registered
+	 * under.
+	 * <p>
+	 * There is no unset counterpart, unlike {@link #unsetMetadataIndex(MetadataIndex)}: the
+	 * whiteboard is not usable without a service, so it is replaced, never withdrawn. A
+	 * {@code null} argument is ignored.
+	 *
+	 * @param fingerprintService the service to bind; {@code null} is ignored
+	 */
+	void setFingerprintService(FingerprintService fingerprintService);
 
 	/**
 	 * The currently bound index.

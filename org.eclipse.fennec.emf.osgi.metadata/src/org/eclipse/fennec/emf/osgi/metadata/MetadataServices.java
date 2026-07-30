@@ -16,6 +16,7 @@ import static java.util.Objects.requireNonNull;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.eclipse.fennec.emf.osgi.metadata.impl.MetadataServiceImpl;
 
 /**
@@ -29,10 +30,12 @@ import org.eclipse.fennec.emf.osgi.metadata.impl.MetadataServiceImpl;
  * bundle rebuilding this sequence itself would have to compile against
  * {@code org.eclipse.fennec.emf.osgi.metadata.impl} and negate that import in its manifest.
  * <p>
- * The {@link FingerprintService} is a parameter, not a default: model identity is the key
- * everything else hangs on, and the only implementation shipped with this project lives in
- * a bundle that depends on this one - not the other way around. Callers pass
- * {@code new DefaultFingerprintService()}.
+ * Model identity is the key everything else hangs on, so the {@link FingerprintService} is
+ * explicit in {@link #createWhiteboard(FingerprintService, MetadataHandler...)}. The
+ * parameterless {@link #createWhiteboard(MetadataHandler...)} takes the shipped default from
+ * {@link FingerprintHelper#getDefaultFingerprintService()} - the implementation class itself
+ * sits in a private package, so that accessor is the only way to reach it without the same
+ * manifest workaround one package over.
  *
  * @author Data In Motion Consulting
  */
@@ -40,6 +43,25 @@ public final class MetadataServices {
 
 	private MetadataServices() {
 		// static factory
+	}
+
+	/**
+	 * Creates a whiteboard over an empty registry with the default
+	 * {@link FingerprintService}, wired for use outside OSGi.
+	 * <p>
+	 * The identity scheme of that default is the same one the registry components emit their
+	 * {@code emf.fingerprint} service property with, so a whiteboard built here keys models
+	 * exactly as the OSGi path would. Use
+	 * {@link #createWhiteboard(FingerprintService, MetadataHandler...)} to be explicit, or
+	 * {@link MetadataWhiteboard#setFingerprintService(FingerprintService)} to replace the
+	 * default afterwards.
+	 *
+	 * @param handlers handlers to register up front; may be empty, {@code null} entries are
+	 *            ignored
+	 * @return a new whiteboard, ready to register packages
+	 */
+	public static MetadataWhiteboard createWhiteboard(MetadataHandler... handlers) {
+		return createWhiteboard(FingerprintHelper.getDefaultFingerprintService(), handlers);
 	}
 
 	/**

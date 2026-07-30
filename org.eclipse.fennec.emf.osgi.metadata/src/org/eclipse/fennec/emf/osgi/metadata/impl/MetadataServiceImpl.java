@@ -133,6 +133,7 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 	 *
 	 * @param fingerprintService the service; {@code null} is ignored
 	 */
+	@Override
 	public void setFingerprintService(FingerprintService fingerprintService) {
 		if (fingerprintService != null) {
 			this.fingerprintService = fingerprintService;

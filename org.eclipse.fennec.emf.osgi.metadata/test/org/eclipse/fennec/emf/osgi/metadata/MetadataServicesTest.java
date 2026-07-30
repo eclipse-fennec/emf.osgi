@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -24,6 +25,8 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.emf.osgi.components.fingerprint.DefaultFingerprintService;
+import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.junit.jupiter.api.Test;
 
@@ -102,10 +105,74 @@ class MetadataServicesTest {
 
 	@Test
 	void testMissingFingerprintServiceFailsImmediately() {
+		// The cast picks the explicit overload: a bare null is ambiguous between the two
+		// varargs signatures. Passing no service at all is the parameterless overload, which
+		// is a different contract - see below.
 		assertThatNullPointerException()
-				.as("model identity has no default - failing here beats failing on first use")
-				.isThrownBy(() -> MetadataServices.createWhiteboard(null))
+				.as("an explicitly passed null is a caller error - failing here beats failing on first use")
+				.isThrownBy(() -> MetadataServices.createWhiteboard((FingerprintService) null))
 				.withMessageContaining("fingerprintService");
+	}
+
+	// ---- parameterless overload (issue #67) -------------------------------------------
+
+	@Test
+	void testDefaultFingerprintServiceIsWiredWithoutAParameter() {
+		// The whole point: a caller with no opinion about model identity gets a usable
+		// whiteboard without naming the implementation - which lives in a private package.
+		MetadataWhiteboard whiteboard = MetadataServices.createWhiteboard();
+
+		PackageMetadata metadata = whiteboard.registerPackage(personPackage("name")).orElseThrow();
+
+		assertThat(metadata.getModelFingerprint()).as("a default fingerprint service was wired").isNotBlank();
+		assertThat(whiteboard.getPackageMetadataByFingerprint(metadata.getModelFingerprint())).contains(metadata);
+	}
+
+	@Test
+	void testDefaultMatchesTheExplicitlyPassedService() {
+		// The default has to be the same identity scheme the registry components emit, or a
+		// whiteboard built outside OSGi would key models differently than the OSGi path.
+		EPackage ePackage = personPackage("name");
+
+		String withDefault = MetadataServices.createWhiteboard().registerPackage(ePackage).orElseThrow()
+				.getModelFingerprint();
+		String explicit = MetadataServices.createWhiteboard(FingerprintHelper.getDefaultFingerprintService())
+				.registerPackage(ePackage).orElseThrow().getModelFingerprint();
+
+		assertThat(withDefault).isEqualTo(explicit);
+	}
+
+	@Test
+	void testHandlersWorkWithoutAServiceParameter() {
+		RecordingHandler handler = new RecordingHandler();
+
+		MetadataWhiteboard whiteboard = MetadataServices.createWhiteboard(handler);
+		PackageMetadata metadata = whiteboard.registerPackage(personPackage("name")).orElseThrow();
+
+		assertThat(whiteboard.getMetadataHandlers()).containsExactly(handler);
+		assertThat(handler.seen).containsExactly(metadata);
+	}
+
+	@Test
+	void testFingerprintServiceIsReplaceableThroughTheInterface() {
+		// "Default, overridable" rather than a dead end: the collaborator is settable on the
+		// interface, so a caller that does have an opinion can install it after the fact.
+		MetadataWhiteboard whiteboard = MetadataServices.createWhiteboard();
+		whiteboard.setFingerprintService(new PrefixingFingerprintService());
+
+		PackageMetadata metadata = whiteboard.registerPackage(personPackage("name")).orElseThrow();
+
+		assertThat(metadata.getModelFingerprint()).startsWith(PrefixingFingerprintService.PREFIX);
+	}
+
+	@Test
+	void testNullFingerprintServiceOnTheInterfaceIsIgnored() {
+		// Mandatory collaborator, so there is no unset: the previous one stays in place.
+		MetadataWhiteboard whiteboard = MetadataServices.createWhiteboard();
+		whiteboard.setFingerprintService(null);
+
+		assertThat(whiteboard.registerPackage(personPackage("name")).orElseThrow().getModelFingerprint())
+				.as("the default survived the null").isNotBlank();
 	}
 
 	private static EPackage personPackage(String attributeName) {
@@ -133,6 +200,32 @@ class MetadataServicesTest {
 		@Override
 		public void onPackageRegistered(PackageMetadata packageMetadata) {
 			seen.add(packageMetadata);
+		}
+	}
+
+	/** Recognizable values, so a replaced service is visible in the resulting tree. */
+	private static final class PrefixingFingerprintService implements FingerprintService {
+
+		private static final String PREFIX = "custom:";
+
+		@Override
+		public String fingerprint(EPackage ePackage, String... derivationInputs) {
+			return PREFIX + ePackage.getNsURI();
+		}
+
+		@Override
+		public String currentScheme() {
+			return "custom";
+		}
+
+		@Override
+		public Set<String> supportedSchemes() {
+			return Set.of("custom");
+		}
+
+		@Override
+		public String fingerprintInScheme(String scheme, EPackage ePackage, String... derivationInputs) {
+			return fingerprint(ePackage, derivationInputs);
 		}
 	}
 }

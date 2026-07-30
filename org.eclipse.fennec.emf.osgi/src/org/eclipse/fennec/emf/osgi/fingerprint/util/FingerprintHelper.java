@@ -55,6 +55,22 @@ public final class FingerprintHelper {
 	}
 
 	/**
+	 * Returns the {@link FingerprintService} this class computes with, for callers that
+	 * need the service itself rather than a fingerprint — chiefly the non-OSGi bootstrap
+	 * of collaborators that take one as a mandatory parameter.
+	 * <p>
+	 * In OSGi the equivalent instance arrives as a service and nothing here is needed. On
+	 * a flat classpath this is the way to reach the default implementation without
+	 * compiling against its private package. Sharing the singleton also shares the
+	 * per-package cache above.
+	 *
+	 * @return the default service; never {@code null}
+	 */
+	public static FingerprintService getDefaultFingerprintService() {
+		return SERVICE;
+	}
+
+	/**
 	 * Computes the canonical fingerprint in the current scheme, cached per package
 	 * instance when no derivation inputs are given.
 	 *

@@ -3,8 +3,14 @@ Bundle-Description: Pre-computed metadata mirror tree for EPackages - model, API
 
 src=${^src},src-gen
 
+# org.eclipse.fennec.emf.osgi is on the -buildpath for the non-OSGi bootstrap only:
+# MetadataServices.createWhiteboard(MetadataHandler...) reads the default FingerprintService
+# from FingerprintHelper. That package is exported by both sub-bundles, so the resulting
+# Import-Package resolves against either of them - no manifest negation needed. No cycle:
+# that project builds against ...osgi.api only and references nothing from here.
 -buildpath: \
 	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
+	org.eclipse.fennec.emf.osgi;version=project,\
 	org.eclipse.emf.ecore;version=latest,\
 	org.eclipse.emf.common;version=latest,\
 	org.eclipse.emf.ecore.xmi;version=latest,\
@@ -19,8 +25,7 @@ src=${^src},src-gen
 # package-infos decide what leaves the bundle. Listing the impl package explicitly
 # would restrict the bundle to exactly that package and silently drop API and model.
 -testpath: \
-	${junit},\
-	org.eclipse.fennec.emf.osgi;version=project
+	${junit}
 
 -includeresource.model: model=model
 

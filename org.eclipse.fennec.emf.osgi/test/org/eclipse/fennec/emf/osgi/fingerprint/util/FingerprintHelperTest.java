@@ -14,7 +14,9 @@ package org.eclipse.fennec.emf.osgi.fingerprint.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,6 +35,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.fennec.emf.osgi.components.fingerprint.DefaultFingerprintService;
+import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -115,6 +118,20 @@ class FingerprintHelperTest {
         assertTrue(FingerprintHelper.supportedSchemes().contains("fp1"));
         EPackage pkg = samplePackage();
         assertEquals(FingerprintHelper.fingerprint(pkg), FingerprintHelper.fingerprintInScheme("fp1", pkg));
+    }
+
+    @Test
+    void defaultServiceIsTheOneTheHelperComputesWith() {
+        // Issue #67: the accessor exists so a non-OSGi caller can hand the mandatory
+        // collaborator on without compiling against the private impl package. It has to be
+        // the same instance the static path uses, or the shared cache would be pointless.
+        FingerprintService service = FingerprintHelper.getDefaultFingerprintService();
+        assertNotNull(service);
+        assertSame(service, FingerprintHelper.getDefaultFingerprintService());
+
+        EPackage pkg = samplePackage();
+        assertEquals(FingerprintHelper.fingerprint(pkg), service.fingerprint(pkg));
+        assertEquals(FingerprintHelper.currentScheme(), service.currentScheme());
     }
 
     // ---- negative ---------------------------------------------------------------
