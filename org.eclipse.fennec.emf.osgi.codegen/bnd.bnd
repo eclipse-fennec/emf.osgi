@@ -39,7 +39,7 @@ src=${^src}
 
 -includeresource.resource: \
 	/=resources,\
-	templates
+	templates/=templates/
 	#org.eclipse.jdt.core!/org/eclipse/jdt/internal/compiler/parser
 	
 -privatepackage.add: \
