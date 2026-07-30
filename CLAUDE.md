@@ -126,6 +126,7 @@ This allows EMF models to be dynamically added/removed as bundles are installed/
 - **EMF Delegate Registries:** `docs/emf-delegate-registries.md` - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
 - **EMF Delegate User Guide:** `docs/emf-delegate-user-guide.md` - How to use the four delegate types: Ecore annotations, OSGi service implementation, runtime behavior, and caching
 - **Model Fingerprints:** `docs/model-fingerprint-guide.md` - The `emf.fingerprint` contract: why the nsURI is not identity, the `fp1` scheme and its tag rule, what enters the hash, and the three places the value appears (service property, generated constant, manifest capability)
+- **Metadata Service:** `docs/metadata-service-guide.md` - Getting a `MetadataService` / `MetadataWhiteboard` in OSGi and on a flat classpath (`MetadataServices.createWhiteboard`), contributing via `MetadataHandler` and `AspectEntry`, persisting the registry
 
 ## Development Workflow
 

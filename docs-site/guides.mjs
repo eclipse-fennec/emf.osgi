@@ -25,6 +25,12 @@ export const GUIDES = [
     group: 'User Manual',
     slug: 'model-fingerprints',
   },
+  {
+    file: 'docs/metadata-service-guide.md',
+    title: 'Metadata Service',
+    group: 'User Manual',
+    slug: 'metadata-service',
+  },
 ];
 
 // Route name for a guide: an explicit `slug`, otherwise the file's base name

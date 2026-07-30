@@ -147,6 +147,26 @@ String fingerprint = FingerprintHelper.fingerprint(ePackage);
 Both are in the released API bundle (`FingerprintService`) and the core implementation bundle
 (`FingerprintHelper`, package `org.eclipse.fennec.emf.osgi.fingerprint.util`).
 
+### Getting the service itself, without OSGi
+
+Some collaborators take a `FingerprintService` as a mandatory parameter — the
+[metadata service](metadata-service-guide.md#outside-osgi) is one. Inside OSGi that arrives as a
+service reference; on a flat classpath, ask the helper for the one it computes with:
+
+```java
+FingerprintService service = FingerprintHelper.getDefaultFingerprintService();
+```
+
+This is the supported way to reach the shipped implementation. The class itself sits in a
+private package that is deliberately not exported, so compiling against it would leave a bundle
+with an `Import-Package` nobody can satisfy — the accessor is in the exported
+`…fingerprint.util` package and resolves against both the full and the minimal implementation
+bundle.
+
+It hands out the same singleton the static methods above use, so callers share the per-package
+cache. The computation is deterministic and thread-safe, which is what makes one shared instance
+the right default rather than a convenience.
+
 ### Derivation inputs
 
 Consumers that derive artifacts from a model often need a key for *the artifact*, not for the
@@ -195,3 +215,5 @@ rather than falsely equal. Resolve your models before relying on the value.
 - [Configuration Guide](configuration-guide.md) — all model service properties
 - [Code Generation](code-generation-guide.md) — the generator that emits constant and
   capability
+- [Metadata Service](metadata-service-guide.md) — the main consumer: it files every metadata
+  tree under the fingerprint
