@@ -1,6 +1,6 @@
 maven/mavencentral/biz.aQute.bnd/aQute.libg/7.0.0, Apache-2.0, approved, #29541
 maven/mavencentral/biz.aQute.bnd/biz.aQute.bnd.annotation/7.0.0, Apache-2.0 OR EPL-2.0, approved, #10946
-maven/mavencentral/biz.aQute.bnd/biz.aQute.bnd.javagen/7.1.0, None, restricted, #29540
+maven/mavencentral/biz.aQute.bnd/biz.aQute.bnd.javagen/7.1.0, EPL-2.0 OR Apache-2.0, approved, #29540
 maven/mavencentral/biz.aQute.bnd/biz.aQute.bnd.util/7.0.0, Apache-2.0, approved, #10939
 maven/mavencentral/biz.aQute.bnd/biz.aQute.bndlib/7.0.0, Apache-2.0, approved, #10944
 maven/mavencentral/biz.aQute.bnd/biz.aQute.repository/7.0.0, Apache-2.0, approved, #10943
@@ -33,7 +33,7 @@ maven/mavencentral/org.eclipse.emf/org.eclipse.emf.codegen/2.27.0, EPL-2.0, appr
 maven/mavencentral/org.eclipse.emf/org.eclipse.emf.common/2.44.0, EPL-2.0, approved, modeling.emf
 maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore.xmi/2.39.0, EPL-2.0, approved, modeling.emf
 maven/mavencentral/org.eclipse.emf/org.eclipse.emf.ecore/2.41.0, EPL-2.0, approved, modeling.emf
-maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
+maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.bnd.library/0.0.10, EPL-2.0, approved, modeling.fennec
 maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.jacoco.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
 maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.osgitest.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
 maven/mavencentral/org.eclipse.fennec.bnd/org.eclipse.fennec.osgitest.project.bnd.library/0.0.9, EPL-2.0, approved, modeling.fennec
