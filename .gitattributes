@@ -43,6 +43,7 @@ packageinfo crlf=input
 Makefile crlf=input
 README crlf=input
 LICENSE crlf=input
+DEPENDENCIES crlf=input
 
 # No EOL translation
 *.bat -crlf
