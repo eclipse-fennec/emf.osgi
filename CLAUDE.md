@@ -126,7 +126,8 @@ This allows EMF models to be dynamically added/removed as bundles are installed/
 - **EMF Delegate Registries:** `docs/emf-delegate-registries.md` - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
 - **EMF Delegate User Guide:** `docs/emf-delegate-user-guide.md` - How to use the four delegate types: Ecore annotations, OSGi service implementation, runtime behavior, and caching
 - **Model Fingerprints:** `docs/model-fingerprint-guide.md` - The `emf.fingerprint` contract: why the nsURI is not identity, the `fp1` scheme and its tag rule, what enters the hash, and the three places the value appears (service property, generated constant, manifest capability)
-- **Metadata Service:** `docs/metadata-service-guide.md` - Getting a `MetadataService` / `MetadataWhiteboard` in OSGi and on a flat classpath (`MetadataServices.createWhiteboard`), contributing via `MetadataHandler` and `AspectEntry`, persisting the registry
+- **Metadata Service:** `docs/metadata-service-guide.md` - Why derived metadata exists, getting a `MetadataService` / `MetadataWhiteboard` in OSGi and on a flat classpath (`MetadataServices.createWhiteboard`), push vs. pull registration, contributing via `MetadataHandler` and `AspectEntry`, reusing derivations through `ArtifactStore`, saving and restoring the registry (`loadRegistry`)
+- **Porting from `emf.model.metadata`:** `docs/metadata-migration-from-model-metadata.md` - Bundle, package and nsURI mapping plus the API breaks a rename cannot cover (`Optional` returns, `AspectEntry` instead of aspect inheritance, `MetadataHandler` instead of `AspectProvider`, profiles dropped). Internal, deleted once the donor repo is archived
 
 ## Development Workflow
 

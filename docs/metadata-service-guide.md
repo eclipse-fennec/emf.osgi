@@ -6,9 +6,40 @@ The metadata service keeps a pre-computed mirror tree for every EMF model it see
 otherwise walk `EPackage` structures on every request — codecs, mappers, validators, UI
 builders — read from that tree instead and hang their own derived content off it.
 
-This guide covers how to get a handle on it, in OSGi and on a flat classpath, and how to
-contribute to it. The interfaces themselves are documented in their Javadoc; what follows is
-the wiring.
+This guide covers why you would use it, how to get a handle on it in OSGi and on a flat
+classpath, and how to contribute to it. The interfaces themselves are documented in their
+Javadoc; what follows is the wiring.
+
+---
+
+## Why derive anything at all
+
+An Ecore model says what the data *is*. Almost every real system needs something else about
+that same model: how to serialize it, how to map it to tables, which constraints hold, how to
+expose it over a protocol. Encoding that into the domain model pollutes it, costs annotation
+parsing on every call, and is impossible when the Ecore belongs to someone else.
+
+So the information is attached *beside* the model instead of inside it. When a model arrives,
+a contributor derives what it needs — once — and hangs the result on the mirror tree. Two
+properties make that worth doing:
+
+* **The derived content is orthogonal.** It adds a dimension without the domain model knowing,
+  and each concern is independent of the others. A new one never touches an existing one.
+* **The expensive part happens once.** Annotation parsing, constraint compilation, mapping
+  inference run at registration, not on every serialization or database write. The result is a
+  plain `EObject`, so it is type-safe, navigable, serializable and cacheable.
+
+The concerns this was built for: a **constraint cache** that holds pre-compiled OCL instead of
+re-parsing annotation strings on every validation; an **ORM mapping** for `emf.persistence-jpa`
+that resolves classes to tables and references to joins without putting database concerns in
+the Ecore; a **protocol mapping** such as the SensiNact one in `emf.util`, which consumes a
+resolved structure rather than re-interpreting Ecore at runtime.
+
+Because every derived artifact is an ordinary EMF model, it can also be *held* elsewhere —
+persisted and versioned in an EObject registry such as the
+[Fennec Model Atlas](https://github.com/eclipse-fennec/model.atlas), then re-loaded by any
+runtime that needs it. Deriving and holding are separate jobs; this service does the first and
+gives you the fingerprint that makes the second safe.
 
 ---
 
@@ -34,6 +65,27 @@ that ambiguity matters.
 
 This is also why a `FingerprintService` is a mandatory collaborator rather than a nicety: it
 computes the key everything else is filed under.
+
+### Push and pull are both first-class
+
+There are two ways a tree comes into existence, and the difference matters for anything that
+holds one:
+
+**Push** — `registerPackage`, which is what the whiteboard does when an `EPackage` service
+appears. It takes a per-version liveness count, so registering identical content twice
+deduplicates onto one tree with a count of two, and `unregisterPackage` drops the tree only on
+the last withdrawal. Unbinding one version of an nsURI therefore never removes another live
+version of it.
+
+**Pull** — `getPackageMetadata(EPackage)` builds the tree on the spot if that content is
+unknown. **No prior registration is needed.** A consumer that is handed a concrete `EPackage`
+instance — a serializer invoked with a model, a validator, a mapper — does not have to care
+whether anyone registered it; it asks with the instance it holds and gets exactly that version.
+Trees created this way carry no liveness count and no unbind ever evicts them: they are cached
+reads, not registrations.
+
+Which means the whiteboard is a warm-up optimization, not a precondition. It pre-builds so the
+first real call pays nothing.
 
 ---
 
@@ -179,6 +231,24 @@ metadata.getPackageAspect(ePackage, "codec")
 Because the content slot is a plain `EObject`, a contributor ships its content model in its own
 bundle and the metadata model never learns the type.
 
+### Build context
+
+The OSGi service properties of the `EPackage` service reach the handler on the tree itself,
+stringified:
+
+```java
+if ("false".equals(packageMetadata.getProperties().get("codec.enabled"))) {
+    return;                                    // this model is not ours to derive for
+}
+```
+
+Everything the [configuration guide](configuration-guide.md) lists is available here, which is
+what lets a contributor decide whether a model is relevant to it at all, or pick up a
+deployment-specific setting. Two limits: the map is **transient** — it is build context, not
+part of the model version, so it is not written out when the registry is saved (see below) — and
+an `emf.fingerprint` among those properties is context too, never identity. The key the tree is
+filed under is always computed locally.
+
 **Timing.** `onPackageRegistered` runs while the tree is being built, *before* it is published
 to lookups, the index and other readers — which is what makes contribution safe: nobody can
 observe a model version whose entries are still missing. The price is that the callback must not
@@ -188,11 +258,69 @@ the tree it is handed already holds everything. Handlers run inside the registra
 
 ---
 
-## Persisting the state
+## Reusing an expensive derivation
 
-`getRegistry()` returns the `MetadataRegistry` — the serializable root holding every tree,
-keyed by fingerprint. It is an ordinary EMF resource root, so the whole state can be written
-out and read back:
+Some contributions are cheap enough to redo on every start. Compiling constraints, inferring a
+mapping or building an index is not, and nobody wants to repeat it on every node. `ArtifactStore`
+is the seam for that — a two-method durable store, keyed by fingerprint and type id:
+
+```java
+Optional<EObject> resolve(String fingerprint, String typeId);
+void put(String fingerprint, String typeId, EObject artifact);
+```
+
+The handler does *resolve-or-build* against it. On a hit nothing is derived; on a miss the work
+runs once and the result is stored:
+
+```java
+public class OclCacheHandler implements MetadataHandler {
+
+    private final ArtifactStore store;   // injected, or InMemoryArtifactStore
+
+    @Override
+    public void onPackageRegistered(PackageMetadata packageMetadata) {
+        String fingerprint = packageMetadata.getModelFingerprint();
+        EObject constraints = store.resolve(fingerprint, "ocl")
+                .orElseGet(() -> {
+                    EObject built = compileConstraints(packageMetadata);   // the expensive part
+                    store.put(fingerprint, "ocl", built);
+                    return built;
+                });
+
+        AspectEntry entry = MetadataFactory.eINSTANCE.createAspectEntry();
+        entry.setTypeId("ocl");
+        entry.setContent(constraints);
+        packageMetadata.getAspects().add(entry);
+    }
+}
+```
+
+**The fingerprint is what makes the reuse safe.** It changes exactly when the model content
+changes, so an artifact is never served to a version it was not derived from — two diverging
+versions of one nsURI get two artifacts, and identical content on two nodes shares one. Keying
+by nsURI here would reintroduce the very bug fingerprints exist to prevent.
+
+Three things to know about the arrangement:
+
+* **The store is the contributor's, not the framework's.** Nothing in the metadata service binds
+  an `ArtifactStore` or calls it for you; the handler owns the decision, which is what keeps the
+  service independent of any particular backend. `InMemoryArtifactStore` is shipped as the
+  default; a durable one can sit on the Model Atlas, a filesystem, or anything else.
+* **Unregistering does not evict.** Dropping a model version is local to the node. The stored
+  artifact stays, because another node may still be using it — cleanup is the store's business,
+  not the whiteboard's.
+* **Derivation settings belong in the key.** If *how* you derive can change — an engine version,
+  a configuration — key by
+  `fingerprintService.fingerprint(ePackage, "ocl", "engine-1.2")` instead, so a changed
+  derivation produces a new key for unchanged Ecore. See
+  [derivation inputs](model-fingerprint-guide.md#derivation-inputs).
+
+---
+
+## Persisting and restoring the state
+
+`getRegistry()` returns the `MetadataRegistry` — the serializable root holding every tree, keyed
+by fingerprint. It is an ordinary EMF resource root, so the whole state can be written out:
 
 ```java
 Resource resource = resourceSet.createResource(URI.createFileURI("metadata.xmi"));
@@ -200,8 +328,38 @@ resource.getContents().add(metadata.getRegistry());
 resource.save(null);
 ```
 
-Useful for caching a build-time computation, replicating state across nodes, or inspecting what
-a runtime actually knows.
+and taken over again on the next start, or on another node:
+
+```java
+Resource resource = resourceSet.getResource(URI.createFileURI("metadata.xmi"), true);
+List<PackageMetadata> adopted =
+        whiteboard.loadRegistry((MetadataRegistry) resource.getContents().get(0));
+```
+
+Whereas `ArtifactStore` caches one contributor's artifact, this carries the whole state —
+mirror trees and every contribution on them — so a build-time computation can be shipped and
+adopted instead of repeated.
+
+`loadRegistry` adopts rather than trusts, and the return value is the list of what it actually
+took over:
+
+* **A stale tree is refused.** If the saved `modelFingerprint` contradicts what the referenced
+  `EPackage` hashes to now, the model moved on since the file was written and the tree is left
+  behind. Verification needs a resolvable package and a bound `FingerprintService`; where either
+  is missing — an offline inspection, say — the stored key is taken as stated.
+* **A live tree wins.** A model version already built in this runtime is not replaced by a
+  stored one.
+* **Adoption is a move**, so the argument is left holding only the entries that were skipped, and
+  adopted trees take no liveness count — no unbind evicts them.
+* **Handlers are not re-run**, since their output is part of what was saved. A handler added
+  *after* a load does get replayed over the adopted trees like over any other, so a contributor
+  that cannot tolerate a tree already carrying its entries should check for its own type id
+  first.
+
+Two things do not survive the round trip: the transient build-context properties described
+above, and any reference into a model the reading `ResourceSet` cannot resolve. An adopted tree
+whose `EPackage` did not resolve stays reachable by fingerprint, nsURI and through the index, but
+not by `EClass` or `EStructuralFeature` instance — there is no live instance to key it under.
 
 ---
 

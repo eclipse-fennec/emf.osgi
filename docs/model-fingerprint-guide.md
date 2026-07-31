@@ -180,6 +180,40 @@ The result is a fingerprint over the model **plus** those tokens. Use the plain 
 fingerprint to answer "which model version is this?", and a derived key to answer "can I reuse
 this artifact?".
 
+The two are not interchangeable, and mixing them up is the one mistake worth naming:
+
+| | Answers | Role |
+|---|---|---|
+| `fingerprint(ePackage)` | which model version is this? | the **join key** — what metadata trees and anything else about the model are filed under |
+| `fingerprint(ePackage, inputs…)` | can I reuse this artifact? | the **store key** of one consumer's derived artifact |
+
+The join key stays purely content-derived, always. A fingerprint that arrived from somewhere
+else — a service property, a manifest, a document header — may legitimately be folded into a
+derived key as just another input token, but it never replaces the locally computed one. That is
+the same rule as "computed, never trusted" above, seen from the consumer's side.
+
+### Addressing a scheme explicitly
+
+The tag in front of the digest versions the *algorithm*. Most consumers never need to think
+about it: they compute with the current one, or they resolve a value they read elsewhere and
+react to the result. Where it does matter, the seam is addressable:
+
+```java
+fingerprintService.currentScheme();                       // "fp1" — the tag new values carry
+fingerprintService.supportedSchemes();                    // every tag that can be computed
+fingerprintService.fingerprintInScheme("fp1", ePackage);  // compute in a named scheme
+```
+
+Several schemes stay computable side by side, which is what makes a future bump additive: a new
+tag *adds* an implementation instead of editing one whose values are already in circulation.
+Consequently **a published scheme is frozen, and no two schemes share canonicalization code** —
+a helper refactored for a newer scheme would silently change an older one's values, and a
+fingerprint that changed meaning is worse than none.
+
+Values with different tags are not comparable, even for the same model. A bump therefore never
+makes a stored value unreadable — it only costs *precision* where several versions share an
+nsURI, because an exact-match lookup misses and the consumer falls back to the nsURI.
+
 ### Cost
 
 The computation walks the model once and is cached per package instance, so re-reading a
