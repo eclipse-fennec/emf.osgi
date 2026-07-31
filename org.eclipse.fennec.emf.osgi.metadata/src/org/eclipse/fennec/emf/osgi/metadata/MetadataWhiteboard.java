@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.fennec.emf.osgi.fingerprint.FingerprintService;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataRegistry;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -69,6 +70,37 @@ public interface MetadataWhiteboard extends MetadataService {
 	 * @param ePackage the package to unregister
 	 */
 	void unregisterPackage(EPackage ePackage);
+
+	/**
+	 * Adopts model versions from a registry read back from storage - the counterpart of
+	 * saving {@link MetadataService#getRegistry()}. What was computed once, possibly at
+	 * build time or on another node, is taken over instead of rebuilt.
+	 * <p>
+	 * <b>Adopted, not trusted.</b> A tree is taken over only if it can be keyed and is not
+	 * stale. An entry is skipped when it carries no fingerprint or nsURI, when its
+	 * fingerprint is already live here (the in-memory tree wins), or when its
+	 * {@link PackageMetadata#getEPackage()} resolves and recomputing that package's
+	 * fingerprint contradicts the stored one - the saved tree then describes a model version
+	 * that no longer exists. Verification needs both a resolvable package and a bound
+	 * {@link FingerprintService}; where either is missing the stored key is taken as stated,
+	 * which is the offline case and the reason the return value lists what was actually
+	 * adopted.
+	 * <p>
+	 * <b>Adoption is a move.</b> Trees are containment-transferred into this whiteboard's
+	 * registry, so the argument is left holding only what was skipped. Adopted versions take
+	 * no liveness count - like a tree built by
+	 * {@link MetadataService#getPackageMetadata(EPackage)}, they are cached state, and no
+	 * unbind evicts them.
+	 * <p>
+	 * <b>Handlers are not re-run.</b> Their contributions are part of what was saved, so
+	 * replaying them would duplicate entries. A handler added <em>after</em> a load is
+	 * replayed over the adopted trees like over any other, so a contributor that cannot
+	 * tolerate a tree already carrying its entries should check for its own type id first.
+	 *
+	 * @param registry the registry to adopt from; {@code null} is ignored
+	 * @return the adopted trees, in encounter order; empty if nothing qualified
+	 */
+	List<PackageMetadata> loadRegistry(MetadataRegistry registry);
 
 	/**
 	 * Binds the service that computes model identity, replacing any previous one.

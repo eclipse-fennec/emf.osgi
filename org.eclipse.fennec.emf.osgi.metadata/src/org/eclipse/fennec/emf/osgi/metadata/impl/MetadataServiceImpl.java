@@ -12,6 +12,7 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.metadata.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EParameter;
@@ -122,9 +124,11 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 	 */
 	public MetadataServiceImpl(MetadataRegistry registry) {
 		this.registry = Objects.requireNonNull(registry, "registry");
-		MetadataIndex defaultIndex = new MapBasedMetadataIndex();
-		this.registry.getPackages().forEach(defaultIndex::indexPackage);
-		this.index = defaultIndex;
+		this.index = new MapBasedMetadataIndex();
+		// Same adoption as loadRegistry, minus the verification: no fingerprint service can
+		// be bound yet at construction time. Without this the registry would hold trees that
+		// no lookup could reach.
+		adopt(List.copyOf(this.registry.getPackages()));
 	}
 
 	/**
@@ -249,6 +253,20 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 			}
 			livenessByFingerprint.remove(fingerprint);
 			withdraw(fingerprint, packageMetadata);
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	@Override
+	public List<PackageMetadata> loadRegistry(MetadataRegistry incoming) {
+		if (incoming == null) {
+			return Collections.emptyList();
+		}
+		lock.writeLock().lock();
+		try {
+			// Copied first: adopting containment-moves entries out of the argument's list.
+			return adopt(List.copyOf(incoming.getPackages()));
 		} finally {
 			lock.writeLock().unlock();
 		}
@@ -451,6 +469,92 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 			currentIndex.indexPackage(packageMetadata);
 		}
 		return packageMetadata;
+	}
+
+	/**
+	 * Takes over pre-built trees, skipping what cannot be keyed, is already live, or has
+	 * gone stale. Must be called under the write lock, or from the constructor before the
+	 * instance escapes.
+	 *
+	 * @return the trees actually adopted
+	 */
+	private List<PackageMetadata> adopt(List<PackageMetadata> candidates) {
+		List<PackageMetadata> adopted = new ArrayList<>(candidates.size());
+		for (PackageMetadata packageMetadata : candidates) {
+			if (adoptOne(packageMetadata)) {
+				adopted.add(packageMetadata);
+			}
+		}
+		return List.copyOf(adopted);
+	}
+
+	private boolean adoptOne(PackageMetadata packageMetadata) {
+		String fingerprint = packageMetadata.getModelFingerprint();
+		String nsURI = packageMetadata.getNsURI();
+		if (fingerprint == null || fingerprint.isBlank() || nsURI == null) {
+			return false;
+		}
+		if (packagesByFingerprint.containsKey(fingerprint)) {
+			// A live tree is the better answer than a stored one: it was built from the
+			// instance callers actually hold.
+			return false;
+		}
+
+		EPackage ePackage = resolved(packageMetadata.getEPackage());
+		FingerprintService service = this.fingerprintService;
+		if (ePackage != null && service != null && !fingerprint.equals(service.fingerprint(ePackage))) {
+			// The package this tree points at has moved on since it was written. Adopting it
+			// would serve one version's objects with another version's metadata - the exact
+			// failure fingerprint keying exists to prevent.
+			return false;
+		}
+
+		// Containment move; a no-op when the tree already sits in this registry, which is the
+		// constructor case.
+		registry.getPackages().add(packageMetadata);
+		packagesByFingerprint.put(fingerprint, packageMetadata);
+		packagesByNsURI.computeIfAbsent(nsURI, key -> new CopyOnWriteArrayList<>()).add(packageMetadata);
+		if (ePackage != null) {
+			fingerprintByInstance.put(ePackage, fingerprint);
+		}
+		adoptInstanceLookups(packageMetadata);
+
+		MetadataIndex currentIndex = this.index;
+		if (currentIndex != null) {
+			currentIndex.indexPackage(packageMetadata);
+		}
+		return true;
+	}
+
+	/**
+	 * Wires the EMF-instance lookups to an adopted tree. Unresolvable references are left
+	 * out rather than keyed by a proxy no caller will ever pass in; the tree stays reachable
+	 * by fingerprint, nsURI and through the index.
+	 */
+	private void adoptInstanceLookups(PackageMetadata packageMetadata) {
+		for (ClassMetadata classMetadata : packageMetadata.getClasses()) {
+			EClass eClass = resolved(classMetadata.getEClass());
+			if (eClass != null) {
+				classesByEClass.put(eClass, classMetadata);
+			}
+			for (FeatureMetadata featureMetadata : classMetadata.getFeatures()) {
+				EStructuralFeature feature = resolved(featureMetadata.getEFeature());
+				if (feature != null) {
+					featuresByEFeature.put(feature, featureMetadata);
+				}
+			}
+			for (OperationMetadata operationMetadata : classMetadata.getOperations()) {
+				EOperation operation = resolved(operationMetadata.getEOperation());
+				if (operation != null) {
+					operationsByEOperation.put(operation, operationMetadata);
+				}
+			}
+		}
+	}
+
+	/** The object itself, or {@code null} if it is absent or an unresolved proxy. */
+	private static <T extends EObject> T resolved(T object) {
+		return object != null && !object.eIsProxy() ? object : null;
 	}
 
 	/**
