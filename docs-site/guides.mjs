@@ -31,6 +31,12 @@ export const GUIDES = [
     group: 'User Manual',
     slug: 'metadata-service',
   },
+  {
+    file: 'docs/eobject-registry-guide.md',
+    title: 'EObject Registries',
+    group: 'User Manual',
+    slug: 'eobject-registries',
+  },
 ];
 
 // Route name for a guide: an explicit `slug`, otherwise the file's base name
