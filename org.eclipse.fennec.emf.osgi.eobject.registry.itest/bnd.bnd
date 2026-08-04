@@ -1,0 +1,24 @@
+Test-Cases: ${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
+
+-library: enableOSGi-Test
+
+-buildpath: \
+	org.osgi.framework;version=latest,\
+	org.osgi.util.tracker;version=latest,\
+	org.osgi.service.cm;version=latest,\
+	org.eclipse.emf.common;version=latest,\
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.emf.ecore.xmi;version=latest,\
+	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.metadata;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.eobject.registry;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.eobject.registry.metadata;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.example.model.basic;version=snapshot
+
+Bundle-Name: EMF OSGi EObject Registry Tests
+Bundle-Description: Eclipse Fennec EMF OSGi EObject registry integration tests
+
+-dependson: \
+	org.eclipse.fennec.emf.osgi.eobject.registry,\
+	org.eclipse.fennec.emf.osgi.eobject.registry.metadata,\
+	org.eclipse.fennec.emf.osgi
