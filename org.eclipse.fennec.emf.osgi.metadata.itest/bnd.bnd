@@ -1,0 +1,17 @@
+Test-Cases: ${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
+
+-library: enableOSGi-Test
+
+-buildpath: \
+	org.osgi.framework;version=latest,\
+	org.eclipse.emf.common;version=latest,\
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.metadata;version=snapshot
+
+Bundle-Name: EMF OSGi Metadata Tests
+Bundle-Description: Eclipse Fennec EMF OSGi metadata service integration tests
+
+-dependson: \
+	org.eclipse.fennec.emf.osgi.metadata,\
+	org.eclipse.fennec.emf.osgi

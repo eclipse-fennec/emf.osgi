@@ -20,6 +20,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataIndex;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataService;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -35,7 +36,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
  * <p>
  * The {@link FingerprintService} reference is mandatory and static: model identity is the
  * key everything else hangs on, so the component must not start without it, and swapping
- * it underneath a populated registry would invalidate every key at once.
+ * it underneath a populated registry would invalidate every key at once. It is injected
+ * through the constructor because SCR calls bind methods in descriptor order - a bind
+ * method could run after {@code addEPackage} for services present at activation, losing
+ * those packages permanently. Constructor injection always precedes any bind method.
  *
  * @author Data In Motion Consulting
  */
@@ -43,8 +47,8 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 		MetadataService.class }, immediate = true)
 public class MetadataServiceComponent extends MetadataServiceImpl {
 
-	@Reference
-	void bindFingerprintService(FingerprintService fingerprintService) {
+	@Activate
+	public MetadataServiceComponent(@Reference FingerprintService fingerprintService) {
 		setFingerprintService(fingerprintService);
 	}
 
