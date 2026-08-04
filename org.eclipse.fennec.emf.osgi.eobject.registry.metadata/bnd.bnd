@@ -1,0 +1,23 @@
+Bundle-Name: Eclipse Fennec EMF OSGi EObject Registry Metadata Bridge
+Bundle-Description: Attaches EObject registry content as AspectEntry to metadata trees - one uniform model-anchored lookup face
+
+# Separate bundle on purpose: the registry bundle must not depend on the metadata
+# bundle unconditionally. This bridge depends on both.
+-buildpath: \
+	org.eclipse.fennec.emf.osgi.api;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.eobject.registry;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.metadata;version=snapshot,\
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.emf.common;version=latest,\
+	org.osgi.annotation.bundle;version=latest,\
+	org.osgi.annotation.versioning;version=latest,\
+	org.osgi.service.component.annotations;version=latest,\
+	org.osgi.service.metatype.annotations;version=latest
+
+# org.eclipse.fennec.emf.osgi is needed on the test path only: the tests bootstrap a
+# MetadataWhiteboard via MetadataServices.createWhiteboard(), which reads the default
+# FingerprintService from FingerprintHelper.
+-testpath: \
+	${junit},\
+	org.eclipse.fennec.emf.osgi;version=project,\
+	org.eclipse.emf.ecore.xmi;version=latest
