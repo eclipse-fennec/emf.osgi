@@ -10,7 +10,8 @@ Bundle-Description: Generic named EObject registries - local, source-fed, resili
 	org.osgi.annotation.versioning;version=latest,\
 	org.osgi.service.component.annotations;version=latest,\
 	org.osgi.service.metatype.annotations;version=latest,\
-	org.osgi.framework;version=latest
+	org.osgi.framework;version=latest,\
+	biz.aQute.bnd.annotation;version=latest
 
 # No -privatepackage / Export-Package here on purpose: bnd includes every source
 # package by default, and the @Export annotations on the package-infos decide what

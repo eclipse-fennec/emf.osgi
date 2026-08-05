@@ -40,6 +40,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.metatype.annotations.Designate;
 
+import aQute.bnd.annotation.service.ServiceCapability;
+
 /**
  * One registry instance per factory configuration. The component itself is not the
  * service: it runs the configured initial provider on a private executor (activation
@@ -60,6 +62,8 @@ import org.osgi.service.metatype.annotations.Designate;
  */
 @Component(name = "EObjectRegistry", configurationPolicy = ConfigurationPolicy.REQUIRE)
 @Designate(ocd = EObjectRegistryConfig.class, factory = true)
+@ServiceCapability(EObjectRegistry.class)
+@ServiceCapability(EObjectRegistryWriter.class)
 public class EObjectRegistryComponent {
 
 	private static final Logger logger = Logger.getLogger(EObjectRegistryComponent.class.getName());
