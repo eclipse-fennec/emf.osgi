@@ -11,7 +11,9 @@
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.bnd.templates.project',\
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.component.minimal',\
 	bnd.identity;id='org.eclipse.fennec.emf.gecko.compatibility.api',\
-	bnd.identity;id='org.eclipse.fennec.emf.osgi.metadata'
+	bnd.identity;id='org.eclipse.fennec.emf.osgi.metadata',\
+	bnd.identity;id='org.eclipse.fennec.emf.osgi.eobject.registry',\
+	bnd.identity;id='org.eclipse.fennec.emf.osgi.eobject.registry.metadata'
 -runbundles: \
 	org.eclipse.fennec.emf.osgi.codegen;version=snapshot,\
 	org.eclipse.fennec.emf.osgi.component;version=snapshot,\
@@ -32,7 +34,9 @@
 	org.eclipse.emf.ecore;version='[2.41.0,2.41.1)',\
 	org.eclipse.emf.ecore.xmi;version='[2.39.0,2.39.1)',\
 	org.eclipse.fennec.emf.gecko.compatibility.api;version=snapshot,\
-	org.eclipse.fennec.emf.osgi.metadata;version=snapshot
+	org.eclipse.fennec.emf.osgi.metadata;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.eobject.registry;version=snapshot,\
+	org.eclipse.fennec.emf.osgi.eobject.registry.metadata;version=snapshot
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
 	bnd.identity;id='ch.qos.logback.core'
