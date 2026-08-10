@@ -15,8 +15,13 @@ package org.eclipse.fennec.emf.osgi.eobject.registry.metadata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.fennec.emf.osgi.annotation.provide.EPackage.FINGERPRINT_ATTRIBUTE;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -33,6 +38,7 @@ import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
 import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -68,6 +74,50 @@ public class FingerprintScopedPlacementTest {
 
 	private MetadataWhiteboard whiteboard;
 	private AspectAnchorResolver anchorResolver;
+
+	/** Whether narrowing stayed silent or said so is part of the contract - so capture it. */
+	private final List<String> warnings = new CopyOnWriteArrayList<>();
+	private Logger bridgeLogger;
+	private Handler logHandler;
+
+	@BeforeEach
+	public void captureBridgeWarnings() {
+		bridgeLogger = Logger.getLogger(RegistryMetadataBridge.class.getName());
+		logHandler = new Handler() {
+
+			@Override
+			public void publish(LogRecord record) {
+				warnings.add(record.getMessage());
+			}
+
+			@Override
+			public void flush() {
+				// nothing buffered
+			}
+
+			@Override
+			public void close() {
+				// nothing to release
+			}
+		};
+		bridgeLogger.addHandler(logHandler);
+	}
+
+	@AfterEach
+	public void releaseLogHandler() {
+		bridgeLogger.removeHandler(logHandler);
+	}
+
+	/** The warnings about content that reached no tree, ignoring last-write-wins notices. */
+	private List<String> unplacedWarnings() {
+		List<String> matching = new ArrayList<>();
+		for (String warning : warnings) {
+			if (warning != null && warning.contains("no aspect placed")) {
+				matching.add(warning);
+			}
+		}
+		return matching;
+	}
 
 	@BeforeEach
 	public void setUp() {
@@ -343,5 +393,274 @@ public class FingerprintScopedPlacementTest {
 		writer.remove("compiler", "expr-v1");
 
 		assertThat(deadAnchor.getAspects()).as("the withdrawn tree is nobody's business anymore").hasSize(1);
+	}
+
+	// ---------------------------------------------------------------- cardinalities
+
+	/** The degenerate case the guard must not break: one live version, pinned to it. */
+	@Test
+	public void testPinnedContentWithASingleLiveVersion() {
+		EPackage only = domainVersion();
+		String fingerprint = whiteboard.registerPackage(only).orElseThrow().getModelFingerprint();
+
+		EObjectRegistryWriter writer = registryWithBridge(only);
+		writer.put("compiler", "expr", expression("only-body"), pinnedTo(fingerprint));
+
+		assertThat(whiteboard.getPackageMetadataVersions(NS_URI)).hasSize(1);
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(only), TYPE_ID).orElseThrow())).isEqualTo("only-body");
+		assertThat(unplacedWarnings()).isEmpty();
+	}
+
+	/**
+	 * No live version at all - a freshly started gateway whose content sources are up
+	 * before any model bundle. Pending is the normal state here, so it must stay
+	 * <em>silent</em>: a warning per entry on every cold start would be noise, and the
+	 * replay places the content the moment the model arrives.
+	 */
+	@Test
+	public void testPinnedContentWithNoLiveVersionIsSilentlyPending() {
+		EPackage v1 = domainVersion();
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("compiler", "expr", expression("v1-body"), pinnedTo(FingerprintHelper.fingerprint(v1)));
+
+		assertThat(whiteboard.getPackageMetadataVersions(NS_URI)).isEmpty();
+		assertThat(unplacedWarnings()).as("nothing is wrong yet - no model is deployed").isEmpty();
+
+		whiteboard.registerPackage(v1);
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID).orElseThrow())).isEqualTo("v1-body");
+	}
+
+	/**
+	 * Five diverging versions of one nsURI: nothing in the placement path is tuned to
+	 * "two" or "three". Every version answers with its own artifact, and no tree carries
+	 * more than the one aspect that belongs to it.
+	 */
+	@Test
+	public void testFiveVersionsEachAnswerWithTheirOwnDerivedContent() {
+		List<EPackage> versions = new ArrayList<>();
+		for (int i = 1; i <= 5; i++) {
+			String[] extraFeatures = new String[i];
+			for (int j = 0; j < i; j++) {
+				extraFeatures[j] = "v" + i + "feature" + j;
+			}
+			versions.add(domainVersion(extraFeatures));
+		}
+		List<String> fingerprints = new ArrayList<>();
+		for (EPackage version : versions) {
+			fingerprints.add(whiteboard.registerPackage(version).orElseThrow().getModelFingerprint());
+		}
+		assertThat(fingerprints).doesNotHaveDuplicates();
+		assertThat(whiteboard.getPackageMetadataVersions(NS_URI)).hasSize(5);
+
+		EObjectRegistryWriter writer = registryWithBridge(versions.get(0));
+		for (int i = 0; i < versions.size(); i++) {
+			writer.put("compiler", "expr-" + i, expression("body-" + i), pinnedTo(fingerprints.get(i)));
+		}
+
+		for (int i = 0; i < versions.size(); i++) {
+			EPackage version = versions.get(i);
+			assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(version), TYPE_ID).orElseThrow()))
+					.isEqualTo("body-" + i);
+			assertThat(anchorMetadata(whiteboard.getPackageMetadata(version).orElseThrow()).getAspects()).hasSize(1);
+		}
+		assertThat(unplacedWarnings()).isEmpty();
+	}
+
+	// ------------------------------------------------------- malformed property values
+
+	/**
+	 * An <b>empty</b> fingerprint means "the provider cannot state it reliably" and must be
+	 * treated as unknown, <em>never</em> as a mismatch - the contract is spelled out on
+	 * {@code EPackage#fingerprint()} in the api bundle. Dropping such content would be the
+	 * worst of both worlds: a silent loss caused by a property that was meant to be
+	 * optional.
+	 */
+	@Test
+	public void testBlankFingerprintIsTreatedAsUnknownNotAsMismatch() {
+		EPackage v1 = domainVersion();
+		EPackage v2 = domainVersion("accuracy");
+		whiteboard.registerPackage(v1);
+		whiteboard.registerPackage(v2);
+
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("compiler", "expr", expression("stated-nothing"), pinnedTo(""));
+
+		assertThat(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID)).as("empty is unknown, not a mismatch")
+				.isPresent();
+		assertThat(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID)).isPresent();
+
+		// whitespace is no more of a statement than the empty string
+		writer.put("compiler", "expr", expression("still-nothing"), pinnedTo("   "));
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID).orElseThrow())).isEqualTo("still-nothing");
+	}
+
+	/**
+	 * Entry properties are frequently copied wholesale from OSGi service properties or
+	 * Configurator JSON - where a single value legitimately arrives as a one-element array.
+	 * Comparing {@code String[].toString()} against a fingerprint would never match and
+	 * would drop the content.
+	 */
+	@Test
+	public void testFingerprintGivenAsSingleElementArrayIsHonoured() {
+		EPackage v1 = domainVersion();
+		EPackage v2 = domainVersion("accuracy");
+		String fingerprintV1 = whiteboard.registerPackage(v1).orElseThrow().getModelFingerprint();
+		whiteboard.registerPackage(v2);
+
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("compiler", "expr", expression("v1-body"),
+				Map.of(FINGERPRINT_ATTRIBUTE, new String[] { fingerprintV1 }));
+
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID).orElseThrow())).isEqualTo("v1-body");
+		assertThat(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID)).as("still pinned").isEmpty();
+	}
+
+	/**
+	 * A multi-valued fingerprint states no single version. It is a producer bug, and the
+	 * safe reading is the documented one - unknown rather than a mismatch - so the content
+	 * behaves like version-independent content instead of vanishing.
+	 */
+	@Test
+	public void testMultiValuedFingerprintIsTreatedAsUnknown() {
+		EPackage v1 = domainVersion();
+		EPackage v2 = domainVersion("accuracy");
+		String fingerprintV1 = whiteboard.registerPackage(v1).orElseThrow().getModelFingerprint();
+		String fingerprintV2 = whiteboard.registerPackage(v2).orElseThrow().getModelFingerprint();
+
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("compiler", "expr", expression("ambiguous"),
+				Map.of(FINGERPRINT_ATTRIBUTE, List.of(fingerprintV1, fingerprintV2)));
+
+		assertThat(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID)).isPresent();
+		assertThat(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID)).isPresent();
+	}
+
+	// ------------------------------------------------------------ state transitions
+
+	/**
+	 * A source learns the version later - the atlas first hands out a mapping, then the
+	 * fingerprint it was derived against. The update must <b>shrink</b> the placement from
+	 * every version to the named one.
+	 */
+	@Test
+	public void testEntryBecomingPinnedShrinksToItsVersion() {
+		EPackage v1 = domainVersion();
+		EPackage v2 = domainVersion("accuracy");
+		EPackage v3 = domainVersion("accuracy", "precision");
+		String fingerprintV2 = whiteboard.registerPackage(v2).orElseThrow().getModelFingerprint();
+		whiteboard.registerPackage(v1);
+		whiteboard.registerPackage(v3);
+
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("atlas", "expr", expression("unpinned"), null);
+		assertThat(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID)).isPresent();
+		assertThat(whiteboard.getClassAspect(anchorOf(v3), TYPE_ID)).isPresent();
+
+		writer.put("atlas", "expr", expression("now-pinned"), pinnedTo(fingerprintV2));
+
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID).orElseThrow())).isEqualTo("now-pinned");
+		assertThat(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID)).as("dropped from the other versions").isEmpty();
+		assertThat(whiteboard.getClassAspect(anchorOf(v3), TYPE_ID)).isEmpty();
+	}
+
+	/** And the reverse: dropping the pin re-opens the entry to every live version. */
+	@Test
+	public void testEntryLosingItsPinSpansAllVersionsAgain() {
+		EPackage v1 = domainVersion();
+		EPackage v2 = domainVersion("accuracy");
+		String fingerprintV1 = whiteboard.registerPackage(v1).orElseThrow().getModelFingerprint();
+		whiteboard.registerPackage(v2);
+
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("atlas", "expr", expression("pinned"), pinnedTo(fingerprintV1));
+		assertThat(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID)).isEmpty();
+
+		writer.put("atlas", "expr", expression("unpinned"), null);
+
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID).orElseThrow())).isEqualTo("unpinned");
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID).orElseThrow())).isEqualTo("unpinned");
+	}
+
+	// ----------------------------------------------------------------- anchor edges
+
+	/**
+	 * The named version exists but does not carry the anchor class - it was renamed or
+	 * dropped in that version. Nothing can be placed, and unlike the cold-start case this
+	 * <em>is</em> worth saying out loud: an entry names a deployed version and still reaches
+	 * nothing.
+	 */
+	@Test
+	public void testAnchorMissingInTheNamedVersionPlacesNothingAndWarns() {
+		EPackage renamed = domainVersion("accuracy");
+		anchorOf(renamed).setName("RenamedSensor");
+		String fingerprint = whiteboard.registerPackage(renamed).orElseThrow().getModelFingerprint();
+		EPackage v1 = domainVersion();
+
+		EObjectRegistryWriter writer = registryWithBridge(v1);
+		writer.put("compiler", "expr", expression("orphan"), pinnedTo(fingerprint));
+
+		assertThat(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID)).isEmpty();
+		assertThat(unplacedWarnings()).as("a named, deployed version that reaches nothing is reported").hasSize(1);
+		assertThat(unplacedWarnings().get(0)).contains("expr");
+	}
+
+	/** A pinned entry with several anchors places all of them - on its version only. */
+	@Test
+	public void testPinnedMultiAnchorContentPlacesEveryAnchorOnItsVersionOnly() {
+		EPackage v1 = domainVersion();
+		EClass secondAnchor = EcoreFactory.eINSTANCE.createEClass();
+		secondAnchor.setName("HumiditySensor");
+		v1.getEClassifiers().add(secondAnchor);
+		EPackage v2 = EcoreUtil.copy(v1);
+		EAttribute extra = EcoreFactory.eINSTANCE.createEAttribute();
+		extra.setName("accuracy");
+		extra.setEType(EcorePackage.Literals.ESTRING);
+		((EClass) v2.getEClassifier(ANCHOR_NAME)).getEStructuralFeatures().add(extra);
+		String fingerprintV1 = whiteboard.registerPackage(v1).orElseThrow().getModelFingerprint();
+		whiteboard.registerPackage(v2);
+
+		EObjectRegistryWriter writer = EObjectRegistries.createRegistry("expressions");
+		RegistryMetadataBridge bridge = new RegistryMetadataBridge(whiteboard, TYPE_ID,
+				entry -> List.of(anchorOf(v1), secondAnchor));
+		whiteboard.addMetadataHandler(bridge);
+		writer.getRegistry().addListener(bridge);
+
+		writer.put("compiler", "expr", expression("v1-body"), pinnedTo(fingerprintV1));
+
+		assertThat(whiteboard.getClassAspect(anchorOf(v1), TYPE_ID)).isPresent();
+		assertThat(whiteboard.getClassAspect(secondAnchor, TYPE_ID)).isPresent();
+		assertThat(whiteboard.getClassAspect(anchorOf(v2), TYPE_ID)).as("neither anchor on the foreign version")
+				.isEmpty();
+		assertThat(whiteboard.getClassAspect((EClass) v2.getEClassifier("HumiditySensor"), TYPE_ID)).isEmpty();
+	}
+
+	// ---------------------------------------------------------------------- legacy
+
+	/**
+	 * A legacy model advertises no {@code emf.fingerprint} - generated code from before the
+	 * scheme existed, or a dynamically loaded ecore. Metadata identity does not depend on
+	 * that: the service <b>computes</b> the fingerprint for every version it registers
+	 * ({@code MetadataServiceImpl} treats a supplied value as context, never as truth). A
+	 * producer can therefore pin derived content against a legacy model just as well - it
+	 * reads the computed value instead of a bundle property.
+	 */
+	@Test
+	public void testLegacyModelWithoutAdvertisedFingerprintCanStillBePinned() {
+		EPackage legacy = domainVersion();
+		EPackage other = domainVersion("accuracy");
+		PackageMetadata legacyMetadata = whiteboard.registerPackage(legacy).orElseThrow();
+		whiteboard.registerPackage(other);
+
+		assertThat(legacyMetadata.getModelFingerprint()).as("identity is computed, not advertised").isNotBlank()
+				.startsWith(FingerprintHelper.currentScheme());
+		assertThat(legacyMetadata.getModelFingerprint()).isEqualTo(FingerprintHelper.fingerprint(legacy));
+
+		EObjectRegistryWriter writer = registryWithBridge(legacy);
+		writer.put("compiler", "expr", expression("legacy-body"),
+				pinnedTo(legacyMetadata.getModelFingerprint()));
+
+		assertThat(bodyOf(whiteboard.getClassAspect(anchorOf(legacy), TYPE_ID).orElseThrow()))
+				.isEqualTo("legacy-body");
+		assertThat(whiteboard.getClassAspect(anchorOf(other), TYPE_ID)).isEmpty();
 	}
 }

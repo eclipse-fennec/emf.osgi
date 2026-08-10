@@ -144,6 +144,18 @@ selected via `anchorResolver.target`): the default anchors at the content's own
   profiles and resolved configuration.
 - **A fingerprint ⇒ derived, pinned to that version.** The content goes onto that
   version and no other, and waits if the version is not deployed yet.
+- **A blank or multi-valued fingerprint states no version** and is read as unknown, never
+  as a mismatch — the rule `EPackage#fingerprint()` lays down for the whole contract. A
+  single-element array or collection (the shape a value takes when properties are copied
+  from service properties or Configurator JSON) is unwrapped.
+
+**Legacy models advertise no fingerprint — that changes nothing here.** Metadata identity
+is *computed*: `MetadataService` fingerprints every version it registers and treats a
+supplied value as context, never as truth. A producer pinning derived content against a
+legacy model therefore reads the computed value —
+`metadataService.getPackageMetadata(ePackage).get().getModelFingerprint()`, or
+`FingerprintHelper.fingerprint(ePackage)` before registration — instead of a bundle
+property, and gets the same guarantee as for a model that advertises one.
 
 > **Content that holds references into the model MUST carry `emf.fingerprint`.** The
 > aspect content is copied with `EcoreUtil.copy`, which copies containment and leaves
@@ -156,8 +168,15 @@ selected via `anchorResolver.target`): the default anchors at the content's own
 
 Because placement is narrowed this way, **placement is also provenance**: the
 `modelFingerprint` of the `PackageMetadata` containing an aspect is the fingerprint of
-the package its content was built from. A pinned entry whose version is not live is
-logged and stays pending in the registry.
+the package its content was built from. An entry that reaches no tree although its nsURI
+*is* deployed — it names a version that is not live, or the named version dropped the
+anchor class — is logged and stays pending in the registry. A cold start with no version
+of the nsURI live yet stays quiet: that is the normal state, not a suspicion.
+
+**Keys are flat per registry.** If several model versions each contribute their own
+derived artifact, the entry keys must differ per version (e.g. `<id>@<fingerprint>`).
+Otherwise the second contribution overwrites the first — last write wins, logged, one
+entry left. The fingerprint governs *placement*, not key identity.
 
 **Boundaries** (deliberate):
 
