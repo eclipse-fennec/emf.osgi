@@ -136,8 +136,13 @@ selected via `anchorResolver.target`): the default anchors at the content's own
 `eClass()`; a sensinact resolver anchors a mapping at its
 `ProviderMapping.getProviderClasses()` — one entry, many anchors.
 
-**Which model versions an entry reaches** is decided by the entry, through
-`emf.fingerprint`:
+### Which model versions an entry reaches
+
+One nsURI can have several live model versions at the same time — a draft next to an
+approved stage, a bumped model next to the one consumers still hold. Each is its own
+`PackageMetadata` tree, keyed by [fingerprint](model-fingerprint-guide.md). So when the
+bridge places registry content as an aspect, it has to decide **which of those trees** the
+content belongs on. The entry decides, through `emf.fingerprint`:
 
 - **No fingerprint ⇒ version-independent.** The content goes onto *every* live version
   of its anchor's nsURI. This is what makes a version bump cost nothing for mappings,
@@ -149,34 +154,148 @@ selected via `anchorResolver.target`): the default anchors at the content's own
   single-element array or collection (the shape a value takes when properties are copied
   from service properties or Configurator JSON) is unwrapped.
 
-**Legacy models advertise no fingerprint — that changes nothing here.** Metadata identity
-is *computed*: `MetadataService` fingerprints every version it registers and treats a
-supplied value as context, never as truth. A producer pinning derived content against a
-legacy model therefore reads the computed value —
-`metadataService.getPackageMetadata(ePackage).get().getModelFingerprint()`, or
-`FingerprintHelper.fingerprint(ePackage)` before registration — instead of a bundle
-property, and gets the same guarantee as for a model that advertises one.
+```mermaid
+flowchart LR
+  subgraph REG["EObject registry: sensinact-mappings"]
+    A["entry temp-mapping<br/>no emf.fingerprint<br/><i>authored mapping</i>"]
+    B["entry temp-ocl@fp-v2<br/>emf.fingerprint = fp-v2<br/><i>compiled OCL</i>"]
+  end
 
-> **Content that holds references into the model MUST carry `emf.fingerprint`.** The
-> aspect content is copied with `EcoreUtil.copy`, which copies containment and leaves
-> non-containment references pointing at the **originals**. An artifact derived from one
-> package instance — compiled OCL holding its resolved `EStructuralFeature` and
-> `EClassifier` instances is the real case — would, on a foreign version's tree, navigate
-> the wrong package: failing at `eGet` with dynamic EMF, or quietly resolving by name and
-> answering from the wrong model with generated code. Naming the version is what prevents
-> it (issue #81).
+  subgraph MS["MetadataService — one tree per model version of http://…/sensors"]
+    T1["fp-v1<br/>TemperatureSensor"]
+    T2["fp-v2<br/>TemperatureSensor"]
+    T3["fp-v3<br/>TemperatureSensor"]
+  end
+
+  A --> T1
+  A --> T2
+  A --> T3
+  B --> T2
+  B -. "never" .-> T1
+  B -. "never" .-> T3
+```
+
+A consumer never sees this decision. It holds an `EClass` and asks
+`getClassAspect(eClass, typeId)`; because the `EClass` instance belongs to exactly one
+version, it gets that version's answer — the authored mapping on all three, the compiled
+OCL only on `fp-v2`.
+
+#### Why pinning matters: what a copy carries
+
+`AspectEntry#content` is a containment slot, so the bridge stores a **copy** of the
+registry object (`EcoreUtil.copy`) rather than stealing the live object out of its
+resource. That copy is deep for containment — and it leaves every **non-containment**
+reference pointing at the **original** target. For authored content that holds no model
+references, this is invisible. For a *derived* artifact it is the whole story: compiled OCL
+holds the `EStructuralFeature` and `EClassifier` instances it resolved against while
+compiling.
+
+```mermaid
+flowchart TB
+  subgraph V1["EPackage instance of fp-v1"]
+    F1["EAttribute measured<br/>(v1 instance)"]
+  end
+  subgraph V2["EPackage instance of fp-v2"]
+    F2["EAttribute measured<br/>(v2 instance)"]
+  end
+
+  SRC["compiled OCL<br/>in the registry<br/><i>compiled against v1</i>"] --> F1
+
+  subgraph T2["tree fp-v2 — where the copy would land unpinned"]
+    CP["copy of the compiled OCL<br/>sitting on v2's ClassMetadata"]
+  end
+
+  SRC -. "EcoreUtil.copy" .-> CP
+  CP -->|"reference survives the copy"| F1
+  CP -. "what a reader expects" .-x F2
+```
+
+The copy sits on v2's tree and navigates **v1's** features. Two failure shapes follow, and
+neither is loud:
+
+| Model style | What happens |
+|---|---|
+| Dynamic EMF (`EcoreUtil.create`, loaded `.ecore`) | `eGet` with a feature that is not this class's feature → `IllegalArgumentException` at the first evaluation |
+| Generated code | the feature may resolve **by name** and quietly answer from the wrong model version — a wrong value, no exception |
+
+> **Content that holds references into the model MUST carry `emf.fingerprint`.** Naming
+> the version is what keeps the copy and its references on the same version (issue #81).
+> Pinning is not an optimization; for derived content it is the correctness condition.
 
 Because placement is narrowed this way, **placement is also provenance**: the
-`modelFingerprint` of the `PackageMetadata` containing an aspect is the fingerprint of
-the package its content was built from. An entry that reaches no tree although its nsURI
-*is* deployed — it names a version that is not live, or the named version dropped the
-anchor class — is logged and stays pending in the registry. A cold start with no version
-of the nsURI live yet stays quiet: that is the normal state, not a suspicion.
+`modelFingerprint` of the `PackageMetadata` containing an aspect *is* the fingerprint of
+the package its content was built from. There is no second bookkeeping to keep in sync.
 
-**Keys are flat per registry.** If several model versions each contribute their own
-derived artifact, the entry keys must differ per version (e.g. `<id>@<fingerprint>`).
-Otherwise the second contribution overwrites the first — last write wins, logged, one
-entry left. The fingerprint governs *placement*, not key identity.
+#### Producing derived content: the order-free shape
+
+Derive from the model, then push into the registry with the version named. The bridge does
+the rest — including the case where the model is not there yet.
+
+```java
+@Component
+public class OclCompiler {
+
+    @Reference(target = "(emf.eobject.registry.name=compiled-ocl)")
+    private EObjectRegistryWriter registry;
+
+    /** One EPackage service per live model version, each carrying its fingerprint. */
+    @Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+    void addModel(EPackage ePackage, Map<String, Object> properties) {
+        String fingerprint = (String) properties.get(EMFNamespaces.EMF_MODEL_FINGERPRINT);
+        for (EClass eClass : classesOf(ePackage)) {
+            EObject compiled = compile(eClass);       // resolves against THIS instance
+            registry.put("ocl-compiler",
+                    eClass.getName() + "@" + fingerprint,   // key carries the version
+                    compiled,
+                    Map.of(EMFNamespaces.EMF_MODEL_NSURI, ePackage.getNsURI(),
+                           EMFNamespaces.EMF_MODEL_FINGERPRINT, fingerprint));
+        }
+    }
+
+    void removeModel(EPackage ePackage, Map<String, Object> properties) {
+        // leaving the entries in place is fine: they are pinned, so they simply go pending
+        // until that version returns. Remove them if the memory matters.
+    }
+}
+```
+
+Two things in that snippet are the whole convention:
+
+**The key carries the version.** Registry keys are flat and unique *per registry*, so if
+three versions each contribute an artifact for `TemperatureSensor`, three distinct keys are
+needed. With one key the second `put` overwrites the first — last write wins, logged, one
+entry left. `emf.fingerprint` governs *placement*, never key identity.
+
+**The fingerprint comes from the model, not from a guess.** Read it from the `EPackage`
+service property, or compute it — `metadataService.getPackageMetadata(ePackage)` →
+`getModelFingerprint()`, or `FingerprintHelper.fingerprint(ePackage)` before any
+registration. Both give the same value.
+
+> **Do not derive inside `MetadataHandler.onPackageRegistered` and push from there.** The
+> new tree is published only *after* all handlers ran, and handlers run in registration
+> order — so whether the bridge sees your entry for the tree being built depends on wiring
+> order. Reacting to `EPackage` services, as above, has no such dependency: the bridge's
+> replay places the content whenever the tree exists, before or after.
+
+#### Legacy models without an advertised fingerprint
+
+A model generated before the scheme existed, or a plain `.ecore` loaded at runtime,
+advertises no `emf.fingerprint`. That changes nothing here, because metadata identity is
+**computed**: `MetadataService` fingerprints every version it registers and treats a
+supplied value as context, never as truth. Read the computed value and pin against it —
+a legacy model gets exactly the same guarantee as one that advertises its fingerprint.
+
+#### When content reaches nothing
+
+| Situation | Behaviour |
+|---|---|
+| No version of the nsURI is live yet (cold start, model bundle still starting) | silent — normal, the replay places the content on registration |
+| The named version is not among the live ones | logged, entry stays pending in the registry |
+| The named version is live but dropped the anchor class | logged, nothing placed |
+| The entry names no version and no live version carries the anchor class | logged |
+
+The rule behind the table: narrowing trades a silent *misplacement* for a silent
+*absence*, so an absence that is not simply "too early" is reported.
 
 **Boundaries** (deliberate):
 
@@ -226,6 +345,33 @@ is not deployed yet (a staged rollout, an atlas that already knows the next mode
 entry names that version, waits, and lands the moment it registers — the replay of case
 2, narrowed to one version instead of all of them. *Problem solved: pinning costs nothing
 in start ordering.*
+
+```mermaid
+sequenceDiagram
+    participant P as producer (atlas/compiler)
+    participant R as EObjectRegistry
+    participant B as RegistryMetadataBridge
+    participant M as MetadataService
+
+    Note over M: only fp-v1 is live
+    P->>R: put(key, artifact, {emf.fingerprint: fp-v2})
+    R->>B: entryAdded
+    B->>M: getPackageMetadataVersions(nsURI)
+    M-->>B: [fp-v1]
+    Note over B: fp-v1 ≠ fp-v2 → nothing placed,<br/>logged, entry stays in the registry
+
+    Note over M: the v2 model bundle starts
+    M->>M: build tree fp-v2
+    M->>B: onPackageRegistered(fp-v2)
+    Note over B: the entry names this version → place
+    B->>M: aspect on fp-v2 / TemperatureSensor
+    M->>M: publish tree fp-v2
+
+    Note over M: a consumer holding a v2 EClass now gets the artifact,<br/>a consumer holding a v1 EClass never does
+```
+
+The tree is published only *after* the handlers ran, so no reader can ever observe a
+version whose aspects are still missing.
 
 **4. The dynamic source updates.** An atlas client pushes a corrected mapping under a
 key the files provided initially: the registry entry updates (last write wins across

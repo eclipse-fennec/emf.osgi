@@ -66,16 +66,50 @@ that ambiguity matters.
 This is also why a `FingerprintService` is a mandatory collaborator rather than a nicety: it
 computes the key everything else is filed under.
 
-**One model version can arrive as several Java instances.** A generated `EPackage` and the
-same model loaded from its `.ecore` produce the same fingerprint by design — the equivalence
-gate asserts it — so registering both deduplicates onto one tree. Element lookups
-(`getClassMetadata`, `getFeatureMetadata`, `getOperationMetadata`, and the `get…Aspect` calls
-on top of them) are keyed by instance for speed, but instance identity is only a cache key:
-an `EClass` of a second, structurally equal instance resolves to the shared tree instead of to
-nothing. The correspondence is exact, not a guess — classifier and feature names are unique
-within their scope, and operations correspond by declared position, which equal fingerprints
-guarantee. Diverging instances are unaffected: they are separate versions and each keeps
-resolving to its own.
+### One model version can arrive as several Java instances
+
+This is the counterpart of the rule above, and it surprises people the first time. A
+generated `EPackage` and the same model loaded from its `.ecore` are **two Java objects of
+one model version**: they produce the same fingerprint by design — the
+[equivalence gate](model-fingerprint-guide.md) asserts exactly this — so registering both
+deduplicates onto one tree with a liveness count of two.
+
+Both instances are perfectly normal in OSGi at the same time: a generated model bundle is
+active, and a tool or an atlas client loads the same `.ecore` into a `ResourceSet` for
+inspection. Objects then exist whose `eClass()` comes from the *loaded* instance while all
+metadata was filed under the *generated* one.
+
+```mermaid
+flowchart LR
+  G["EPackage instance A<br/><i>generated code</i>"] --> FP{{"fingerprint<br/>fp-v1"}}
+  L["EPackage instance B<br/><i>loaded .ecore</i>"] --> FP
+  FP --> T["one PackageMetadata tree<br/>ClassMetadata, aspects, index"]
+
+  A2["getClassMetadata(A.Person)"] -->|"indexed by instance"| T
+  B2["getClassMetadata(B.Person)"] -->|"falls back via fingerprint"| T
+```
+
+Element lookups (`getClassMetadata`, `getFeatureMetadata`, `getOperationMetadata`, and the
+`get…Aspect` calls built on them) are keyed by instance for speed, but instance identity is
+only a cache key — never the identity of the model. An `EClass` of the second instance
+therefore resolves to the shared tree instead of to nothing, which is what makes
+model-anchored content (an `AspectEntry` from an
+[EObject registry](eobject-registry-guide.md), a codec aspect) answerable no matter which
+instance a consumer happens to hold.
+
+The correspondence is exact rather than a guess: equal fingerprints mean equal structure,
+classifier and feature names are unique within their scope, and operations correspond by
+declared position — which the fingerprint also pins, since it hashes the declared order.
+
+Two boundaries are worth knowing:
+
+- **Diverging instances are untouched.** Different content means different fingerprints,
+  hence separate versions, and each `EClass` keeps resolving to its own tree. The fallback
+  is per model version, never per name.
+- **Nothing is memoized.** A memo would have to be invalidated when a version is withdrawn,
+  and a stale one would answer with the metadata of a version that is no longer live. The
+  common path — one instance, or the instance that built the tree — is still a single map
+  lookup; only the miss pays for the fallback.
 
 ### Push and pull are both first-class
 
