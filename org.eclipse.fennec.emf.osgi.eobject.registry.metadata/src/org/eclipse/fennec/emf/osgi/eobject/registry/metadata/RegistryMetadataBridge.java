@@ -15,6 +15,7 @@ package org.eclipse.fennec.emf.osgi.eobject.registry.metadata;
 import static org.eclipse.fennec.emf.osgi.annotation.provide.EPackage.FINGERPRINT_ATTRIBUTE;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -178,21 +179,25 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 			// every live version tree the entry belongs to gets the aspect - lookups are
 			// per fingerprint, and content anchored by class name spans versions
 			List<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsUri);
-			boolean matched = false;
+			int placements = 0;
 			for (PackageMetadata packageMetadata : versions) {
 				if (belongsTo(entry, packageMetadata)) {
-					matched = true;
-					findClass(packageMetadata, anchor.getName()).ifPresent(cm -> place(entry, cm));
+					Optional<ClassMetadata> classMetadata = findClass(packageMetadata, anchor.getName());
+					classMetadata.ifPresent(cm -> place(entry, cm));
+					placements += classMetadata.isPresent() ? 1 : 0;
 				}
 			}
-			if (!matched && !versions.isEmpty()) {
-				// only reachable for a pinned entry: the nsURI is live but not in the named
-				// version. Pending, not misplaced - the version may still arrive, and then
-				// onPackageRegistered places it. Worth saying out loud, because narrowing
-				// trades a silent misplacement for a silent absence.
+			if (placements == 0 && !versions.isEmpty()) {
+				// The nsURI is deployed, yet the entry reached nothing: either it names a
+				// version that is not live, or the named version does not carry the anchor
+				// class. Both are pending rather than misplaced - a matching version may
+				// still arrive and onPackageRegistered places it then - but both are worth
+				// saying out loud, because narrowing trades a silent misplacement for a
+				// silent absence. A cold start with no version live at all stays quiet: that
+				// is the normal state, not a suspicion.
 				logger.warning(() -> String.format(
-						"Registry entry %s names model version %s of %s, which is not among the %d live version(s) - no aspect placed",
-						entry.key(), entry.properties().get(FINGERPRINT_ATTRIBUTE), nsUri, versions.size()));
+						"Registry entry %s: no aspect placed on any of the %d live version(s) of %s (anchor %s, emf.fingerprint=%s)",
+						entry.key(), versions.size(), nsUri, anchor.getName(), pinnedFingerprint(entry)));
 			}
 		}
 	}
@@ -215,8 +220,41 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 	 * @return {@code true} if the entry may be placed on this version
 	 */
 	private static boolean belongsTo(EObjectRegistryEntry entry, PackageMetadata packageMetadata) {
-		Object fingerprint = entry.properties().get(FINGERPRINT_ATTRIBUTE);
-		return fingerprint == null || Objects.equals(fingerprint.toString(), packageMetadata.getModelFingerprint());
+		String fingerprint = pinnedFingerprint(entry);
+		return fingerprint == null || fingerprint.equals(packageMetadata.getModelFingerprint());
+	}
+
+	/**
+	 * The model version an entry names, or {@code null} if it names none.
+	 * <p>
+	 * A <b>blank</b> value is not a version: {@code emf.fingerprint} is optional precisely
+	 * because a provider may be unable to state it reliably, and
+	 * {@link org.eclipse.fennec.emf.osgi.annotation.provide.EPackage#fingerprint()} requires
+	 * consumers to read an absent fingerprint as unknown, never as a mismatch. Treating it
+	 * as a mismatch would silently drop the content over a property that was meant to be
+	 * optional.
+	 * <p>
+	 * Entry properties are also frequently copied wholesale from OSGi service properties or
+	 * Configurator JSON, where a single value legitimately arrives as a one-element array or
+	 * collection - unwrapped here, because comparing {@code String[].toString()} would never
+	 * match. A genuinely multi-valued property names no single version and is therefore read
+	 * as unknown as well.
+	 *
+	 * @param entry the registry entry
+	 * @return the named fingerprint, or {@code null} if the entry names no version
+	 */
+	private static String pinnedFingerprint(EObjectRegistryEntry entry) {
+		Object value = entry.properties().get(FINGERPRINT_ATTRIBUTE);
+		if (value instanceof Object[] array) {
+			value = array.length == 1 ? array[0] : null;
+		} else if (value instanceof Collection<?> collection) {
+			value = collection.size() == 1 ? collection.iterator().next() : null;
+		}
+		if (value == null) {
+			return null;
+		}
+		String fingerprint = value.toString().strip();
+		return fingerprint.isEmpty() ? null : fingerprint;
 	}
 
 	private void place(EObjectRegistryEntry entry, ClassMetadata classMetadata) {
