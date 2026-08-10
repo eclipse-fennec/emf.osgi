@@ -49,7 +49,9 @@ sync semantics** (a source's failure or death never touches other sources' conte
 the **technical origin** — the input channel that wrote the entry (the provider
 instance name, e.g. `mapping-files`, `atlas-jena`) — and scopes `sync`. It is *not*
 the model origin: model anchoring goes into the entry `properties` under the existing
-conventions `emf.nsURI` / `emf.fingerprint`. Example — a sensinact mapping fetched
+conventions `emf.nsURI` / `emf.fingerprint` — and `emf.fingerprint` is more than
+provenance, it decides which model versions the content reaches (see
+[the metadata bridge](#the-metadata-bridge)). Example — a sensinact mapping fetched
 from an atlas: key = the mapping's `mid`, source = `atlas-jena`, properties =
 `emf.nsURI`, `emf.fingerprint`, `atlas.scope`, `atlas.registry`, `atlas.object.id`.
 
@@ -125,14 +127,37 @@ EObjectRegistry registry = writer.getRegistry();   // fully loaded when this ret
 
 The bridge makes `MetadataService.getClassAspect(eClass, typeId)` the uniform,
 model-anchored read surface for registry content. It is both an
-`EObjectRegistryListener` (content changes flow onto the trees of every live model
-version) and a `MetadataHandler` (new fingerprint trees get the current content
+`EObjectRegistryListener` (content changes flow onto the trees of the model versions an
+entry belongs to) and a `MetadataHandler` (new fingerprint trees get the current content
 re-contributed).
 
 **Anchor resolution** is domain-specific and pluggable (`AspectAnchorResolver`,
 selected via `anchorResolver.target`): the default anchors at the content's own
 `eClass()`; a sensinact resolver anchors a mapping at its
 `ProviderMapping.getProviderClasses()` — one entry, many anchors.
+
+**Which model versions an entry reaches** is decided by the entry, through
+`emf.fingerprint`:
+
+- **No fingerprint ⇒ version-independent.** The content goes onto *every* live version
+  of its anchor's nsURI. This is what makes a version bump cost nothing for mappings,
+  profiles and resolved configuration.
+- **A fingerprint ⇒ derived, pinned to that version.** The content goes onto that
+  version and no other, and waits if the version is not deployed yet.
+
+> **Content that holds references into the model MUST carry `emf.fingerprint`.** The
+> aspect content is copied with `EcoreUtil.copy`, which copies containment and leaves
+> non-containment references pointing at the **originals**. An artifact derived from one
+> package instance — compiled OCL holding its resolved `EStructuralFeature` and
+> `EClassifier` instances is the real case — would, on a foreign version's tree, navigate
+> the wrong package: failing at `eGet` with dynamic EMF, or quietly resolving by name and
+> answering from the wrong model with generated code. Naming the version is what prevents
+> it (issue #81).
+
+Because placement is narrowed this way, **placement is also provenance**: the
+`modelFingerprint` of the `PackageMetadata` containing an aspect is the fingerprint of
+the package its content was built from. A pinned entry whose version is not live is
+logged and stays pending in the registry.
 
 **Boundaries** (deliberate):
 
@@ -166,9 +191,22 @@ class is structurally impossible here.*
 
 **3. The model version bump.** A second, diverging version of the sensor model
 registers (same nsURI, new fingerprint) while the first stays live. The new version
-starts with an empty tree — the bridge re-contributes, both versions answer the
-lookup. *Problem solved: fingerprint identity does not silently drop content on
-re-registration or version bumps.*
+starts with an empty tree — the bridge re-contributes, and for version-independent
+content both versions answer the lookup. *Problem solved: fingerprint identity does not
+silently drop content on re-registration or version bumps.*
+
+**3b. The derived artifact at a version bump.** The same bump, but the entry carries
+`emf.fingerprint` — compiled OCL, derived from one package instance. It stays on the
+version it names; the new version does **not** get a copy that would navigate the old
+package's features, and the authored, version-independent mappings next to it keep
+spanning both versions. *Problem solved: the read face cannot reintroduce the
+cross-version mix-up that fingerprint identity exists to prevent.*
+
+**3c. The derived artifact ahead of its model.** The compiler ran against a version that
+is not deployed yet (a staged rollout, an atlas that already knows the next model). The
+entry names that version, waits, and lands the moment it registers — the replay of case
+2, narrowed to one version instead of all of them. *Problem solved: pinning costs nothing
+in start ordering.*
 
 **4. The dynamic source updates.** An atlas client pushes a corrected mapping under a
 key the files provided initially: the registry entry updates (last write wins across
@@ -207,7 +245,8 @@ plane.
 | `emf.eobject.registry.name` | registry services, listener whiteboard services, bridge config | the registry instance name |
 | `emf.eobject.provider.name` | provider services | selected by `initialProvider.target` |
 | `emf.eobject.registry.content.types` | registry services (optional) | declared content types for discovery |
-| `emf.nsURI`, `emf.fingerprint` | entry properties | model anchoring of an entry |
+| `emf.nsURI` | entry properties | the model the entry's content belongs to |
+| `emf.fingerprint` | entry properties | the **model version** the content was derived from. Present ⇒ the aspect is placed on that version only; absent ⇒ version-independent, placed on every live version. Mandatory for content holding references into the model. |
 | `file.location` | entry properties (file provider) | absolute path the entry was loaded from |
 
 Constants: `EObjectRegistryConstants` (registry bundle), `FileEObjectProvider.PROP_*`.

@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.eobject.registry.metadata;
 
+import static org.eclipse.fennec.emf.osgi.annotation.provide.EPackage.FINGERPRINT_ATTRIBUTE;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -41,10 +43,19 @@ import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
  * libraries and codec aspects alike.
  * <p>
  * The bridge is <b>both</b> an {@link EObjectRegistryListener} (content changes flow
- * onto the trees of every live model version) and a {@link MetadataHandler} (a newly
- * registered model version - a new fingerprint tree - gets the current content
- * re-contributed; without this, a re-registered or bumped package would silently lose
- * its aspects, because metadata identity is the fingerprint, not the nsURI).
+ * onto the trees of the model versions the content belongs to) and a
+ * {@link MetadataHandler} (a newly registered model version - a new fingerprint tree -
+ * gets the current content re-contributed; without this, a re-registered or bumped
+ * package would silently lose its aspects, because metadata identity is the fingerprint,
+ * not the nsURI).
+ * <p>
+ * <b>Which versions an entry reaches</b> is decided by the entry itself, see
+ * {@link #belongsTo(EObjectRegistryEntry, PackageMetadata)}: content that names no
+ * version spans every live version of its anchor's nsURI - that is what makes a version
+ * bump cost nothing for mappings and profiles - while content naming one through
+ * {@code emf.fingerprint} goes onto that version alone. Placement is therefore also
+ * provenance: the fingerprint of the {@link PackageMetadata} containing an aspect is the
+ * fingerprint of the package its content was built from.
  * <p>
  * <b>Boundaries.</b> The aspect content is a <em>copy</em> of the registry object -
  * {@code AspectEntry#content} is a containment slot, and stealing the live object out
@@ -111,14 +122,18 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 	}
 
 	/**
-	 * A new model version's tree is being built: re-contribute the current content
-	 * whose anchors live in that package. This is what keeps aspects alive across model
-	 * version bumps and late-starting model bundles.
+	 * A new model version's tree is being built: re-contribute the current content that
+	 * belongs to this version and whose anchors live in that package. This is what keeps
+	 * aspects alive across model version bumps and late-starting model bundles - including
+	 * a derived artifact that named its version before the version was deployed.
 	 */
 	@Override
 	public void onPackageRegistered(PackageMetadata packageMetadata) {
 		synchronized (lock) {
 			for (EObjectRegistryEntry entry : mirror.values()) {
+				if (!belongsTo(entry, packageMetadata)) {
+					continue;
+				}
 				for (EClass anchor : anchorResolver.anchorsOf(entry)) {
 					if (Objects.equals(nsUriOf(anchor), packageMetadata.getNsURI())) {
 						findClass(packageMetadata, anchor.getName()).ifPresent(cm -> place(entry, cm));
@@ -131,9 +146,12 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 	@Override
 	public void onPackageUnregistered(PackageMetadata packageMetadata) {
 		synchronized (lock) {
-			// the tree dies with its aspects - just forget the placements that live in it
-			placed.values()
-					.forEach(list -> list.removeIf(aspect -> EcoreUtil.getRootContainer(aspect) == packageMetadata));
+			// the tree dies with its aspects - just forget the placements that live in it.
+			// Containment reaches from the withdrawn version down to the aspect, so ask for
+			// exactly that: the root container is the whole registry, not this version, and
+			// at this point the version is still in it.
+			placed.values().forEach(list -> list.removeIf(aspect -> EcoreUtil.isAncestor(packageMetadata, aspect)));
+			placed.values().removeIf(List::isEmpty);
 		}
 	}
 
@@ -157,12 +175,48 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 			if (nsUri == null) {
 				continue;
 			}
-			// every live version tree of the anchor's package gets the aspect - lookups
-			// are per fingerprint, and content anchored by class name spans versions
-			for (PackageMetadata packageMetadata : metadataService.getPackageMetadataVersions(nsUri)) {
-				findClass(packageMetadata, anchor.getName()).ifPresent(cm -> place(entry, cm));
+			// every live version tree the entry belongs to gets the aspect - lookups are
+			// per fingerprint, and content anchored by class name spans versions
+			List<PackageMetadata> versions = metadataService.getPackageMetadataVersions(nsUri);
+			boolean matched = false;
+			for (PackageMetadata packageMetadata : versions) {
+				if (belongsTo(entry, packageMetadata)) {
+					matched = true;
+					findClass(packageMetadata, anchor.getName()).ifPresent(cm -> place(entry, cm));
+				}
+			}
+			if (!matched && !versions.isEmpty()) {
+				// only reachable for a pinned entry: the nsURI is live but not in the named
+				// version. Pending, not misplaced - the version may still arrive, and then
+				// onPackageRegistered places it. Worth saying out loud, because narrowing
+				// trades a silent misplacement for a silent absence.
+				logger.warning(() -> String.format(
+						"Registry entry %s names model version %s of %s, which is not among the %d live version(s) - no aspect placed",
+						entry.key(), entry.properties().get(FINGERPRINT_ATTRIBUTE), nsUri, versions.size()));
 			}
 		}
+	}
+
+	/**
+	 * Whether an entry's content belongs on a given model version's tree.
+	 * <p>
+	 * Content that says nothing about a version is version-independent - a mapping, a
+	 * profile, a service configuration - and goes onto every live version of its anchor's
+	 * nsURI. An entry that names a version through {@code emf.fingerprint} is a
+	 * <b>derived</b> artifact: it was built from one package instance and
+	 * {@link EcoreUtil#copy} keeps its non-containment references pointing into
+	 * that instance. Copied onto another version's tree it would navigate the wrong
+	 * package - failing at {@code eGet} with dynamic EMF, or quietly resolving by name and
+	 * answering from the wrong model with generated code. It therefore belongs on the
+	 * version it names and on no other (issue #81).
+	 *
+	 * @param entry           the registry entry
+	 * @param packageMetadata the candidate model version
+	 * @return {@code true} if the entry may be placed on this version
+	 */
+	private static boolean belongsTo(EObjectRegistryEntry entry, PackageMetadata packageMetadata) {
+		Object fingerprint = entry.properties().get(FINGERPRINT_ATTRIBUTE);
+		return fingerprint == null || Objects.equals(fingerprint.toString(), packageMetadata.getModelFingerprint());
 	}
 
 	private void place(EObjectRegistryEntry entry, ClassMetadata classMetadata) {

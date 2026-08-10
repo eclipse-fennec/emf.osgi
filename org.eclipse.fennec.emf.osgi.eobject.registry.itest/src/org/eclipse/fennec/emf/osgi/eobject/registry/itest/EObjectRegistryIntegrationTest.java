@@ -29,6 +29,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
+import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistry;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryConstants;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryEntry;
@@ -250,6 +251,56 @@ public class EObjectRegistryIntegrationTest {
 				"itest.person.aspect");
 		Person snapshot = (Person) aspect.orElseThrow().getContent();
 		assertThat(snapshot.getFirstName()).isEqualTo("Emil");
+	}
+
+	/**
+	 * The fingerprint guard against the fingerprints the running framework really computes
+	 * (issue #81): an entry naming the live model version is placed, an entry naming any
+	 * other version is not - it stays in the registry, pending, and must not displace the
+	 * aspect that legitimately sits on the anchor.
+	 */
+	@Test
+	public void testPinnedEntryReachesOnlyTheLiveModelVersion(@InjectService MetadataService metadataService)
+			throws Exception {
+		Path dir = Files.createTempDirectory("eobject-registry-itest");
+		writePersonFixture(dir, "persons.basic", "Emil");
+		createProviderConfig("persons-pinned-files", dir);
+		createRegistryConfig("persons-pinned", "persons-pinned-files");
+		createBridgeConfig("persons-pinned", "itest.pinned.aspect");
+
+		awaitTrue(() -> metadataService.getClassAspect(BasicPackage.Literals.PERSON, "itest.pinned.aspect").isPresent(),
+				"the bridge is up on the authored content");
+		String liveFingerprint = metadataService.getPackageMetadata(BasicPackage.eINSTANCE).orElseThrow()
+				.getModelFingerprint();
+
+		ServiceTracker<EObjectRegistryWriter, EObjectRegistryWriter> writerTracker = tracker(
+				EObjectRegistryWriter.class, "persons-pinned");
+		try {
+			EObjectRegistryWriter writer = writerTracker.waitForService(10_000);
+			assertThat(writer).isNotNull();
+
+			Person derived = BasicFactory.eINSTANCE.createPerson();
+			derived.setFirstName("Pinned");
+			writer.put("compiler", "Pinned", derived, Map.of(EMFNamespaces.EMF_MODEL_FINGERPRINT, liveFingerprint));
+			awaitTrue(() -> "Pinned".equals(aspectFirstName(metadataService, "itest.pinned.aspect")),
+					"an entry naming the live version is placed");
+
+			Person foreign = BasicFactory.eINSTANCE.createPerson();
+			foreign.setFirstName("ForeignVersion");
+			writer.put("compiler", "Foreign", foreign, Map.of(EMFNamespaces.EMF_MODEL_FINGERPRINT,
+					"fp1:0000000000000000000000000000000000000000000000000000000000000000"));
+
+			assertThat(writer.getRegistry().get("Foreign")).as("kept in the registry, pending its version").isPresent();
+			assertThat(aspectFirstName(metadataService, "itest.pinned.aspect"))
+					.as("an entry naming another version never reaches this tree").isEqualTo("Pinned");
+		} finally {
+			writerTracker.close();
+		}
+	}
+
+	private String aspectFirstName(MetadataService metadataService, String typeId) {
+		return metadataService.getClassAspect(BasicPackage.Literals.PERSON, typeId)
+				.map(aspect -> ((Person) aspect.getContent()).getFirstName()).orElse(null);
 	}
 
 	private void awaitTrue(BooleanSupplier condition, String description) throws InterruptedException {
