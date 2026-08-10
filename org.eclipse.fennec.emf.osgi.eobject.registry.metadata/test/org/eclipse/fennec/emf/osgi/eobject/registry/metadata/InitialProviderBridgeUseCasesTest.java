@@ -13,6 +13,7 @@
 package org.eclipse.fennec.emf.osgi.eobject.registry.metadata;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.fennec.emf.osgi.annotation.provide.EPackage.FINGERPRINT_ATTRIBUTE;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistries;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryEntry;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryWriter;
 import org.eclipse.fennec.emf.osgi.eobject.registry.FileEObjectProvider;
+import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataServices;
 import org.eclipse.fennec.emf.osgi.metadata.MetadataWhiteboard;
 import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
@@ -220,6 +222,63 @@ public class InitialProviderBridgeUseCasesTest {
 		assertThat(whiteboard.getClassAspect(temperatureSensor, TYPE_ID)).as("v1 keeps its aspect").isPresent();
 		AspectEntry v2Aspect = whiteboard.getClassAspect(temperatureV2, TYPE_ID).orElseThrow();
 		assertThat(v2Aspect.getContent().eGet(targetAttribute)).isEqualTo("temperature");
+	}
+
+	/**
+	 * <b>Use case 3b - the derived artifact at a version bump:</b> next to the authored,
+	 * version-independent file content sits an artifact a compiler <em>derived</em> from one
+	 * package instance - compiled OCL is the real case, and it holds the
+	 * {@code EStructuralFeature} instances it resolved against. Such an entry names its
+	 * version through {@code emf.fingerprint} and must stay on it: a copy on the new
+	 * version's tree would navigate the old package's features (issue #81). The
+	 * version-independent mapping keeps spanning both versions, unchanged.
+	 */
+	@Test
+	public void testDerivedContentPinnedToItsVersionDoesNotFollowTheBump() throws Exception {
+		writeFixture("mappings.xmi", mapping("hum-1", "HumiditySensor", "humidity"));
+		String fingerprintV1 = whiteboard.registerPackage(sensorsPackage).orElseThrow().getModelFingerprint();
+		EObjectRegistryWriter writer = registryWithBridge();
+		writer.put("ocl-compiler", "temp-compiled", mapping("temp-compiled", "TemperatureSensor", "temperature"),
+				Map.of(FINGERPRINT_ATTRIBUTE, fingerprintV1));
+
+		EPackage sensorsV2 = EcoreUtil.copy(sensorsPackage);
+		EClass temperatureV2 = (EClass) sensorsV2.getEClassifier("TemperatureSensor");
+		EClass humidityV2 = (EClass) sensorsV2.getEClassifier("HumiditySensor");
+		attribute(temperatureV2, "accuracy");
+		whiteboard.registerPackage(sensorsV2);
+
+		assertThat(whiteboard.getClassAspect(humidityV2, TYPE_ID)).as("authored content spans versions").isPresent();
+		assertThat(whiteboard.getClassAspect(temperatureSensor, TYPE_ID)).as("the derived artifact keeps its version")
+				.isPresent();
+		assertThat(whiteboard.getClassAspect(temperatureV2, TYPE_ID)).as("and is not copied onto the new one")
+				.isEmpty();
+	}
+
+	/**
+	 * <b>Use case 3c - the derived artifact ahead of its model:</b> the compiler was run
+	 * against a version that is not deployed yet (a staged rollout, an atlas that already
+	 * knows the next model). The entry names that version, waits, and lands the moment it
+	 * registers - the handler replay of use case 2, narrowed to one version instead of all
+	 * of them.
+	 */
+	@Test
+	public void testDerivedContentWaitsForTheVersionItNames() throws Exception {
+		writeFixture("mappings.xmi", mapping("hum-1", "HumiditySensor", "humidity"));
+		EPackage sensorsV2 = EcoreUtil.copy(sensorsPackage);
+		EClass temperatureV2 = (EClass) sensorsV2.getEClassifier("TemperatureSensor");
+		attribute(temperatureV2, "accuracy");
+		String fingerprintV2 = FingerprintHelper.fingerprint(sensorsV2);
+		whiteboard.registerPackage(sensorsPackage);
+
+		EObjectRegistryWriter writer = registryWithBridge();
+		writer.put("ocl-compiler", "temp-compiled", mapping("temp-compiled", "TemperatureSensor", "temperature"),
+				Map.of(FINGERPRINT_ATTRIBUTE, fingerprintV2));
+		assertThat(whiteboard.getClassAspect(temperatureSensor, TYPE_ID)).as("v2 is not deployed yet").isEmpty();
+
+		whiteboard.registerPackage(sensorsV2);
+
+		assertThat(whiteboard.getClassAspect(temperatureV2, TYPE_ID)).as("lands on the version it names").isPresent();
+		assertThat(whiteboard.getClassAspect(temperatureSensor, TYPE_ID)).as("never on the other one").isEmpty();
 	}
 
 	/**
