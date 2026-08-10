@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import { GUIDES, slugFor } from '../../guides.mjs'
 
 // Per-project docs are served under a versioned sub-path, matching the org
@@ -41,7 +42,10 @@ const navGuides = groupOrder.map((name) => ({
   link: byGroup.get(name)[0].link,
 }))
 
-export default defineConfig({
+// withMermaid renders ```mermaid fences the guides use for the mechanism diagrams. The
+// sources live in the repository and GitHub renders those fences natively; this keeps the
+// published site equivalent instead of showing the diagram source as a code block.
+export default withMermaid(defineConfig({
   title: 'Fennec EMF OSGi',
   description:
     'The Eclipse Modeling Framework in pure OSGi environments — ResourceSets, EPackages and ResourceFactories as dynamic OSGi services, without Eclipse PDE or Equinox dependencies.',
@@ -99,4 +103,4 @@ export default defineConfig({
       copyright: 'Copyright © Eclipse Foundation and contributors',
     },
   },
-})
+}))
