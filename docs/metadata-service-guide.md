@@ -66,6 +66,17 @@ that ambiguity matters.
 This is also why a `FingerprintService` is a mandatory collaborator rather than a nicety: it
 computes the key everything else is filed under.
 
+**One model version can arrive as several Java instances.** A generated `EPackage` and the
+same model loaded from its `.ecore` produce the same fingerprint by design — the equivalence
+gate asserts it — so registering both deduplicates onto one tree. Element lookups
+(`getClassMetadata`, `getFeatureMetadata`, `getOperationMetadata`, and the `get…Aspect` calls
+on top of them) are keyed by instance for speed, but instance identity is only a cache key:
+an `EClass` of a second, structurally equal instance resolves to the shared tree instead of to
+nothing. The correspondence is exact, not a guess — classifier and feature names are unique
+within their scope, and operations correspond by declared position, which equal fingerprints
+guarantee. Diverging instances are unaffected: they are separate versions and each keeps
+resolving to its own.
+
 ### Push and pull are both first-class
 
 There are two ways a tree comes into existence, and the difference matters for anything that

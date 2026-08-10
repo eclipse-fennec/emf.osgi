@@ -274,7 +274,43 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 
 	@Override
 	public Optional<ClassMetadata> getClassMetadata(EClass eClass) {
-		return eClass != null ? Optional.ofNullable(classesByEClass.get(eClass)) : Optional.empty();
+		if (eClass == null) {
+			return Optional.empty();
+		}
+		ClassMetadata classMetadata = classesByEClass.get(eClass);
+		return classMetadata != null ? Optional.of(classMetadata) : sharedClassMetadata(eClass);
+	}
+
+	/**
+	 * Resolves an EClass whose instance was never indexed, through the model version it
+	 * belongs to.
+	 * <p>
+	 * Two Java instances can be one model version: a generated {@link EPackage} and the same
+	 * model loaded from its {@code .ecore} yield the same fingerprint by design - the
+	 * equivalence gate asserts it - and registration deduplicates them onto one tree. Only
+	 * the instance that built the tree lands in {@link #classesByEClass}, so a consumer
+	 * holding the other instance would find nothing although the tree describes its model
+	 * exactly. Instance identity is a cache key here, never the identity of the model.
+	 * <p>
+	 * The correspondence is exact rather than a guess: equal fingerprints mean equal
+	 * structure, and a classifier name is unique within its package. Deliberately
+	 * <b>not</b> memoized - a memo would have to be invalidated on withdrawal, and a stale
+	 * entry would answer with the metadata of a version that is no longer live.
+	 *
+	 * @param eClass the class to resolve; may be {@code null}
+	 * @return the metadata of the class in its model version's tree, or empty
+	 */
+	private Optional<ClassMetadata> sharedClassMetadata(EClass eClass) {
+		EPackage ePackage = eClass == null ? null : eClass.getEPackage();
+		if (ePackage == null) {
+			return Optional.empty();
+		}
+		PackageMetadata packageMetadata = packagesByFingerprint.get(memoizedFingerprint(ePackage));
+		if (packageMetadata == null) {
+			return Optional.empty();
+		}
+		return packageMetadata.getClasses().stream().filter(candidate -> Objects.equals(candidate.getName(),
+				eClass.getName())).findFirst();
 	}
 
 	@Override
@@ -289,7 +325,18 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 
 	@Override
 	public Optional<FeatureMetadata> getFeatureMetadata(EStructuralFeature feature) {
-		return feature != null ? Optional.ofNullable(featuresByEFeature.get(feature)) : Optional.empty();
+		if (feature == null) {
+			return Optional.empty();
+		}
+		FeatureMetadata featureMetadata = featuresByEFeature.get(feature);
+		if (featureMetadata != null) {
+			return Optional.of(featureMetadata);
+		}
+		// Same reasoning as sharedClassMetadata: by name, because feature names are unique
+		// within a class - and unlike operations, features may be skipped while the tree is
+		// built, so a position would not correspond.
+		return sharedClassMetadata(feature.getEContainingClass())
+				.flatMap(classMetadata -> getFeatureMetadataFromClass(feature.getName(), classMetadata));
 	}
 
 	@Override
@@ -313,7 +360,24 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 
 	@Override
 	public Optional<OperationMetadata> getOperationMetadata(EOperation operation) {
-		return operation != null ? Optional.ofNullable(operationsByEOperation.get(operation)) : Optional.empty();
+		if (operation == null) {
+			return Optional.empty();
+		}
+		OperationMetadata operationMetadata = operationsByEOperation.get(operation);
+		if (operationMetadata != null) {
+			return Optional.of(operationMetadata);
+		}
+		// By position, not by name: names are not unique under overloading. Operations are
+		// mirrored one for one, and equal fingerprints imply an equal declared order, so the
+		// index of the operation in its class is the exact correspondence.
+		EClass owner = operation.getEContainingClass();
+		if (owner == null) {
+			return Optional.empty();
+		}
+		int position = owner.getEOperations().indexOf(operation);
+		return sharedClassMetadata(owner).map(ClassMetadata::getOperations)
+				.filter(operations -> position >= 0 && position < operations.size())
+				.map(operations -> operations.get(position));
 	}
 
 	@Override

@@ -20,13 +20,19 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EGenericType;
+import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.ETypeParameter;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.emf.osgi.components.fingerprint.DefaultFingerprintService;
+import org.eclipse.fennec.emf.osgi.metadata.MetadataHandler;
+import org.eclipse.fennec.emf.osgi.model.metadata.AspectEntry;
+import org.eclipse.fennec.emf.osgi.model.metadata.ClassMetadata;
+import org.eclipse.fennec.emf.osgi.model.metadata.MetadataFactory;
 import org.eclipse.fennec.emf.osgi.model.metadata.PackageMetadata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -351,6 +357,163 @@ class SameNsUriMultiVersionAcceptanceTest {
 				.get()
 				.extracting(PackageMetadata::getEPackage)
 				.isSameAs(stringBoxed);
+	}
+
+	// ---- representation independence: two instances, one model version --------------
+
+	/**
+	 * A generated {@code EPackage} and the same model loaded from its {@code .ecore} are two
+	 * Java instances of <b>one</b> model version - that is a guaranteed property, asserted by
+	 * the equivalence gate (issue #57) - and the dedupe above puts them on one tree. Element
+	 * lookups are keyed by instance for speed, but instance identity is a cache key, not the
+	 * identity of the model: an EClass of the second instance must resolve to the shared
+	 * metadata rather than to nothing.
+	 */
+	@Test
+	void testDedupedSecondInstanceResolvesTheSharedClassMetadata() {
+		EPackage generated = draftPackage();
+		EPackage loaded = draftPackage();
+		service.registerPackage(generated);
+		service.registerPackage(loaded);
+
+		assertThat(service.getClassMetadata(personOf(loaded)))
+				.as("the second instance's EClass must resolve to the one tree both share")
+				.containsSame(service.getClassMetadata(personOf(generated)).orElseThrow());
+	}
+
+	@Test
+	void testDedupedSecondInstanceResolvesTheSharedFeatureMetadata() {
+		EPackage generated = draftPackage();
+		EPackage loaded = draftPackage();
+		service.registerPackage(generated);
+		service.registerPackage(loaded);
+
+		assertThat(service.getFeatureMetadata(personOf(loaded).getEStructuralFeature("name")))
+				.containsSame(service.getFeatureMetadata(personOf(generated).getEStructuralFeature("name"))
+						.orElseThrow());
+	}
+
+	/**
+	 * Operation names are not unique under overloading, so the correspondence between the two
+	 * instances must be positional - which is sound exactly because equal fingerprints imply
+	 * an equal declared order.
+	 */
+	@Test
+	void testDedupedSecondInstanceResolvesOverloadedOperationsByPosition() {
+		EPackage generated = personPackageWithOverloads();
+		EPackage loaded = personPackageWithOverloads();
+		service.registerPackage(generated);
+		service.registerPackage(loaded);
+
+		List<EOperation> loadedOperations = personOf(loaded).getEOperations();
+		assertThat(loadedOperations).hasSize(2);
+		assertThat(service.getOperationMetadata(loadedOperations.get(0)).orElseThrow().getParameters()).isEmpty();
+		assertThat(service.getOperationMetadata(loadedOperations.get(1)).orElseThrow().getParameters()).hasSize(1);
+	}
+
+	/**
+	 * The case this exists for: content anchored on the model version - an
+	 * {@code AspectEntry} contributed when the first instance registered - must be answerable
+	 * through the second instance's EClass. Otherwise a consumer holding an EObject loaded
+	 * through a ResourceSet whose package registry carries the other instance finds nothing,
+	 * although the content sits on the very tree that describes its model.
+	 */
+	@Test
+	void testDedupedSecondInstanceFindsAspectsOfTheModelVersion() {
+		service.addMetadataHandler(new MetadataHandler() {
+
+			@Override
+			public void onPackageRegistered(PackageMetadata packageMetadata) {
+				AspectEntry aspect = MetadataFactory.eINSTANCE.createAspectEntry();
+				aspect.setTypeId("mapping");
+				packageMetadata.getClasses().get(0).getAspects().add(aspect);
+			}
+		});
+		service.registerPackage(draftPackage());
+		EPackage loaded = draftPackage();
+		service.registerPackage(loaded);
+
+		assertThat(service.getClassAspect(personOf(loaded), "mapping"))
+				.as("the aspect of the shared model version must answer for either instance")
+				.isPresent();
+	}
+
+	/** The pull path dedupes as well, so it must resolve elements just the same. */
+	@Test
+	void testPullCreatedVersionResolvesElementsOfAnEqualInstance() {
+		service.getPackageMetadata(draftPackage());
+		EPackage loaded = draftPackage();
+
+		assertThat(service.getClassMetadata(personOf(loaded))).isPresent();
+	}
+
+	/**
+	 * The fallback must not become a name lookup: two <em>diverging</em> instances are two
+	 * model versions and each EClass keeps resolving to its own.
+	 */
+	@Test
+	void testDivergingInstancesStillResolveTheirOwnClassMetadata() {
+		EPackage draft = draftPackage();
+		EPackage approved = approvedPackage();
+		service.registerPackage(draft);
+		service.registerPackage(approved);
+
+		ClassMetadata draftClass = service.getClassMetadata(personOf(draft)).orElseThrow();
+		ClassMetadata approvedClass = service.getClassMetadata(personOf(approved)).orElseThrow();
+		assertThat(draftClass).isNotSameAs(approvedClass);
+		assertThat(draftClass.getFeatures().get(0).getName()).isEqualTo("name");
+		assertThat(approvedClass.getFeatures().get(0).getName()).isEqualTo("fullName");
+	}
+
+	@Test
+	void testUnknownModelVersionResolvesToNothing() {
+		service.registerPackage(draftPackage());
+
+		assertThat(service.getClassMetadata(personOf(approvedPackage())))
+				.as("a version nobody registered has no metadata - the fallback is per version, not per name")
+				.isEmpty();
+	}
+
+	/**
+	 * No stale answers: once the last registration of a version is gone, neither instance
+	 * resolves any longer. A memoized fallback would leak metadata of a withdrawn tree here.
+	 */
+	@Test
+	void testWithdrawnVersionResolvesForNeitherInstance() {
+		EPackage generated = draftPackage();
+		EPackage loaded = draftPackage();
+		service.registerPackage(generated);
+		service.registerPackage(loaded);
+		assertThat(service.getClassMetadata(personOf(loaded))).isPresent();
+
+		service.unregisterPackage(generated);
+		service.unregisterPackage(loaded);
+
+		assertThat(service.getClassMetadata(personOf(loaded))).isEmpty();
+		assertThat(service.getClassMetadata(personOf(generated))).isEmpty();
+	}
+
+	private static EClass personOf(EPackage ePackage) {
+		return (EClass) ePackage.getEClassifier("Person");
+	}
+
+	/** {@code Person{name, greet(), greet(EString)}} - the overload case. */
+	private static EPackage personPackageWithOverloads() {
+		EPackage ePackage = personPackage("name");
+		EClass person = personOf(ePackage);
+
+		EOperation greet = EcoreFactory.eINSTANCE.createEOperation();
+		greet.setName("greet");
+		person.getEOperations().add(greet);
+
+		EOperation greetSomeone = EcoreFactory.eINSTANCE.createEOperation();
+		greetSomeone.setName("greet");
+		EParameter who = EcoreFactory.eINSTANCE.createEParameter();
+		who.setName("who");
+		who.setEType(EcorePackage.Literals.ESTRING);
+		greetSomeone.getEParameters().add(who);
+		person.getEOperations().add(greetSomeone);
+		return ePackage;
 	}
 
 	private static String firstFeatureName(PackageMetadata metadata) {
