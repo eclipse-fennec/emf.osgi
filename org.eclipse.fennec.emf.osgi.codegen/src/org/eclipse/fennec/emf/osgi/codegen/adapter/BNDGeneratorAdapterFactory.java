@@ -12,6 +12,8 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.codegen.adapter;
 
+import java.util.Map;
+
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory;
 import org.eclipse.emf.codegen.ecore.genmodel.generator.GenModelGeneratorAdapterFactory;
 import org.eclipse.emf.common.notify.Adapter;
@@ -29,8 +31,23 @@ public class BNDGeneratorAdapterFactory extends GenModelGeneratorAdapterFactory 
 			return new BNDGeneratorAdapterFactory();
 		};
 
-		
-		
+	/**
+	 * Returns the line delimiter configured via the <code>lineEndings</code> generate attribute,
+	 * or <code>null</code> if the EMF default (delimiter of the existing target file, then the
+	 * system line separator) should be used.
+	 * @param adapterFactory the adapter factory of the calling generator adapter
+	 * @return the configured line delimiter or <code>null</code>
+	 */
+	public static String getConfiguredLineDelimiter(GeneratorAdapterFactory adapterFactory) {
+		Object[] data = adapterFactory.getGenerator().getOptions().data;
+		if (data != null && data.length > 0 && data[0] instanceof Map<?, ?> props
+				&& props.get(FennecEmfGenerator.LINE_DELIMITER) instanceof String lineDelimiter) {
+			return lineDelimiter;
+		}
+		return null;
+	}
+
+
 	@Override
 	public Adapter createGenPackageAdapter() {
 		if (genPackageGeneratorAdapter == null)

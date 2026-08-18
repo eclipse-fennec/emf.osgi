@@ -46,8 +46,21 @@ public class FennecGenModelGeneratorAdapter extends GenModelGeneratorAdapter {
 		}
 		return encoding;
 	}
-	
-	/* 
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.emf.codegen.ecore.generator.AbstractGeneratorAdapter#getLineDelimiter(org.eclipse.emf.common.util.URI, java.lang.String)
+	 */
+	@Override
+	public String getLineDelimiter(URI workspacePath, String encoding) {
+		String lineDelimiter = BNDGeneratorAdapterFactory.getConfiguredLineDelimiter(getAdapterFactory());
+		if (lineDelimiter != null) {
+			return lineDelimiter;
+		}
+		return super.getLineDelimiter(workspacePath, encoding);
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.emf.codegen.ecore.genmodel.generator.GenModelGeneratorAdapter#generateModel(java.lang.Object, org.eclipse.emf.common.util.Monitor)
 	 */

@@ -15,6 +15,7 @@ package org.eclipse.fennec.emf.codegen;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -125,6 +126,99 @@ class GeneratorTest {
 		};
 	}
 	
+	@Test
+	void testGeneratorLineEndingsLf() throws Exception {
+		String content = generateBasicModelWithLineEndings("lf", null);
+		assertThat(content).contains("\n").doesNotContain("\r");
+	}
+
+	@Test
+	void testGeneratorLineEndingsCrLf() throws Exception {
+		String content = generateBasicModelWithLineEndings("crlf", null);
+		assertThat(content).contains("\r\n");
+		assertThat(content.replace("\r\n", "")).doesNotContain("\n").doesNotContain("\r");
+	}
+
+	@Test
+	void testGeneratorLineEndingsFromEclipsePrefs() throws Exception {
+		String content = generateBasicModelWithLineEndings(null, "\\n");
+		assertThat(content).contains("\n").doesNotContain("\r");
+	}
+
+	@Test
+	void testGeneratorLineEndingsAttributeWinsOverEclipsePrefs() throws Exception {
+		String content = generateBasicModelWithLineEndings("crlf", "\\n");
+		assertThat(content).contains("\r\n");
+		assertThat(content.replace("\r\n", "")).doesNotContain("\n").doesNotContain("\r");
+	}
+
+	@Test
+	void testGeneratorLineEndingsInvalid() throws Exception {
+		try (Workspace workspace = getWorkspace("test-resources/ws-2")) {
+			Project project = workspace.getProject("org.eclipse.fennec.emf.osgi.example.model.basic");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("genmodel", "other/main/resources/model/basic.genmodel");
+			attrs.put("output", "src-gen");
+			attrs.put("lineEndings", "mixed");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isPresent();
+			assertThat(result.get()).contains("lineEndings");
+		}
+	}
+
+	private String generateBasicModelWithLineEndings(String lineEndings, String prefsLineSeparator) throws Exception {
+		try (Workspace workspace = getWorkspace("test-resources/ws-2")) {
+			Project project = workspace.getProject("org.eclipse.fennec.emf.osgi.example.model.basic");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			if (prefsLineSeparator != null) {
+				File prefsFile = project.getFile(".settings/org.eclipse.core.runtime.prefs");
+				prefsFile.getParentFile().mkdirs();
+				Files.writeString(prefsFile.toPath(),
+						"eclipse.preferences.version=1\nline.separator=" + prefsLineSeparator + "\n");
+			}
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("genmodel", "other/main/resources/model/basic.genmodel");
+			attrs.put("output", "src-gen");
+			if (lineEndings != null) {
+				attrs.put("lineEndings", lineEndings);
+			}
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isEmpty();
+			File file = project.getFile("src-gen/org/gecko/emf/osgi/example/model/basic/util/BasicResourceImpl.java");
+			assertThat(file).exists();
+			return Files.readString(file.toPath());
+		}
+	}
+
+	private GeneratorOptions emptyOptions() {
+		return new GeneratorOptions() {
+
+			@Override
+			public Map<String, String> _properties() {
+				return null;
+			}
+
+			@Override
+			public List<String> _arguments() {
+				return null;
+			}
+
+			@Override
+			public Optional<File> output() {
+				return Optional.empty();
+			}
+		};
+	}
+
 	private Workspace getWorkspace(File file) throws Exception {
 		IO.copy(file, tmp);
 		return new Workspace(tmp);
