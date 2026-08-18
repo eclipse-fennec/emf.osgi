@@ -10,6 +10,8 @@
 		output={{srcDir}}
 # Add this attribute to find some logging information
 #		logfile=test.log;\
+# Add this attribute to pin the line endings of the generated code (system, lf or crlf)
+#		lineEndings=lf;\
 
 # If this is not done with a instruction namespace, bnd would think you like
 # to take full control over whats exported and imported and will ignore @Export

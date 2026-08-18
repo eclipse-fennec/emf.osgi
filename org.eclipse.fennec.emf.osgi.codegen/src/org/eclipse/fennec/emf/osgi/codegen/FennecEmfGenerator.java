@@ -14,7 +14,9 @@ package org.eclipse.fennec.emf.osgi.codegen;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -24,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -66,7 +69,9 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	public static final String ORIGINAL_GEN_MODEL_PATH = "originalGenModelPath";
 	public static final String ORIGINAL_GEN_MODEL_PATHS_EXTRA = "originalGenModelPathsExtra";
 	public static final String INCLUDE_GEN_MODEL_FOLDER = "includeGenModelFolder";
-	
+	/** key in the generator options data map holding the configured line delimiter, if any */
+	public static final String LINE_DELIMITER = "lineDelimiter";
+
 	/** The output folders default */
 	private static final String OUTPUT_DEFAULT = "src-gen"; //$NON-NLS-1$
 	/** which genmodel to generate */
@@ -77,6 +82,12 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	private static final String PROP_OUTPUT = "output"; //$NON-NLS-1$
 	/** PROP_LOGFILE */
 	private static final String PROP_LOGFILE = "logfile"; //$NON-NLS-1$
+	/** line endings of the generated files: system (default), lf or crlf */
+	private static final String PROP_LINE_ENDINGS = "lineEndings"; //$NON-NLS-1$
+	/** Eclipse project preferences holding the project specific line delimiter */
+	private static final String ECLIPSE_RUNTIME_PREFS_PATH = ".settings/org.eclipse.core.runtime.prefs"; //$NON-NLS-1$
+	/** preference key for the project specific line delimiter, see org.eclipse.core.runtime.Platform#PREF_LINE_SEPARATOR */
+	private static final String PREF_LINE_SEPARATOR = "line.separator"; //$NON-NLS-1$
 	/** @EPackage annotation parameter control properties */
 	private static final String PROP_INCLUDE_GENMODEL_ATTR = "includeGenModelAttr"; //$NON-NLS-1$
 	private static final String PROP_INCLUDE_GENMODEL_SOURCE_LOCATIONS_ATTR = "includeGenModelSourceLocationsAttr"; //$NON-NLS-1$
@@ -179,6 +190,27 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			boolean includeEcoreAttr = !"false".equalsIgnoreCase(context.get(PROP_INCLUDE_ECORE_ATTR));
 			boolean includeEcoreSourceLocationsAttr = !"false".equalsIgnoreCase(context.get(PROP_INCLUDE_ECORE_SOURCE_LOCATIONS_ATTR));
 
+			// Precedence: the lineEndings generate attribute always wins, the Eclipse
+			// project preference (.settings) overrides the system default
+			String lineEndings = context.get(PROP_LINE_ENDINGS);
+			String lineDelimiter;
+			if (lineEndings == null) {
+				lineDelimiter = getEclipseProjectLineDelimiter(context.getBase());
+				info("Line endings configured: " + (lineDelimiter == null
+						? "system (default)"
+						: describeLineDelimiter(lineDelimiter) + " (from " + ECLIPSE_RUNTIME_PREFS_PATH + ")"));
+			} else if ("system".equalsIgnoreCase(lineEndings)) {
+				lineDelimiter = null;
+				info("Line endings configured: system");
+			} else if ("lf".equalsIgnoreCase(lineEndings)) {
+				lineDelimiter = "\n";
+				info("Line endings configured: lf");
+			} else if ("crlf".equalsIgnoreCase(lineEndings)) {
+				lineDelimiter = "\r\n";
+				info("Line endings configured: crlf");
+			} else {
+				return Optional.of("Unsupported lineEndings value '" + lineEndings + "'. Supported values are: system, lf, crlf");
+			}
 
 			File genmodelFile = new File(context.getBase(), genmodel);
 
@@ -196,7 +228,8 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 					context.getBase(),
 					bsn, genmodelLocation,
 					includeGenModelAttr, includeGenModelSourceLocationsAttr,
-					includeEcoreAttr, includeEcoreSourceLocationsAttr);
+					includeEcoreAttr, includeEcoreSourceLocationsAttr,
+					lineDelimiter);
 		} catch (Exception e) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintWriter print = new PrintWriter(baos);
@@ -276,7 +309,48 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	}
 
 	/**
-	 * 
+	 * Reads the Eclipse project specific line delimiter preference
+	 * ("New text file line delimiter" in the project's resource settings) from
+	 * <code>.settings/org.eclipse.core.runtime.prefs</code>.
+	 *
+	 * @param base the project directory
+	 * @return the configured line delimiter or <code>null</code> if the preference
+	 *         file or the preference is absent or its value is not a valid delimiter
+	 */
+	private static String getEclipseProjectLineDelimiter(File base) {
+		File prefsFile = new File(base, ECLIPSE_RUNTIME_PREFS_PATH);
+		if (!prefsFile.isFile()) {
+			return null;
+		}
+		Properties prefs = new Properties();
+		try (InputStream in = new FileInputStream(prefsFile)) {
+			prefs.load(in);
+		} catch (IOException e) {
+			error("Could not read " + prefsFile.getPath() + ", ignoring the project line delimiter preference", e);
+			return null;
+		}
+		String lineDelimiter = prefs.getProperty(PREF_LINE_SEPARATOR);
+		if (lineDelimiter == null) {
+			return null;
+		}
+		if (!"\n".equals(lineDelimiter) && !"\r\n".equals(lineDelimiter) && !"\r".equals(lineDelimiter)) {
+			error("Ignoring invalid " + PREF_LINE_SEPARATOR + " value in " + prefsFile.getPath());
+			return null;
+		}
+		return lineDelimiter;
+	}
+
+	private static String describeLineDelimiter(String lineDelimiter) {
+		switch (lineDelimiter) {
+		case "\n": return "lf";
+		case "\r\n": return "crlf";
+		case "\r": return "cr";
+		default: return "unknown";
+		}
+	}
+
+	/**
+	 *
 	 */
 	private static void closeLog() {
 		PrintStream writer = logWriter;
@@ -314,11 +388,13 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * @param includeGenModelSourceLocationsAttr whether to include genModelSourceLocations in @EPackage annotation
 	 * @param includeEcoreAttr whether to include ecore in @EPackage annotation
 	 * @param includeEcoreSourceLocationsAttr whether to include ecoreSourceLocations in @EPackage annotation
+	 * @param lineDelimiter the line delimiter to use for generated files, or <code>null</code> for the EMF default behavior
 	 * @return
 	 * @throws IOException
 	 */
 	protected Optional<String> doGenerate(String output, String genmodelPath, Map<Container, Map<String, String>> refModels, File base, String bsn, String genmodelLocation,
-			boolean includeGenModelAttr, boolean includeGenModelSourceLocationsAttr, boolean includeEcoreAttr, boolean includeEcoreSourceLocationsAttr) {
+			boolean includeGenModelAttr, boolean includeGenModelSourceLocationsAttr, boolean includeEcoreAttr, boolean includeEcoreSourceLocationsAttr,
+			String lineDelimiter) {
 		info("Running for genmodel " + genmodelPath + " in " + base.getAbsolutePath()); 
 		ResourceSet resourceSet = new ResourceSetImpl();
 		try {
@@ -367,6 +443,9 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			props.put("includeGenModelAttr", includeGenModelAttr);
 			props.put("includeEcoreAttr", includeEcoreAttr);
 			props.put("includeEcoreSourceLocationsAttr", includeEcoreSourceLocationsAttr);
+			if (lineDelimiter != null) {
+				props.put(LINE_DELIMITER, lineDelimiter);
+			}
 			gen.getOptions().data = new Object[] {props};
 			
 			genModel.setCanGenerate(true);

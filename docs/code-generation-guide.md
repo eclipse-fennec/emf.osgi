@@ -47,6 +47,7 @@ The first line of the instruction (`model/mymodel.genmodel`) is the **source** b
 | `genmodel` | — | Project-relative path of the genmodel to generate (required) |
 | `output` | `src-gen` | Output folder for the generated sources |
 | `logfile` | — | Project-relative file the generator writes its log to. **Set this** — it is the main debugging aid, especially for reference-resolution problems (see [Troubleshooting](#troubleshooting)) |
+| `lineEndings` | `system` | Line endings of the generated files: `system` (platform default; an existing file keeps its current delimiter), `lf`, or `crlf`. Set a fixed value to avoid line-ending churn when the code is generated on different operating systems. Resolution order: this attribute always wins; without it, an Eclipse project-specific line delimiter (`line.separator` in `.settings/org.eclipse.core.runtime.prefs`, set via Project Properties → Resource → *New text file line delimiter*) is used; otherwise the system default applies |
 | `genmodelIncludeLocation` | — | Folder the genmodel is shipped under inside the bundle, when it is **not** included at its source path (used to compute the paths in the generated `@EPackage` annotation) |
 | `includeGenModelAttr` | `true` | Include the `genModel` attribute in the generated `@EPackage` annotation / capability |
 | `includeGenModelSourceLocationsAttr` | `true` | Include the `genModelSourceLocations` attribute |

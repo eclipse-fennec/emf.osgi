@@ -103,7 +103,20 @@ public class FennecGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter
 		}
 		return encoding;
 	}
-	
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.eclipse.emf.codegen.ecore.generator.AbstractGeneratorAdapter#getLineDelimiter(org.eclipse.emf.common.util.URI, java.lang.String)
+	 */
+	@Override
+	public String getLineDelimiter(URI workspacePath, String encoding) {
+		String lineDelimiter = BNDGeneratorAdapterFactory.getConfiguredLineDelimiter(getAdapterFactory());
+		if (lineDelimiter != null) {
+			return lineDelimiter;
+		}
+		return super.getLineDelimiter(workspacePath, encoding);
+	}
+
 	/**
 	 * Returns the set of <code>JETEmitterDescriptor</code>s used by the adapter.
 	 * The contents of the returned array should never be changed. Rather,
@@ -355,7 +368,9 @@ public class FennecGenPackageGeneratorAdapter extends GenPackageGeneratorAdapter
 				if ("ebin".equals(outputResource.getURI().fileExtension())) {
 					options.put(XMLResource.OPTION_BINARY, Boolean.TRUE);
 				} else {
-					options.put(Resource.OPTION_LINE_DELIMITER, Resource.OPTION_LINE_DELIMITER_UNSPECIFIED);
+					String lineDelimiter = BNDGeneratorAdapterFactory.getConfiguredLineDelimiter(getAdapterFactory());
+					options.put(Resource.OPTION_LINE_DELIMITER,
+							lineDelimiter != null ? lineDelimiter : Resource.OPTION_LINE_DELIMITER_UNSPECIFIED);
 				}
 
 				try {

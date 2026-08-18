@@ -27,5 +27,6 @@ src=${^src},src-gen
 		output=src-gen;\
 		version=${base-version};\
 		clean=false;\
+		lineEndings=lf;\
 		logfile=out.log
 
