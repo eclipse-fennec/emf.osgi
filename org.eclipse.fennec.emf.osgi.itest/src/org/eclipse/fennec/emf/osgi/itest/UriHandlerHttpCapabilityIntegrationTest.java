@@ -95,6 +95,48 @@ public class UriHandlerHttpCapabilityIntegrationTest {
 	}
 
 	/**
+	 * Exercises the {@code @Modified} path: an existing configuration whose {@code allowedHosts} is
+	 * changed at runtime must toggle the {@code emf.uri.handler.http} capability accordingly -
+	 * emptying the list withdraws it, refilling it re-advertises it - without deleting the
+	 * configuration.
+	 */
+	@Test
+	public void httpCapabilityTracksConfigurationChangesAtRuntime(
+			@InjectService(filter = HTTP_CAPABILITY_FILTER, cardinality = 0) ServiceAware<ResourceSetFactory> factoryAware)
+			throws Exception {
+
+		assertTrue(factoryAware.getServices().isEmpty(),
+				"no ResourceSetFactory should match " + HTTP_CAPABILITY_FILTER + " before configuration");
+
+		Configuration config = ca.getConfiguration(HTTP_URI_HANDLER_PID, "?");
+		try {
+			// 1) initial non-empty whitelist -> capability advertised
+			config.update(hosts("a.example.com"));
+			assertNotNull(factoryAware.waitForService(5000),
+					"capability must appear once a non-empty whitelist is configured");
+
+			// 2) modify the SAME configuration to an empty list -> capability withdrawn
+			config.update(hosts());
+			awaitEmpty(factoryAware, 5000);
+
+			// 3) modify again to a different non-empty whitelist -> capability re-advertised
+			config.update(hosts("b.example.com"));
+			assertNotNull(factoryAware.waitForService(5000),
+					"capability must reappear when the whitelist is refilled at runtime");
+		} finally {
+			config.delete();
+		}
+
+		awaitEmpty(factoryAware, 5000);
+	}
+
+	private static Dictionary<String, Object> hosts(String... allowedHosts) {
+		Dictionary<String, Object> props = new Hashtable<>();
+		props.put("allowedHosts", allowedHosts);
+		return props;
+	}
+
+	/**
 	 * The capability property is aggregated by the ResourceSetFactory's ServicePropertyContext and
 	 * therefore surfaces as a {@code String[]} (e.g. {@code ["true"]}), not a raw {@code Boolean};
 	 * accept either shape as long as it carries {@code "true"}.
