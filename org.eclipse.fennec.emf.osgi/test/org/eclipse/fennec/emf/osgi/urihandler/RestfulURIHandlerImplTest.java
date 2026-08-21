@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.fennec.emf.osgi.constants.EMFUriHandlerConstants;
@@ -48,7 +49,9 @@ public class RestfulURIHandlerImplTest {
 	public void setUp() throws IOException {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.start();
-		handler = new RestfulURIHandlerImpl();
+		// The read path is blocked by default (SSRF guard); allow the test's loopback host so these
+		// tests keep exercising the handler's HTTP error-body behavior.
+		handler = new RestfulURIHandlerImpl(Set.of("localhost"));
 	}
 
 	@AfterEach

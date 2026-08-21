@@ -90,6 +90,12 @@ public class EMFNamespaces {
 	public static final String PROP_RESOURCE_SET_FACTORY_NAME = "rsf.name";
 	// property name for the resource set factory model target filter
 	public static final String PROP_MODEL_TARGET_FILTER = "rsf.model.target.filter";
+
+	// Capability property advertised on the ResourceSetFactory/ResourceSet services when the REST
+	// URI handler is configured with a non-empty host whitelist, i.e. when the ResourceSet is able
+	// to resolve http(s) URIs. Absent when http(s) resolution is blocked (the secure default).
+	// Consumers may filter with @Reference(target="(emf.uri.handler.http=true)").
+	public static final String PROP_URI_HANDLER_HTTP = EMF_PREFIX + "uri.handler.http";
 	
 	// Configuration pid for the EPackage registry 
 	public static final String EPACKAGE_REGISTRY_CONFIG_NAME = "EPackageRegistry";

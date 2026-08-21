@@ -229,6 +229,34 @@ Configuration attributes:
 
 Supports custom headers, response body loading, response logging, and configurable timeouts.
 
+#### SSRF protection (outbound resolution policy)
+
+This handler is attached at index 0 of the `URIConverter` on every `ResourceSet` the Fennec
+`ResourceSetFactory` produces, so it is the single point through which any consumer's
+http(s) *proxy resolution* (demand-loading a cross-document reference) reaches the network.
+To prevent server-side request forgery via attacker-supplied proxy references, **`createInputStream`
+(read / demand-load) is blocked by default**:
+
+- **No configuration** -- every `http`/`https` demand-load throws `IOException`. The write/probe
+  methods (`createOutputStream`, `delete`, `exists`, `getAttributes`) are unaffected, so explicit
+  REST-client usage keeps working.
+- **Host whitelist** -- register a Config Admin configuration for PID
+  `org.eclipse.fennec.emf.osgi.urihandler.http` (`RestUriHandlerConfig.allowedHosts`) to permit
+  resolution against specific hosts (matched case-insensitively, host only). While a non-empty
+  whitelist is configured, the `ResourceSetFactory`/`ResourceSet` services advertise
+  `emf.uri.handler.http=true`, so consumers can select an http-capable ResourceSet with
+  `@Reference(target="(emf.uri.handler.http=true)")`. The host list itself is not exposed as a
+  service property.
+- **Per-call override** -- trusted code driving a `ResourceSet` manually can allow a single, known
+  URI for one operation by setting the load/save option
+  `EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION` (`"allow.uri.resolution"`) to `Boolean.TRUE`.
+  Attacker-driven demand-loads use the ResourceSet's own load options and never carry this key.
+
+> Note: the guard applies to ResourceSets built by the Fennec `ResourceSetFactory` (the production
+> path). A raw `new ResourceSetImpl()` does not go through this configurator and falls back to EMF's
+> default handlers. `file://` / `ftp://` demand-loads are likewise served by EMF's default handlers
+> and are not covered by this http(s) handler.
+
 ## Bundle Variant Comparison
 
 | Feature | Full (`component`) | Minimal (`component.minimal`) |
