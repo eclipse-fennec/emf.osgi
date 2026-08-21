@@ -50,7 +50,8 @@ public class ServicePropertyContextImpl implements ServicePropertyContext {
 		EMFNamespaces.EMF_MODEL_FINGERPRINT,
 		EMFNamespaces.EMF_MODEL_CONTENT_TYPE,
 		EMFNamespaces.EMF_MODEL_FILE_EXT,
-		EMFNamespaces.EMF_MODEL_PROTOCOL
+		EMFNamespaces.EMF_MODEL_PROTOCOL,
+		EMFNamespaces.PROP_URI_HANDLER_HTTP
 	);
 	private final Map<String, Object> customFeatureProperties = new ConcurrentHashMap<>();
 	
