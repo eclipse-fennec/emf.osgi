@@ -80,6 +80,27 @@ cfg.update(props);
 - An empty or absent `allowedHosts` keeps the secure default (everything blocked).
 - Requests to any host **not** listed still throw.
 
+### Wildcard patterns
+
+Each `allowedHosts` entry may also be a wildcard:
+
+| Entry | Matches | Does **not** match |
+|---|---|---|
+| `models.example.com` | that exact host | anything else |
+| `*.mydomain.com` | `a.mydomain.com`, `a.b.mydomain.com` (any subdomain) | the apex `mydomain.com`, or look-alikes like `evilmydomain.com` |
+| `*` | **every** host | — |
+
+The subdomain wildcard is anchored on the dot, so `*.mydomain.com` never matches
+`evilmydomain.com`, and it does **not** include the apex — list `mydomain.com` separately if you
+need it.
+
+> ⚠️ **Warning — `*` disables SSRF protection.** A bare `*` permits outbound resolution to *any*
+> host, which re-opens exactly the server-side request forgery vector this control exists to
+> close. An attacker-supplied reference could then reach cloud-metadata endpoints, internal
+> services, and so on. Only use `*` in a trusted, closed environment where the models being
+> loaded are fully under your control. Prefer an explicit host list (or `*.yourdomain`) in any
+> environment that processes untrusted input. Configuring `*` is logged as a warning at startup.
+
 ---
 
 ## Allowing a single URI per call
@@ -135,7 +156,7 @@ The configured host list itself is **not** exposed as a service property.
 | Concern | Setting |
 |---|---|
 | Config PID | `org.eclipse.fennec.emf.osgi.urihandler.http` |
-| Whitelist property | `allowedHosts` (`String[]`, host names) |
+| Whitelist property | `allowedHosts` (`String[]`; exact host, `*.suffix`, or `*` for all) |
 | Default (no config) | all `http(s)` demand-loads blocked |
 | Per-call override | load/save option `allow.uri.resolution` = `Boolean.TRUE` |
 | Capability property | `emf.uri.handler.http=true` (only when a whitelist is configured) |

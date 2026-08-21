@@ -22,8 +22,10 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -79,8 +81,12 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	private static final int MAX_ERROR_BODY_BYTES = 8 * 1024;
 	private static final Logger LOG = Logger.getLogger(RestfulURIHandlerImpl.class.getName());
 
-	/** Host names (lower-cased) permitted for outbound http/https resolution. Empty = block all. */
+	/** {@code true} if a bare {@code "*"} was configured - permits every host (SSRF guard disabled). */
+	private final boolean allowAllHosts;
+	/** Exact host names (lower-cased) permitted for outbound http/https resolution. */
 	private final Set<String> allowedHosts;
+	/** Suffixes (lower-cased, including the leading dot, e.g. {@code ".mydomain.com"}) from {@code *.} entries. */
+	private final List<String> allowedSuffixes;
 
 	/**
 	 * Creates a handler that blocks all outbound http(s) resolution by default. Individual, trusted
@@ -92,30 +98,55 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	}
 
 	/**
-	 * Creates a handler that permits outbound http(s) resolution only for the given host names
+	 * Creates a handler that permits outbound http(s) resolution only for the given host patterns
 	 * (matched case-insensitively). An empty set blocks all resolution unless a call opts in via
 	 * {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION} - the secure default that prevents
 	 * SSRF via attacker-supplied proxy references.
+	 * <p>
+	 * Each entry may be:
+	 * <ul>
+	 * <li>an exact host name, e.g. {@code models.example.com};</li>
+	 * <li>a subdomain wildcard {@code *.mydomain.com}, matching any host that has at least one label
+	 * before {@code .mydomain.com} (the apex {@code mydomain.com} is <em>not</em> matched - list it
+	 * explicitly if needed);</li>
+	 * <li>a bare {@code *}, which permits <strong>every</strong> host. This disables the SSRF
+	 * protection entirely and is logged as a warning; use it only for trusted, closed environments.</li>
+	 * </ul>
 	 *
-	 * @param allowedHosts the host names allowed for outbound resolution; must not be {@code null}
+	 * @param allowedHosts the host patterns allowed for outbound resolution; must not be {@code null}
 	 */
 	public RestfulURIHandlerImpl(Set<String> allowedHosts) {
 		requireNonNull(allowedHosts, "allowedHosts must not be null");
-		Set<String> normalized = new HashSet<>();
+		boolean allowAll = false;
+		Set<String> exact = new HashSet<>();
+		List<String> suffixes = new ArrayList<>();
 		for (String host : allowedHosts) {
-			if (host != null && !host.isBlank()) {
-				normalized.add(host.trim().toLowerCase(Locale.ROOT));
+			if (host == null || host.isBlank()) {
+				continue;
+			}
+			String normalized = host.trim().toLowerCase(Locale.ROOT);
+			if (normalized.equals("*")) {
+				allowAll = true;
+				LOG.warning(
+						"REST URI handler configured with wildcard host '*': ALL outbound http(s) resolution "
+								+ "is permitted, which disables SSRF protection. Use an explicit host allow-list instead.");
+			} else if (normalized.startsWith("*.")) {
+				suffixes.add(normalized.substring(1)); // keep the leading dot: ".mydomain.com"
+			} else {
+				exact.add(normalized);
 			}
 		}
-		this.allowedHosts = Set.copyOf(normalized);
+		this.allowAllHosts = allowAll;
+		this.allowedHosts = Set.copyOf(exact);
+		this.allowedSuffixes = List.copyOf(suffixes);
 	}
 
 	/**
 	 * Decides whether outbound resolution of the given URI is permitted. Resolution is allowed when
 	 * the per-call {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION} option is set to
-	 * {@link Boolean#TRUE}, or when the URI's host is contained in the configured whitelist
-	 * (case-insensitive). With an empty whitelist and no per-call override every http(s) URI is
-	 * blocked.
+	 * {@link Boolean#TRUE}, when a bare {@code "*"} was configured, or when the URI's host matches an
+	 * exact entry or a {@code *.suffix} entry (all case-insensitive). With an empty whitelist and no
+	 * per-call override every http(s) URI is blocked.
 	 *
 	 * @param uri     the URI about to be resolved
 	 * @param options the load/save options of the current operation
@@ -126,8 +157,24 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 				&& Boolean.TRUE.equals(options.get(EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION))) {
 			return true;
 		}
+		if (allowAllHosts) {
+			return true;
+		}
 		String host = uri.host();
-		return host != null && allowedHosts.contains(host.toLowerCase(Locale.ROOT));
+		if (host == null) {
+			return false;
+		}
+		String normalizedHost = host.toLowerCase(Locale.ROOT);
+		if (allowedHosts.contains(normalizedHost)) {
+			return true;
+		}
+		for (String suffix : allowedSuffixes) {
+			// endsWith(".mydomain.com") already requires a label before the dot, so the apex does not match
+			if (normalizedHost.endsWith(suffix)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/*
