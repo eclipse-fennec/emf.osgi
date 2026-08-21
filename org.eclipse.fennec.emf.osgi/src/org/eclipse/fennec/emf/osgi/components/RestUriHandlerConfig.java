@@ -37,9 +37,11 @@ public @interface RestUriHandlerConfig {
 
 	@AttributeDefinition(
 			name = "Allowed Hosts",
-			description = "Host names permitted for outbound http/https proxy resolution (matched "
+			description = "Host patterns permitted for outbound http/https proxy resolution (matched "
 					+ "case-insensitively, host only - no port). Empty (the default) blocks all http(s) "
-					+ "resolution.",
+					+ "resolution. Entries may be an exact host (models.example.com), a subdomain wildcard "
+					+ "(*.mydomain.com, apex not included), or a bare '*' which permits EVERY host and thus "
+					+ "disables SSRF protection - use '*' only in trusted, closed environments.",
 			required = false)
 	String[] allowedHosts() default {};
 }

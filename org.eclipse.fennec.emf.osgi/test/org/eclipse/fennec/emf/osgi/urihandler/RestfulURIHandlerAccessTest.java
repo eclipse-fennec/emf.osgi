@@ -78,4 +78,28 @@ public class RestfulURIHandlerAccessTest {
 						Map.of(EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION, "true")),
 				"a non-Boolean.TRUE value must not unlock resolution");
 	}
+
+	@Test
+	public void subdomainWildcardMatchesSubdomainsButNotApexOrSiblings() {
+		RestfulURIHandlerImpl handler = new RestfulURIHandlerImpl(Set.of("*.mydomain.com"));
+
+		assertTrue(handler.isResolutionAllowed(URI.createURI("http://a.mydomain.com/x"), Map.of()),
+				"a direct subdomain must match");
+		assertTrue(handler.isResolutionAllowed(URI.createURI("https://a.b.mydomain.com/x"), Map.of()),
+				"a nested subdomain must match");
+		assertFalse(handler.isResolutionAllowed(URI.createURI("http://mydomain.com/x"), Map.of()),
+				"the apex must NOT match a *. wildcard");
+		assertFalse(handler.isResolutionAllowed(URI.createURI("http://evilmydomain.com/x"), Map.of()),
+				"a look-alike host must not match (suffix is anchored on the dot)");
+	}
+
+	@Test
+	public void bareStarAllowsEveryHost() {
+		RestfulURIHandlerImpl handler = new RestfulURIHandlerImpl(Set.of("*"));
+
+		assertTrue(handler.isResolutionAllowed(METADATA_URI, Map.of()),
+				"a bare '*' must permit every host");
+		assertTrue(handler.isResolutionAllowed(URI.createURI("http://anything.example/x"), Map.of()),
+				"a bare '*' must permit every host");
+	}
 }

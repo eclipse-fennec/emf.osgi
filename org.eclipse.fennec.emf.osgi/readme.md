@@ -242,8 +242,11 @@ To prevent server-side request forgery via attacker-supplied proxy references, *
   REST-client usage keeps working.
 - **Host whitelist** -- register a Config Admin configuration for PID
   `org.eclipse.fennec.emf.osgi.urihandler.http` (`RestUriHandlerConfig.allowedHosts`) to permit
-  resolution against specific hosts (matched case-insensitively, host only). While a non-empty
-  whitelist is configured, the `ResourceSetFactory`/`ResourceSet` services advertise
+  resolution against specific hosts (matched case-insensitively, host only). Entries may be an
+  exact host, a subdomain wildcard `*.mydomain.com` (apex not included), or a bare `*` which
+  permits every host and thus **disables SSRF protection** (use only in trusted environments;
+  logged as a warning). While a non-empty whitelist is configured, the
+  `ResourceSetFactory`/`ResourceSet` services advertise
   `emf.uri.handler.http=true`, so consumers can select an http-capable ResourceSet with
   `@Reference(target="(emf.uri.handler.http=true)")`. The host list itself is not exposed as a
   service property.
