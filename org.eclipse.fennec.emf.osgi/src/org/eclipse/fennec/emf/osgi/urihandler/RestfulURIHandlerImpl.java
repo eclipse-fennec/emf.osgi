@@ -23,11 +23,15 @@ import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.util.Objects.requireNonNull;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -75,9 +79,60 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	private static final int MAX_ERROR_BODY_BYTES = 8 * 1024;
 	private static final Logger LOG = Logger.getLogger(RestfulURIHandlerImpl.class.getName());
 
+	/** Host names (lower-cased) permitted for outbound http/https resolution. Empty = block all. */
+	private final Set<String> allowedHosts;
+
+	/**
+	 * Creates a handler that blocks all outbound http(s) resolution by default. Individual, trusted
+	 * operations can still be permitted per call via
+	 * {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION}.
+	 */
+	public RestfulURIHandlerImpl() {
+		this(Set.of());
+	}
+
+	/**
+	 * Creates a handler that permits outbound http(s) resolution only for the given host names
+	 * (matched case-insensitively). An empty set blocks all resolution unless a call opts in via
+	 * {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION} - the secure default that prevents
+	 * SSRF via attacker-supplied proxy references.
+	 *
+	 * @param allowedHosts the host names allowed for outbound resolution; must not be {@code null}
+	 */
+	public RestfulURIHandlerImpl(Set<String> allowedHosts) {
+		requireNonNull(allowedHosts, "allowedHosts must not be null");
+		Set<String> normalized = new HashSet<>();
+		for (String host : allowedHosts) {
+			if (host != null && !host.isBlank()) {
+				normalized.add(host.trim().toLowerCase(Locale.ROOT));
+			}
+		}
+		this.allowedHosts = Set.copyOf(normalized);
+	}
+
+	/**
+	 * Decides whether outbound resolution of the given URI is permitted. Resolution is allowed when
+	 * the per-call {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION} option is set to
+	 * {@link Boolean#TRUE}, or when the URI's host is contained in the configured whitelist
+	 * (case-insensitive). With an empty whitelist and no per-call override every http(s) URI is
+	 * blocked.
+	 *
+	 * @param uri     the URI about to be resolved
+	 * @param options the load/save options of the current operation
+	 * @return {@code true} if resolution is permitted, {@code false} otherwise
+	 */
+	boolean isResolutionAllowed(URI uri, Map<?, ?> options) {
+		if (options != null
+				&& Boolean.TRUE.equals(options.get(EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION))) {
+			return true;
+		}
+		String host = uri.host();
+		return host != null && allowedHosts.contains(host.toLowerCase(Locale.ROOT));
+	}
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.eclipse.emf.ecore.resource.impl.URIHandlerImpl#createOutputStream(org.
 	 * eclipse.emf.common.util.URI, java.util.Map)
@@ -160,6 +215,12 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	@SuppressWarnings("unchecked")
 	@Override
 	public InputStream createInputStream(URI uri, Map<?, ?> options) throws IOException {
+		if (!isResolutionAllowed(uri, options)) {
+			throw new IOException("Blocked outbound http(s) resolution of URI '" + uri + "' (host '"
+					+ uri.host() + "' is not in the configured allow-list). Add the host to the REST URI "
+					+ "handler configuration, or set option '" + EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION
+					+ "'=Boolean.TRUE for a trusted, manual load of this URI.");
+		}
 		try {
 			java.net.URI netUri = java.net.URI.create(uri.toString());
 			final HttpURLConnection httpURLConnection = (HttpURLConnection) netUri.toURL().openConnection();
