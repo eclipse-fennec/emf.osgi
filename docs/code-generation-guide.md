@@ -44,7 +44,8 @@ The first line of the instruction (`model/mymodel.genmodel`) is the **source** b
 | Attribute | Default | Description |
 |---|---|---|
 | `generate` | — | Must be `fennecEMF` — selects the Fennec EMF external plugin |
-| `genmodel` | — | Project-relative path of the genmodel to generate (required) |
+| `genmodel` | — | Project-relative path of the genmodel to generate (required, unless `ecore` is set) |
+| `ecore` | — | Project-relative path of an ecore to generate from **without maintaining a genmodel**: a genmodel is derived from the ecore's GenModel annotations and saved next to the ecore (see [Generating from an Ecore only](#generating-from-an-ecore-only-derived-genmodel)). Mutually exclusive with `genmodel` |
 | `output` | `src-gen` | Output folder for the generated sources |
 | `logfile` | — | Project-relative file the generator writes its log to. **Set this** — it is the main debugging aid, especially for reference-resolution problems (see [Troubleshooting](#troubleshooting)) |
 | `lineEndings` | `system` | Line endings of the generated files: `system` (platform default; an existing file keeps its current delimiter), `lf`, or `crlf`. Set a fixed value to avoid line-ending churn when the code is generated on different operating systems. Resolution order: this attribute always wins; without it, an Eclipse project-specific line delimiter (`line.separator` in `.settings/org.eclipse.core.runtime.prefs`, set via Project Properties → Resource → *New text file line delimiter*) is used; otherwise the system default applies |
@@ -55,6 +56,54 @@ The first line of the instruction (`model/mymodel.genmodel`) is the **source** b
 | `includeEcoreSourceLocationsAttr` | `true` | Include the `ecoreSourceLocations` attribute |
 
 In addition, bnd's own `-generate` attributes (e.g. `clean`) apply as usual — see the [bnd documentation](https://bnd.bndtools.org/instructions/generate.html).
+
+### Generating from an Ecore only (derived genmodel)
+
+An ecore can carry its genmodel options as standard EMF **GenModel annotations** (source `http://www.eclipse.org/emf/2002/GenModel` on the root EPackage). For such models the generator can derive the genmodel on the fly — only the ecore needs to be maintained:
+
+```properties
+-generate: \
+    model/mymodel.ecore; \
+        generate=fennecEMF; \
+        ecore=model/mymodel.ecore; \
+        output=src-gen; \
+        logfile=codegen.log
+```
+
+```xml
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    name="mymodel" nsURI="http://example.com/mymodel" nsPrefix="mymodel">
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="basePackage" value="com.example"/>
+    <details key="prefix" value="MyModel"/>
+    <details key="fileExtensions" value="mymodel"/>
+  </eAnnotations>
+  <!-- EClassifiers ... -->
+</ecore:EPackage>
+```
+
+The derived genmodel is saved **next to the ecore** (`model/mymodel.genmodel`) and **overwritten on every run** — it is a build artifact of the ecore, do not edit it. Shipping it in the bundle (the usual `-includeresource.model: model=model` covers that) keeps every downstream feature working exactly as in genmodel mode: the `generated_package` capability, `usedGenPackages` references from other bundles, and the `@EPackage` annotation attributes.
+
+Supported annotation keys (all optional):
+
+| Key | Default | Maps to |
+|---|---|---|
+| `basePackage` | derived from the nsURI (reversed host + path) | GenPackage base package |
+| `prefix` | capitalized package name | GenPackage prefix |
+| `fileExtensions` (or `fileExtension`) | — | file extensions of the generated ResourceFactory |
+| `resource` | — | resource kind: `XMI`, `XML`, `Basic` or `None` |
+| `contentTypeIdentifier` | — | content type of the generated resource |
+| `oSGiCompatible` | **`true`** | generate the OSGi artifacts (configurator, configuration component, `@EPackage`) |
+| `literalsInterface` | `true` | generate the `Literals` interface |
+| `loadInitialization` | `false` | initialize the package model by loading the ecore |
+| `suppressInterfaces`, `suppressEMFTypes`, `suppressEMFMetaData`, `suppressGenModelAnnotations`, `publicConstructors` | EMF defaults | the corresponding GenModel switches |
+| `rootExtendsClass` | `MinimalEObjectImpl$Container` | root class of the generated implementations |
+| `rootExtendsInterface`, `copyrightText` | — | the corresponding GenModel settings |
+
+Everything else uses the same defaults a genmodel created by the EMF ecore importer would have (compliance level 17, operation reflection, import organizing).
+
+**Cross-bundle references** work in ecore mode too: when the ecore references classifiers of an EPackage from a buildpath bundle (see [Referencing Models from Other Bundles](#referencing-models-from-other-bundles)), the generator locates the genmodel **shipped by that bundle**, links the matching GenPackage as a `usedGenPackage` in the derived genmodel and does not regenerate the foreign code. The referenced bundle therefore must ship its genmodel; the generation fails with a clear message otherwise. References to EPackages inside the same project (a second ecore file) are not supported in ecore mode.
 
 ---
 

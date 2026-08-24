@@ -78,6 +78,8 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	private static final String OUTPUT_DEFAULT = "src-gen"; //$NON-NLS-1$
 	/** which genmodel to generate */
 	private static final String PROP_GENMODEL = "genmodel"; //$NON-NLS-1$
+	/** which ecore to generate from; a genmodel is derived from its GenModel annotations and saved next to it */
+	private static final String PROP_ECORE = "ecore"; //$NON-NLS-1$
 	/** where the genmodel will end up in the build model, should be used when not in the defaults model folder */
 	private static final String PROP_GENMODEL_INLCLUDE_LOCATION = "genmodelIncludeLocation"; //$NON-NLS-1$
 	/** PROP_OUTPUT */
@@ -174,9 +176,13 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			info("Output result: " + output);
 			output.mkdirs();
 
-			String genmodel = context.get(PROP_GENMODEL); 
-			if(genmodel == null) {
-				return Optional.of("genmodel attribute not set");
+			String genmodel = context.get(PROP_GENMODEL);
+			String ecore = context.get(PROP_ECORE);
+			if(genmodel == null && ecore == null) {
+				return Optional.of("Neither the genmodel nor the ecore attribute is set");
+			}
+			if(genmodel != null && ecore != null) {
+				return Optional.of("The genmodel and ecore attributes are mutually exclusive. Set genmodel to use an existing genmodel or ecore to derive one from the GenModel annotations of the ecore.");
 			}
 
 			String genmodelLocation = context.get(PROP_GENMODEL_INLCLUDE_LOCATION);
@@ -214,17 +220,32 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 				return Optional.of("Unsupported lineEndings value '" + lineEndings + "'. Supported values are: system, lf, crlf");
 			}
 
+			Map<Container, Map<String, String>> refModels = extractedLocationsWithCap(context.getProject().getBuildpath());
+			Project project = (Project) context.getParent();
+			Iterator<String> iterator = project.getBsns().iterator();
+			String bsn = iterator.hasNext() ? iterator.next() : context.getParent()
+					.toString();
+
+			if(ecore != null) {
+				File ecoreFile = new File(context.getBase(), ecore);
+				if(!ecoreFile.exists()) {
+					return Optional.of("No ecore found at " + ecoreFile.getPath());
+				}
+				String outputFolder = genFolder != null ? genFolder : OUTPUT_DEFAULT;
+				try {
+					genmodel = GenModelDeriver.derive(ecore, outputFolder, refModels, bsn, context.getBase());
+				} catch (IllegalStateException e) {
+					error(e.getMessage());
+					return Optional.of(e.getMessage());
+				}
+			}
+
 			File genmodelFile = new File(context.getBase(), genmodel);
 
 			if(!genmodelFile.exists()) {
 				return Optional.of("No genmodel found at " + genmodelFile.getPath());
 			}
 
-			Map<Container, Map<String, String>> refModels = extractedLocationsWithCap(context.getProject().getBuildpath());
-			Project project = (Project) context.getParent();
-			Iterator<String> iterator = project.getBsns().iterator();
-			String bsn = iterator.hasNext() ? iterator.next() : context.getParent()
-					.toString();
 			return doGenerate(genFolder, genmodel,
 					refModels,
 					context.getBase(),
@@ -392,7 +413,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 		gen.getAdapterFactoryDescriptorRegistry().addDescriptor(GenModelPackage.eNS_URI, BNDGeneratorAdapterFactory.DESCRIPTOR);
 	}
 
-	private void configureEMF(ResourceSet resourceSet, Map<Container, Map<String, String>> refModels, String bsn, File base) {
+	static void configureEMF(ResourceSet resourceSet, Map<Container, Map<String, String>> refModels, String bsn, File base) {
 
 		GenModelPackageImpl.init();
 		GenModelFactoryImpl.init();
