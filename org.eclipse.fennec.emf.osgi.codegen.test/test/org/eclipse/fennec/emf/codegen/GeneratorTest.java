@@ -218,6 +218,63 @@ class GeneratorTest {
 		}
 	}
 
+	@Test
+	void testGeneratorFromAnnotatedEcore() throws Exception {
+		IO.copy(new File("test-resources/ws-4"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.ecoremode/lib/org.fennec.test.multi.model.jar"));
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.ecoremode");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("ecore", "model/annotated.ecore");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isEmpty();
+
+			File genmodelFile = project.getFile("model/annotated.genmodel");
+			assertThat(genmodelFile).exists();
+			String genmodelContent = Files.readString(genmodelFile.toPath());
+			assertThat(genmodelContent)
+					.contains("basePackage=\"org.fennec.test\"")
+					.contains("prefix=\"Annotated\"")
+					.contains("annotated.ecore#/")
+					.contains("multi.genmodel#//packb");
+
+			File file = project.getFile("src-gen/org/fennec/test/annotated/AnnotatedObject.java");
+			assertThat(file).exists();
+			assertThat(Files.readString(file.toPath())).contains("org.fennec.test.multi.packb.BObject");
+			assertThat(project.getFile("src-gen/org/fennec/test/annotated/configuration/AnnotatedEPackageConfigurator.java")).exists();
+
+			// the derived genmodel is overwritten on every run
+			Optional<String> secondRun = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(secondRun).isEmpty();
+			assertThat(genmodelFile).exists();
+		}
+	}
+
+	@Test
+	void testGeneratorEcoreAndGenmodelAreMutuallyExclusive() throws Exception {
+		IO.copy(new File("test-resources/ws-4"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.ecoremode/lib/org.fennec.test.multi.model.jar"));
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.ecoremode");
+			assertThat(project).isNotNull();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("ecore", "model/annotated.ecore");
+			attrs.put("genmodel", "model/annotated.genmodel");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isPresent();
+			assertThat(result.get()).contains("mutually exclusive");
+		}
+	}
+
 	/**
 	 * Builds the multi-package model bundle referenced from the ws-3 consumer's buildpath:
 	 * one jar carrying two EPackages, providing one generated_package capability per EPackage,

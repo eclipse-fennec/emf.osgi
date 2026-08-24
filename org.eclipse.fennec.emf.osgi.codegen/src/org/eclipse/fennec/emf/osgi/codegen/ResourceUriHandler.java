@@ -152,7 +152,7 @@ public class ResourceUriHandler implements URIHandler {
 		return null;
 	}
 
-	private String getBSN(Container c) {
+	static String getBSN(Container c) {
 		try {
 			Manifest manifest = null;
 			if(c.getFile().getName().endsWith(".jar")) {

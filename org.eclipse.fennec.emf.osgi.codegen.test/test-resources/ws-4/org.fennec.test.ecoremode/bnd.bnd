@@ -1,0 +1,11 @@
+src=${^src},src-gen
+
+# the multi-package model bundle is built by the test into lib/ before the workspace is opened
+-buildpath: \
+	lib/org.fennec.test.multi.model.jar;version=file,\
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.emf.common;version=latest
+
+-includeresource.model: model=model
+
+Bundle-Version: 1.0.0.SNAPSHOT
