@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
@@ -54,8 +54,10 @@ import org.osgi.resource.Capability;
 import aQute.bnd.build.Container;
 import aQute.bnd.build.Project;
 import aQute.bnd.header.Attrs;
+import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Domain;
 import aQute.bnd.osgi.Jar;
+import aQute.bnd.osgi.Processor;
 import aQute.bnd.osgi.resource.CapabilityBuilder;
 import aQute.bnd.service.externalplugin.ExternalPlugin;
 import aQute.bnd.service.generate.BuildContext;
@@ -247,65 +249,90 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 
 	/**
 	 * org.eclipse.emf.ecore.generated_package;class="org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage";uri="http://gecko.org/example/model/basic";genModel="/model/basic.genmodel";sourceLocations="other/main/resources/model/basic.genmodel,org.eclipse.fennec.emf.osgi.example.model.basic/other/main/resources/model/basic.genmodel"
-	 * @param context
-	 * @return
+	 * A bundle carrying multiple EPackages provides one such capability per EPackage; all of them contribute their locations.
+	 * @param buildpath the buildpath containers
+	 * @return the resolvable model locations per container
+	 * @throws Exception
+	 */
+	private Map<Container, Map<String,String>> extractedLocationsWithCap(Collection<Container> buildpath)
+			throws Exception {
+		Map<Container, Map<String, String>> refModels = new HashMap<>();
+		for(Container c : buildpath) {
+			File f = c.getFile();
+			List<Attrs> capabilities = List.of();
+			if(!f.isDirectory()) {
+				Domain domain = Domain.domain(c.getManifest());
+				capabilities = generatedPackageCapabilities(domain.getProvideCapability());
+			}
+			Map<String, String> result = new HashMap<>();
+			// scan the jar for ecore files unless every capability already names its ecore location
+			boolean checkForEcore = capabilities.isEmpty();
+			for (Attrs attrs : capabilities) {
+				if (!mergeCapabilityLocations(attrs, result)) {
+					checkForEcore = true;
+				}
+			}
+			boolean scanForEcore = checkForEcore;
+			try (Jar jar = new Jar(f)){
+				jar.getResourceNames(s -> (scanForEcore && s.endsWith(".ecore")) || s.endsWith(".genmodel") ||  s.endsWith(".uml"))
+					.forEach(s -> result.put(s, s));
+			}
+			refModels.put(c, result);
+		}
+		return refModels;
+	}
+
+	/**
+	 * Collects the attributes of all {@link EPackage#NAMESPACE} capabilities, including the
+	 * duplicate keys ({@code <namespace>~}, {@code <namespace>~~}, ...) bnd uses to store
+	 * multiple capabilities of the same namespace in {@link Parameters}.
+	 * @param provideCapability the parsed Provide-Capability header
+	 * @return the attributes of all generated_package capabilities
+	 */
+	private static List<Attrs> generatedPackageCapabilities(Parameters provideCapability) {
+		List<Attrs> capabilities = new ArrayList<>();
+		provideCapability.forEach((namespace, attrs) -> {
+			if (EPackage.NAMESPACE.equals(Processor.removeDuplicateMarker(namespace))) {
+				capabilities.add(attrs);
+			}
+		});
+		return capabilities;
+	}
+
+	/**
+	 * Merges the model locations of one generated_package capability into the container's location map.
+	 * @param attrs the capability attributes
+	 * @param result the location map to merge into
+	 * @return <code>true</code> if the capability named its ecore location
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	private Map<Container, Map<String,String>> extractedLocationsWithCap(Collection<Container> buildpath)
-			throws Exception {
-		Map<Container, Map<String, String>> refModels = new HashMap<>(); 
-		for(Container c : buildpath) {
-			File f = c.getFile();
-			Attrs attrs = null;
-			if(!f.isDirectory()) {
-				Domain domain = Domain.domain(c.getManifest());
-				attrs = domain.getProvideCapability().get(EPackage.NAMESPACE);
+	private static boolean mergeCapabilityLocations(Attrs attrs, Map<String, String> result) throws Exception {
+		CapabilityBuilder builder = new CapabilityBuilder(EPackage.NAMESPACE);
+		builder.addAttributesOrDirectives(attrs);
+		Capability capability = builder.synthetic();
+		String genModelLocation = (String) capability.getAttributes().get("genModel");
+		if (genModelLocation != null) {
+			List<String> sourceLocations = (List<String>) capability.getAttributes().get("genModelSourceLocations");
+			if(sourceLocations != null) {
+				sourceLocations.forEach(l -> result.put(l, genModelLocation));
 			}
-			if(attrs != null) {
-				Map<String, String> result = new HashMap<>();
-				CapabilityBuilder builder = new CapabilityBuilder(EPackage.NAMESPACE);
-				builder.addAttributesOrDirectives(attrs);
-				Capability capability = builder.synthetic();
-				String genModelLocation = (String) capability.getAttributes().get("genModel");
-				if (genModelLocation != null) {
-					List<String> sourceLocations = (List<String>) capability.getAttributes().get("genModelSourceLocations");
-					if(sourceLocations != null) {
-						sourceLocations.forEach(l -> result.put(l, genModelLocation));
-					}
-					result.put(genModelLocation, genModelLocation);
-				}
-				String ecoreLocation = (String) capability.getAttributes().get("ecore");
-				AtomicBoolean checkForEcore = new AtomicBoolean(true);
-				if(ecoreLocation != null) {
-					checkForEcore.set(false);
-					List<String> ecoreSourceLocations = (List<String>) capability.getAttributes().get("ecoreSourceLocations");
-					if(ecoreSourceLocations != null) {
-						ecoreSourceLocations.forEach(l -> result.put(l, ecoreLocation));
-					}
-					result.put(ecoreLocation, ecoreLocation);
-					String uri = (String) capability.getAttributes().get("uri");
-					if(uri != null) {
-						result.put(uri, ecoreLocation);
-					}
-				} 
-				refModels.put(c, result);
-				try (Jar jar = new Jar(f)){
-					jar.getResourceNames(s -> (checkForEcore.get() && s.endsWith(".ecore")) || s.endsWith(".genmodel") ||  s.endsWith(".uml"))
-						.forEach(s -> result.put(s, s));
-					refModels.put(c, result);
-				}
-			} else {
-				try (Jar jar = new Jar(f)){
-					Map<String, String> result = new HashMap<>();
-					jar.getResourceNames(s -> s.endsWith(".ecore") || s.endsWith(".genmodel") || s.endsWith(".uml"))
-							.forEach(s -> result.put(s, s));
-					refModels.put(c, result);
-				}
-			}
-			
+			result.put(genModelLocation, genModelLocation);
 		}
-		return refModels;
+		String ecoreLocation = (String) capability.getAttributes().get("ecore");
+		if(ecoreLocation == null) {
+			return false;
+		}
+		List<String> ecoreSourceLocations = (List<String>) capability.getAttributes().get("ecoreSourceLocations");
+		if(ecoreSourceLocations != null) {
+			ecoreSourceLocations.forEach(l -> result.put(l, ecoreLocation));
+		}
+		result.put(ecoreLocation, ecoreLocation);
+		String uri = (String) capability.getAttributes().get("uri");
+		if(uri != null) {
+			result.put(uri, ecoreLocation);
+		}
+		return true;
 	}
 
 	/**
