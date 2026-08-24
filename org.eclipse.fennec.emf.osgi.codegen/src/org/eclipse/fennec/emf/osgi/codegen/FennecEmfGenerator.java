@@ -440,10 +440,13 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			info("Resolving all Models");
 			EcoreUtil.resolveAll(genModel);
 			Diagnostic genModelDiagnostic = Diagnostician.INSTANCE.validate(genModel);
-			if (genModelDiagnostic.getSeverity() != Diagnostic.OK) {
+			if (genModelDiagnostic.getSeverity() >= Diagnostic.ERROR) {
 				error("Genmodel is invalid");
 				printResult(genModelDiagnostic, "");
-				return Optional.empty();
+				return Optional.of("Genmodel " + genmodelPath + " is invalid: " + genModelDiagnostic.getMessage());
+			} else if (genModelDiagnostic.getSeverity() != Diagnostic.OK) {
+				warn("Genmodel validation reported issues, continuing anyway");
+				printResult(genModelDiagnostic, "");
 			}
 			org.eclipse.emf.codegen.ecore.generator.Generator gen = new org.eclipse.emf.codegen.ecore.generator.Generator();
 			configureEMFGenerator(gen);

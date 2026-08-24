@@ -198,6 +198,26 @@ class GeneratorTest {
 		}
 	}
 
+	@Test
+	void testGeneratorFailsOnInvalidGenmodel() throws Exception {
+		IO.copy(new File("test-resources/ws-3"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.consumer/lib/org.fennec.test.multi.model.jar"));
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.consumer");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("genmodel", "model/broken.genmodel");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isPresent();
+			assertThat(result.get()).contains("model/broken.genmodel").contains("invalid");
+		}
+	}
+
 	/**
 	 * Builds the multi-package model bundle referenced from the ws-3 consumer's buildpath:
 	 * one jar carrying two EPackages, providing one generated_package capability per EPackage,
