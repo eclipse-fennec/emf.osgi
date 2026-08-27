@@ -320,15 +320,23 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	}
 
 	/**
-	 * @param httpURLConnection
-	 * @param response
+	 * Puts the response's {@code Last-Modified} timestamp into the response {@link Map}, as
+	 * epoch milliseconds under {@link URIConverter#RESPONSE_TIME_STAMP_PROPERTY}.
+	 * <p>
+	 * {@code Last-Modified} carries an HTTP-date (RFC 7231), e.g.
+	 * {@code Thu, 27 Aug 2026 07:32:33 GMT}, so it is parsed by
+	 * {@link HttpURLConnection#getLastModified()}. A missing or unparseable header yields
+	 * {@code 0} there and leaves the property unset, silently - the timestamp is optional
+	 * metadata and must not turn into noise on the log.
+	 *
+	 * @param httpURLConnection the connection that produced the response
+	 * @param response          the response map to fill, must not be {@code null}
 	 */
 	private void setLastModified(final HttpURLConnection httpURLConnection, Map<Object, Object> response) {
 		try {
-			String lastModified = httpURLConnection.getHeaderField(HEADER_LAST_MODIFIED);
-			if (lastModified != null) {
-				Long lm = Long.parseLong(lastModified);
-				response.put(URIConverter.RESPONSE_TIME_STAMP_PROPERTY, lm);
+			long lastModified = httpURLConnection.getLastModified();
+			if (lastModified != 0) {
+				response.put(URIConverter.RESPONSE_TIME_STAMP_PROPERTY, lastModified);
 			}
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, ERROR_LAST_MODIFIED, e);
