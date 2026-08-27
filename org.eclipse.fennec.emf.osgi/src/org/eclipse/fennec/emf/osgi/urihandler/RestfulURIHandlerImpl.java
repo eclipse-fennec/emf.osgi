@@ -202,12 +202,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 				super.close();
 				try {
 					int responseCode = httpURLConnection.getResponseCode();
-					Map<Object, Object> response = getResponse(options);
-					if (response != null) {
-						setLastModified(httpURLConnection, response);
-						response.put(EMFUriHandlerConstants.RESPONSE_HTTP_STATUS, responseCode);
-						response.putAll(httpURLConnection.getHeaderFields());
-					}
+					setResponseProperties(httpURLConnection, options, responseCode);
 					InputStream in = extractStreamAndLogResponse(options, httpURLConnection);
 					switch (responseCode) {
 					case HttpURLConnection.HTTP_OK:
@@ -270,10 +265,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 			setRequestHeaders(httpURLConnection,
 					(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 			final int responseCode = httpURLConnection.getResponseCode();
-			Map<Object, Object> response = getResponse(options);
-			if (response != null) {
-				setLastModified(httpURLConnection, response);
-			}
+			setResponseProperties(httpURLConnection, options, responseCode);
 			InputStream result = extractStreamAndLogResponse(options, httpURLConnection);
 			return new FilterInputStream(result) {
 
@@ -316,6 +308,43 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 			};
 		} catch (RuntimeException exception) {
 			throw new Resource.IOWrappedException(exception);
+		}
+	}
+
+	/**
+	 * Publishes the outcome of the given request into the
+	 * {@link URIConverter#OPTION_RESPONSE response} {@link Map} of the options, if the caller
+	 * provided one. All HTTP entry points of this handler use this method, so the response map
+	 * is filled identically for reading, writing, {@code exists} and {@code delete}, and also
+	 * when the operation subsequently fails. Written are:
+	 * <ul>
+	 * <li>{@link URIConverter#RESPONSE_TIME_STAMP_PROPERTY} - only if the response carried a
+	 * parseable {@code Last-Modified} header, see
+	 * {@link #setLastModified(HttpURLConnection, Map)};</li>
+	 * <li>{@link EMFUriHandlerConstants#RESPONSE_HTTP_STATUS} - the HTTP status code;</li>
+	 * <li>one entry per response header, keyed by header name and holding the {@link List} of
+	 * its values. The {@code null} key that {@link HttpURLConnection#getHeaderFields()} uses
+	 * for the status line is skipped, so response maps that reject {@code null} keys stay
+	 * usable; the status is available under
+	 * {@link EMFUriHandlerConstants#RESPONSE_HTTP_STATUS} anyway.</li>
+	 * </ul>
+	 *
+	 * @param httpURLConnection the connection that produced the response
+	 * @param options           the load/save options of the current operation
+	 * @param responseCode      the HTTP status code of the response
+	 */
+	private void setResponseProperties(final HttpURLConnection httpURLConnection, Map<?, ?> options,
+			int responseCode) {
+		Map<Object, Object> response = getResponse(options);
+		if (response == null) {
+			return;
+		}
+		setLastModified(httpURLConnection, response);
+		response.put(EMFUriHandlerConstants.RESPONSE_HTTP_STATUS, responseCode);
+		for (Entry<String, List<String>> header : httpURLConnection.getHeaderFields().entrySet()) {
+			if (header.getKey() != null) {
+				response.put(header.getKey(), header.getValue());
+			}
 		}
 	}
 
@@ -432,6 +461,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 					(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 			httpURLConnection.setRequestMethod(HTTP_DELETE);
 			int responseCode = httpURLConnection.getResponseCode();
+			setResponseProperties(httpURLConnection, options, responseCode);
 			try {
 				switch (responseCode) {
 				case HttpURLConnection.HTTP_OK:
@@ -541,10 +571,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 			setRequestHeaders(httpURLConnection,
 					(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
 			int responseCode = httpURLConnection.getResponseCode();
-			Map<Object, Object> response = getResponse(options);
-			if (response != null) {
-				setLastModified(httpURLConnection, response);
-			}
+			setResponseProperties(httpURLConnection, options, responseCode);
 			httpURLConnection.disconnect();
 			return responseCode == HttpURLConnection.HTTP_OK;
 		} catch (Exception exception) {
