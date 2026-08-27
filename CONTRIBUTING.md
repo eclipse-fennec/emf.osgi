@@ -68,7 +68,7 @@ We use a fork-and-pull-request workflow:
    branch. Link the PR to an existing issue when possible.
 7. **Wait for CI.** All status checks (build matrix, license header check,
    ECA verification) must be green before review. See
-   [docs/ci.md](docs/ci.md) for what each workflow does.
+   [the CI guide](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/ci.md) in DataInMotion/xdp for what each workflow does.
 
 ### Sign your work
 

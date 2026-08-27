@@ -36,7 +36,7 @@ All of these are self-contained and parameterised; copy verbatim and they work:
 | `tools/dash-licenses.bat` | Windows `cmd.exe` runner, same behaviour. |
 | `.github/workflows/dash-licenses.yml` | GitHub Actions: runs the script on PRs + pushes to primary branches, fails on restricted, uploads `DEPENDENCIES`. |
 | `.gitlab-ci.yml` | GitLab CI: same, on MRs + pushes. Runs `--review` automatically if `DASH_IPLAB_TOKEN` + `DASH_PROJECT_ID` CI variables are set. |
-| `docs/ip-dash-license-check.md` | User-facing docs. |
+| [`ip-dash-license-check.md`](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/ip-dash-license-check.md) | User-facing docs, maintained in DataInMotion/xdp. |
 
 The scripts auto-resolve the **latest** bnd snapshot from
 `maven-metadata.xml` (timestamp + buildNumber), so there is no hardcoded build
