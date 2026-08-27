@@ -67,14 +67,8 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	private static final String HTTP_OPTIONS = "OPTIONS";
 	/** HTTP_DELETE */
 	private static final String HTTP_DELETE = "DELETE";
-	/** PROP_HTTP_RESPONSE_CODE */
-	private static final String PROP_HTTP_RESPONSE_CODE = "HTTPResponseCode";
 	/** HEADER_LAST_MODIFIED */
 	private static final String HEADER_LAST_MODIFIED = "Last-Modified";
-	/** HEADER_CONTENT_CLASS */
-	private static final String HEADER_CONTENT_CLASS = "Content-Class";
-	/** PROP_ECLASS */
-	private static final String PROP_ECLASS = "EClass";
 	/** HTTP_PUT */
 	private static final String HTTP_PUT = "PUT";
 	/** Upper bound for the error body appended to exception messages */
@@ -198,8 +192,9 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 		httpURLConnection.setDoOutput(true);
 		setRequestHeaders(httpURLConnection,
 				(Map<String, String>) options.get(EMFUriHandlerConstants.OPTION_HTTP_HEADERS));
-		if (options.containsKey(PROP_ECLASS)) {
-			httpURLConnection.setRequestProperty(HEADER_CONTENT_CLASS, options.get(PROP_ECLASS).toString());
+		if (options.containsKey(EMFUriHandlerConstants.OPTION_ECLASS)) {
+			httpURLConnection.setRequestProperty(EMFUriHandlerConstants.HEADER_CONTENT_CLASS,
+					options.get(EMFUriHandlerConstants.OPTION_ECLASS).toString());
 		}
 		return new FilterOutputStream(httpURLConnection.getOutputStream()) {
 			@Override
@@ -210,7 +205,7 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 					Map<Object, Object> response = getResponse(options);
 					if (response != null) {
 						setLastModified(httpURLConnection, response);
-						response.put(PROP_HTTP_RESPONSE_CODE, responseCode);
+						response.put(EMFUriHandlerConstants.RESPONSE_HTTP_STATUS, responseCode);
 						response.putAll(httpURLConnection.getHeaderFields());
 					}
 					InputStream in = extractStreamAndLogResponse(options, httpURLConnection);
