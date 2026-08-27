@@ -188,7 +188,7 @@ The user documentation is published at
 - [Code Generation Guide](docs/code-generation-guide.md) -- Generating OSGi-compatible model code and referencing models from other bundles
 - [Configuration Guide](docs/configuration-guide.md) -- Configuring EMF components via OSGi Configuration Admin
 - [Extender Documentation](org.eclipse.fennec.emf.osgi.extender/readme.md) -- Automatic model registration from bundles
-- [EMF Delegate Registries](docs/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries
+- [EMF Delegate Registries](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/emf-delegate-registries.md) -- Analysis of EMF's four delegate registries (internal, in DataInMotion/xdp)
 - [EMF Delegate User Guide](docs/emf-delegate-user-guide.md) -- Using invocation, setting, validation, and conversion delegates
 
 ## Branches & releases
@@ -200,7 +200,7 @@ The user documentation is published at
   available on [Maven Central](https://repo1.maven.org/maven2/org/eclipse/fennec/emf/)
   under `org.eclipse.fennec.emf:*`.
 
-See [docs/ci.md](docs/ci.md) for the full CI / publishing pipeline.
+See [the CI guide](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/ci.md) in DataInMotion/xdp for the full CI / publishing pipeline.
 
 ## Building
 

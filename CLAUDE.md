@@ -108,8 +108,10 @@ This allows EMF models to be dynamically added/removed as bundles are installed/
 
 ## Agent Prompts
 
-- **Test Coverage Agent:** `docs/agents/test-coverage-agent.md` - invoke after code changes to ensure test coverage
-- **Code Quality Agent:** `docs/agents/code-quality-agent.md` - invoke to check Java 21 usage, imports, null-safety, resource leaks, testability, license headers, OSGi package-info
+Maintained centrally in [DataInMotion/xdp](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi), not in this repository.
+
+- **Test Coverage Agent:** [`agents/test-coverage-agent.md`](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/agents/test-coverage-agent.md) - invoke after code changes to ensure test coverage
+- **Code Quality Agent:** [`agents/code-quality-agent.md`](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/agents/code-quality-agent.md) - invoke to check Java 21 usage, imports, null-safety, resource leaks, testability, license headers, OSGi package-info
 
 ## Critical Rules
 
@@ -123,12 +125,17 @@ This allows EMF models to be dynamically added/removed as bundles are installed/
 
 ## Key Documents
 
-- **EMF Delegate Registries:** `docs/emf-delegate-registries.md` - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
+The user guides live in `docs/` here (they are published from this repository -
+see `docs-site/guides.mjs`). The internal documents - analyses, migration notes,
+CI and release process - are maintained in
+[DataInMotion/xdp](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi) and are linked as such below.
+
+- **EMF Delegate Registries:** [`emf-delegate-registries.md`](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/emf-delegate-registries.md) (in xdp) - Analysis of EMF's four delegate registries (Validation, Invocation, Setting, Conversion), isolation requirements, and whiteboard populator implementation plan
 - **EMF Delegate User Guide:** `docs/emf-delegate-user-guide.md` - How to use the four delegate types: Ecore annotations, OSGi service implementation, runtime behavior, and caching
 - **Model Fingerprints:** `docs/model-fingerprint-guide.md` - The `emf.fingerprint` contract: why the nsURI is not identity, the `fp1` scheme and its tag rule, what enters the hash, and the three places the value appears (service property, generated constant, manifest capability)
 - **Metadata Service:** `docs/metadata-service-guide.md` - Why derived metadata exists, getting a `MetadataService` / `MetadataWhiteboard` in OSGi and on a flat classpath (`MetadataServices.createWhiteboard`), push vs. pull registration, contributing via `MetadataHandler` and `AspectEntry`, reusing derivations through `ArtifactStore`, saving and restoring the registry (`loadRegistry`)
 - **EObject Registries:** `docs/eobject-registry-guide.md` - Named local registries for authored EObject content (`org.eclipse.fennec.emf.osgi.eobject.registry`): gated publication via one pulled initial provider, writer push for dynamic sources, per-source sync semantics, the metadata bridge (`getClassAspect`) and its boundaries, the worked use cases (start ordering, model version bumps, source loss)
-- **Porting from `emf.model.metadata`:** `docs/metadata-migration-from-model-metadata.md` - Bundle, package and nsURI mapping plus the API breaks a rename cannot cover (`Optional` returns, `AspectEntry` instead of aspect inheritance, `MetadataHandler` instead of `AspectProvider`, profiles dropped). Internal, deleted once the donor repo is archived
+- **Porting from `emf.model.metadata`:** [`metadata-migration-from-model-metadata.md`](https://github.com/DataInMotion/xdp/tree/snapshot/docs/projects/emf.osgi/metadata-migration-from-model-metadata.md) (in xdp) - Bundle, package and nsURI mapping plus the API breaks a rename cannot cover (`Optional` returns, `AspectEntry` instead of aspect inheritance, `MetadataHandler` instead of `AspectProvider`, profiles dropped). Internal, deleted once the donor repo is archived
 - **HTTP URI Handler Security:** `docs/uri-handler-security-guide.md` - How outbound `http(s)` proxy resolution is blocked by default (SSRF/CWE-918 prevention), the `org.eclipse.fennec.emf.osgi.urihandler.http` whitelist config, the per-call `allow.uri.resolution` override, and the `emf.uri.handler.http` capability property
 
 ## Development Workflow
