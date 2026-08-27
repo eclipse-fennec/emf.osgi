@@ -60,6 +60,31 @@ public interface EMFUriHandlerConstants {
 	 * the ResourceSet's own load options and never carry this key, so they remain blocked.
 	 */
 	String OPTION_ALLOW_URI_RESOLUTION = "allow.uri.resolution";
+
+	/**
+	 * Key under which the REST URI handler publishes the HTTP status code of the last
+	 * request into the {@link org.eclipse.emf.ecore.resource.URIConverter#OPTION_RESPONSE
+	 * response} {@link Map}.
+	 * <p>
+	 * The status is published by every HTTP entry point of the handler - reading, writing,
+	 * {@code exists} and {@code delete} - and also when the operation fails with an
+	 * {@link java.io.IOException}, so consumers can distinguish e.g. {@code 404} from
+	 * {@code 403} without parsing the exception message. The value is an {@link Integer}.
+	 */
+	String RESPONSE_HTTP_STATUS = "HTTPResponseCode";
+
+	/**
+	 * If this option is set in the save options {@link Map}, its {@code toString()} value is
+	 * sent as the {@link #HEADER_CONTENT_CLASS Content-Class} request header, telling the
+	 * server which {@code EClass} the request body represents.
+	 */
+	String OPTION_ECLASS = "EClass";
+
+	/**
+	 * Name of the request header carrying the {@code EClass} of the request body, set from the
+	 * {@link #OPTION_ECLASS} save option.
+	 */
+	String HEADER_CONTENT_CLASS = "Content-Class";
 	
 	/**
 	 * They was used for basic authentication, which is not recommended anymore. 
