@@ -22,14 +22,12 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -75,12 +73,13 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	private static final int MAX_ERROR_BODY_BYTES = 8 * 1024;
 	private static final Logger LOG = Logger.getLogger(RestfulURIHandlerImpl.class.getName());
 
-	/** {@code true} if a bare {@code "*"} was configured - permits every host (SSRF guard disabled). */
-	private final boolean allowAllHosts;
-	/** Exact host names (lower-cased) permitted for outbound http/https resolution. */
-	private final Set<String> allowedHosts;
-	/** Suffixes (lower-cased, including the leading dot, e.g. {@code ".mydomain.com"}) from {@code *.} entries. */
-	private final List<String> allowedSuffixes;
+	/**
+	 * Supplies the allow-list in force <em>at the time of the resolution</em>. The handler must never
+	 * snapshot the hosts: a {@code ResourceSet} is typically created long before Config Admin delivers
+	 * the REST handler configuration, and a handler frozen on the empty start-up allow-list would keep
+	 * blocking every host forever (issue #100).
+	 */
+	private final Supplier<HostAllowList> allowedHosts;
 
 	/**
 	 * Creates a handler that blocks all outbound http(s) resolution by default. Individual, trusted
@@ -88,59 +87,54 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 	 * {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION}.
 	 */
 	public RestfulURIHandlerImpl() {
-		this(Set.of());
+		this(HostAllowList.BLOCK_ALL);
 	}
 
 	/**
-	 * Creates a handler that permits outbound http(s) resolution only for the given host patterns
-	 * (matched case-insensitively). An empty set blocks all resolution unless a call opts in via
+	 * Creates a handler with a <em>fixed</em> allow-list built from the given host patterns, which are
+	 * normalized once here - see {@link HostAllowList#of(java.util.Collection)} for the accepted
+	 * patterns. An empty set blocks all resolution unless a call opts in via
 	 * {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION} - the secure default that prevents
 	 * SSRF via attacker-supplied proxy references.
 	 * <p>
-	 * Each entry may be:
-	 * <ul>
-	 * <li>an exact host name, e.g. {@code models.example.com};</li>
-	 * <li>a subdomain wildcard {@code *.mydomain.com}, matching any host that has at least one label
-	 * before {@code .mydomain.com} (the apex {@code mydomain.com} is <em>not</em> matched - list it
-	 * explicitly if needed);</li>
-	 * <li>a bare {@code *}, which permits <strong>every</strong> host. This disables the SSRF
-	 * protection entirely and is logged as a warning; use it only for trusted, closed environments.</li>
-	 * </ul>
+	 * Use {@link #RestfulURIHandlerImpl(Supplier)} instead whenever the allow-list can change after the
+	 * handler was created, as it does for the OSGi component behind Config Admin.
 	 *
 	 * @param allowedHosts the host patterns allowed for outbound resolution; must not be {@code null}
 	 */
 	public RestfulURIHandlerImpl(Set<String> allowedHosts) {
+		this(HostAllowList.of(requireNonNull(allowedHosts, "allowedHosts must not be null")));
+	}
+
+	/**
+	 * Creates a handler with a <em>fixed</em>, already normalized allow-list.
+	 *
+	 * @param allowedHosts the allow-list to enforce; must not be {@code null}
+	 */
+	public RestfulURIHandlerImpl(HostAllowList allowedHosts) {
 		requireNonNull(allowedHosts, "allowedHosts must not be null");
-		boolean allowAll = false;
-		Set<String> exact = new HashSet<>();
-		List<String> suffixes = new ArrayList<>();
-		for (String host : allowedHosts) {
-			if (host == null || host.isBlank()) {
-				continue;
-			}
-			String normalized = host.trim().toLowerCase(Locale.ROOT);
-			if (normalized.equals("*")) {
-				allowAll = true;
-				LOG.warning(
-						"REST URI handler configured with wildcard host '*': ALL outbound http(s) resolution "
-								+ "is permitted, which disables SSRF protection. Use an explicit host allow-list instead.");
-			} else if (normalized.startsWith("*.")) {
-				suffixes.add(normalized.substring(1)); // keep the leading dot: ".mydomain.com"
-			} else {
-				exact.add(normalized);
-			}
-		}
-		this.allowAllHosts = allowAll;
-		this.allowedHosts = Set.copyOf(exact);
-		this.allowedSuffixes = List.copyOf(suffixes);
+		this.allowedHosts = () -> allowedHosts;
+	}
+
+	/**
+	 * Creates a handler that reads the allow-list from the given supplier on every resolution, so a
+	 * configuration that arrives (or is withdrawn) after this handler was attached to a
+	 * {@code ResourceSet} takes effect immediately. The supplier is expected to hand out an
+	 * already normalized {@link HostAllowList}, so no parsing happens per resolution; a supplier
+	 * returning {@code null} is treated as {@link HostAllowList#BLOCK_ALL}.
+	 *
+	 * @param allowedHosts supplier of the currently configured allow-list; must not be {@code null}
+	 */
+	public RestfulURIHandlerImpl(Supplier<HostAllowList> allowedHosts) {
+		this.allowedHosts = requireNonNull(allowedHosts, "allowedHosts supplier must not be null");
 	}
 
 	/**
 	 * Decides whether outbound resolution of the given URI is permitted. Resolution is allowed when
 	 * the per-call {@link EMFUriHandlerConstants#OPTION_ALLOW_URI_RESOLUTION} option is set to
-	 * {@link Boolean#TRUE}, when a bare {@code "*"} was configured, or when the URI's host matches an
-	 * exact entry or a {@code *.suffix} entry (all case-insensitive). With an empty whitelist and no
-	 * per-call override every http(s) URI is blocked.
+	 * {@link Boolean#TRUE}, or when the URI's host is permitted by the allow-list currently in force
+	 * (see {@link HostAllowList#isAllowed(String)}). With an empty allow-list and no per-call override
+	 * every http(s) URI is blocked.
 	 *
 	 * @param uri     the URI about to be resolved
 	 * @param options the load/save options of the current operation
@@ -151,24 +145,9 @@ public class RestfulURIHandlerImpl extends URIHandlerImpl {
 				&& Boolean.TRUE.equals(options.get(EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION))) {
 			return true;
 		}
-		if (allowAllHosts) {
-			return true;
-		}
-		String host = uri.host();
-		if (host == null) {
-			return false;
-		}
-		String normalizedHost = host.toLowerCase(Locale.ROOT);
-		if (allowedHosts.contains(normalizedHost)) {
-			return true;
-		}
-		for (String suffix : allowedSuffixes) {
-			// endsWith(".mydomain.com") already requires a label before the dot, so the apex does not match
-			if (normalizedHost.endsWith(suffix)) {
-				return true;
-			}
-		}
-		return false;
+		HostAllowList allowList = allowedHosts.get();
+		// a supplier that lost its configuration must close the guard, not open it
+		return allowList != null && allowList.isAllowed(uri.host());
 	}
 
 	/*

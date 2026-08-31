@@ -254,6 +254,11 @@ To prevent server-side request forgery via attacker-supplied proxy references, *
   URI for one operation by setting the load/save option
   `EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION` (`"allow.uri.resolution"`) to `Boolean.TRUE`.
   Attacker-driven demand-loads use the ResourceSet's own load options and never carry this key.
+- **Live policy** -- the handler holds a `Supplier<HostAllowList>` onto `RestUriHandlerProvider`,
+  never a copy of the hosts, so a configuration that arrives (or is withdrawn) after a `ResourceSet`
+  was created takes effect on that `ResourceSet` immediately. `HostAllowList` is the normalized,
+  immutable form of the configured patterns and is rebuilt once per configuration change, not per
+  resolution.
 
 > Note: the guard applies to ResourceSets built by the Fennec `ResourceSetFactory` (the production
 > path). A raw `new ResourceSetImpl()` does not go through this configurator and falls back to EMF's
@@ -317,6 +322,7 @@ org.eclipse.fennec.emf.osgi/
         SynchronizedResourceSetImpl
       urihandler/                          -- HTTP URI handler
         RestfulURIHandlerImpl
+        HostAllowList
   test/
     org/eclipse/fennec/emf/osgi/
       components/

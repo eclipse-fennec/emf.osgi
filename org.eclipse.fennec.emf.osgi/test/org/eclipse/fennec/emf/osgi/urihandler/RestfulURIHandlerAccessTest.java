@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.fennec.emf.osgi.constants.EMFUriHandlerConstants;
@@ -101,5 +102,55 @@ public class RestfulURIHandlerAccessTest {
 				"a bare '*' must permit every host");
 		assertTrue(handler.isResolutionAllowed(URI.createURI("http://anything.example/x"), Map.of()),
 				"a bare '*' must permit every host");
+	}
+
+	@Test
+	public void liveAllowListPicksUpAConfigurationThatArrivesLater() {
+		// the ResourceSet - and with it the handler - is created before Config Admin delivers the
+		// configuration, which is the ordering that made the snapshot handler block forever (issue #100)
+		AtomicReference<HostAllowList> allowList = new AtomicReference<>(HostAllowList.BLOCK_ALL);
+		RestfulURIHandlerImpl handler = new RestfulURIHandlerImpl(allowList::get);
+		URI uri = URI.createURI("https://api.example.test/v1/models");
+
+		assertFalse(handler.isResolutionAllowed(uri, Map.of()),
+				"before the configuration arrives the handler must block");
+
+		allowList.set(HostAllowList.of(Set.of("api.example.test")));
+
+		assertTrue(handler.isResolutionAllowed(uri, Map.of()),
+				"the already-created handler must see the configuration that arrived afterwards");
+	}
+
+	@Test
+	public void liveAllowListBlocksAgainWhenTheConfigurationIsWithdrawn() {
+		AtomicReference<HostAllowList> allowList = new AtomicReference<>(
+				HostAllowList.of(Set.of("api.example.test")));
+		RestfulURIHandlerImpl handler = new RestfulURIHandlerImpl(allowList::get);
+		URI uri = URI.createURI("https://api.example.test/v1/models");
+
+		assertTrue(handler.isResolutionAllowed(uri, Map.of()), "the configured host is allowed");
+
+		allowList.set(HostAllowList.BLOCK_ALL);
+
+		assertFalse(handler.isResolutionAllowed(uri, Map.of()),
+				"removing the configuration must block resolutions through existing ResourceSets");
+	}
+
+	@Test
+	public void supplierReturningNullBlocksInsteadOfFailing() {
+		RestfulURIHandlerImpl handler = new RestfulURIHandlerImpl(() -> null);
+
+		assertFalse(handler.isResolutionAllowed(METADATA_URI, Map.of()),
+				"a supplier without an allow-list must close the guard, not open it");
+	}
+
+	@Test
+	public void perCallOptionStillOverridesALiveAllowList() {
+		RestfulURIHandlerImpl handler = new RestfulURIHandlerImpl(() -> HostAllowList.BLOCK_ALL);
+
+		assertTrue(
+				handler.isResolutionAllowed(METADATA_URI,
+						Map.of(EMFUriHandlerConstants.OPTION_ALLOW_URI_RESOLUTION, Boolean.TRUE)),
+				"the escape hatch must keep working with a live allow-list");
 	}
 }

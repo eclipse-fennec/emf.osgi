@@ -101,6 +101,22 @@ need it.
 > loaded are fully under your control. Prefer an explicit host list (or `*.yourdomain`) in any
 > environment that processes untrusted input. Configuring `*` is logged as a warning at startup.
 
+### Configuration changes apply to existing ResourceSets
+
+The allow-list is read **at the moment of the resolution**, not captured when the `ResourceSet`
+was built. That matters because the ordering is usually the other way round: a component starts
+and obtains its `ResourceSet` before Config Admin has delivered
+`org.eclipse.fennec.emf.osgi.urihandler.http`. With the allow-list read live, such a
+`ResourceSet` resolves the configured hosts as soon as the configuration arrives — no restart of
+the consumer, no new `ResourceSet` needed.
+
+The same holds in the other direction: emptying `allowedHosts` or deleting the configuration
+blocks resolution again for `ResourceSet`s that already exist. Withdrawing the whitelist is
+therefore effective immediately, not only for `ResourceSet`s created afterwards.
+
+Host patterns are normalized once per configuration change, so a busy load path pays nothing for
+this.
+
 ---
 
 ## Allowing a single URI per call
@@ -158,6 +174,7 @@ The configured host list itself is **not** exposed as a service property.
 | Config PID | `org.eclipse.fennec.emf.osgi.urihandler.http` |
 | Whitelist property | `allowedHosts` (`String[]`; exact host, `*.suffix`, or `*` for all) |
 | Default (no config) | all `http(s)` demand-loads blocked |
+| Config changes | applied live, including to `ResourceSet`s created earlier |
 | Per-call override | load/save option `allow.uri.resolution` = `Boolean.TRUE` |
 | Capability property | `emf.uri.handler.http=true` (only when a whitelist is configured) |
 | Blocked method | `createInputStream` (reads); write/probe methods unchanged |
