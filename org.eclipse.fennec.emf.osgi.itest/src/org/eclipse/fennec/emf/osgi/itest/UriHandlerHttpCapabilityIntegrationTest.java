@@ -13,12 +13,17 @@
 package org.eclipse.fennec.emf.osgi.itest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Map;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.fennec.emf.osgi.ResourceSetFactory;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
@@ -128,6 +133,66 @@ public class UriHandlerHttpCapabilityIntegrationTest {
 		}
 
 		awaitEmpty(factoryAware, 5000);
+	}
+
+	/**
+	 * Regression test for issue #100: a {@code ResourceSet} is normally handed out long before Config
+	 * Admin delivers the REST URI handler configuration. The handler attached to it must read the
+	 * allow-list live, so the configuration that arrives afterwards takes effect on that very
+	 * {@code ResourceSet} - and withdrawing the configuration blocks it again.
+	 * <p>
+	 * The probe URI points at {@code localhost:1}, a port nothing listens on: while the host is
+	 * blocked the handler refuses before opening a connection, and once it is allow-listed the attempt
+	 * fails with a connection error instead. Nothing ever leaves the loopback interface.
+	 */
+	@Test
+	public void resourceSetCreatedBeforeConfigurationResolvesAllowListedHostAfterwards(
+			@InjectService ServiceAware<ResourceSetFactory> factoryAware) throws Exception {
+
+		ResourceSetFactory factory = factoryAware.waitForService(5000);
+		assertNotNull(factory, "the Fennec ResourceSetFactory must be available");
+		// created while the handler is still unconfigured - the ordering that used to freeze an empty
+		// allow-list into the handler for the lifetime of this ResourceSet
+		ResourceSet resourceSet = factory.createResourceSet();
+		URI probe = URI.createURI("http://localhost:1/model.xmi");
+
+		assertTrue(isBlocked(resourceSet, probe), "an unconfigured handler must block the host");
+
+		Configuration config = ca.getConfiguration(HTTP_URI_HANDLER_PID, "?");
+		try {
+			config.update(hosts("localhost"));
+			awaitBlocked(resourceSet, probe, false, 5000);
+		} finally {
+			config.delete();
+		}
+
+		awaitBlocked(resourceSet, probe, true, 5000);
+	}
+
+	/**
+	 * Attempts to resolve the URI through the given ResourceSet and reports whether the access guard
+	 * refused it. Any other {@link IOException} - a refused connection, most likely - means the guard
+	 * let the request through.
+	 */
+	private static boolean isBlocked(ResourceSet resourceSet, URI uri) {
+		IOException failure = assertThrows(IOException.class, () -> {
+			try (InputStream in = resourceSet.getURIConverter().createInputStream(uri, Map.of())) {
+				in.readAllBytes();
+			}
+		}, "resolving " + uri + " must fail, either blocked or with a connection error");
+		return String.valueOf(failure.getMessage()).contains("Blocked outbound");
+	}
+
+	/** Waits until the guard reaches the expected state; configuration delivery is asynchronous. */
+	private static void awaitBlocked(ResourceSet resourceSet, URI uri, boolean expected, long timeoutMillis)
+			throws InterruptedException {
+		long deadline = System.currentTimeMillis() + timeoutMillis;
+		while (isBlocked(resourceSet, uri) != expected && System.currentTimeMillis() < deadline) {
+			Thread.sleep(50);
+		}
+		assertTrue(isBlocked(resourceSet, uri) == expected, expected
+				? "withdrawing the configuration must block resolutions through the existing ResourceSet"
+				: "the configuration delivered after the ResourceSet was created must unblock the host");
 	}
 
 	private static Dictionary<String, Object> hosts(String... allowedHosts) {

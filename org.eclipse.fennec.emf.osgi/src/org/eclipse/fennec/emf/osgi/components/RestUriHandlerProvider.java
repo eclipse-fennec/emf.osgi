@@ -12,15 +12,16 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.components;
 
+import java.util.Arrays;
 import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Set;
+import java.util.List;
 
 import org.eclipse.emf.ecore.resource.URIHandler;
 import org.eclipse.fennec.emf.osgi.UriHandlerProvider;
 import org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
+import org.eclipse.fennec.emf.osgi.urihandler.HostAllowList;
 import org.eclipse.fennec.emf.osgi.urihandler.RestfulURIHandlerImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -72,8 +73,13 @@ public class RestUriHandlerProvider implements UriHandlerProvider {
 
 	private final BundleContext bundleContext;
 
-	/** Host names allowed for outbound http(s) resolution. Empty = block all (secure default). */
-	private volatile Set<String> allowedHosts = Set.of();
+	/**
+	 * The normalized host allow-list currently in force; empty = block all (secure default). Handed to
+	 * every handler <em>by reference through a supplier</em>, never as a copy, so that handlers created
+	 * before Config Admin delivered the configuration pick the hosts up as soon as they arrive
+	 * (issue #100). Normalization happens here, once per configuration, not per resolution.
+	 */
+	private volatile HostAllowList allowedHosts = HostAllowList.BLOCK_ALL;
 
 	/** Registration of the http-capability marker; non-null only while a whitelist is configured. */
 	private ServiceRegistration<ResourceSetConfigurator> capabilityRegistration;
@@ -91,22 +97,24 @@ public class RestUriHandlerProvider implements UriHandlerProvider {
 
 	@Deactivate
 	void deactivate() {
+		// Deleting the configuration deactivates this component (the policy is OPTIONAL, so DS
+		// re-activates it with defaults). Handlers already attached to live ResourceSets still hold
+		// the supplier onto this instance, so the allow-list has to be closed here - otherwise a
+		// withdrawn configuration would keep permitting resolution through those ResourceSets.
+		this.allowedHosts = HostAllowList.BLOCK_ALL;
 		unregisterCapability();
 	}
 
 	@Override
 	public URIHandler getURIHandler() {
-		return new RestfulURIHandlerImpl(allowedHosts);
+		// A supplier, not a snapshot: the handler outlives this configuration state
+		return new RestfulURIHandlerImpl(() -> allowedHosts);
 	}
 
 	private void applyConfig(RestUriHandlerConfig config) {
-		Set<String> hosts = new HashSet<>();
-		for (String host : config.allowedHosts()) {
-			if (host != null && !host.isBlank()) {
-				hosts.add(host.trim());
-			}
-		}
-		this.allowedHosts = Set.copyOf(hosts);
+		String[] hosts = config.allowedHosts();
+		List<String> hostPatterns = hosts == null ? List.of() : Arrays.asList(hosts);
+		this.allowedHosts = HostAllowList.of(hostPatterns);
 		if (allowedHosts.isEmpty()) {
 			unregisterCapability();
 		} else {
