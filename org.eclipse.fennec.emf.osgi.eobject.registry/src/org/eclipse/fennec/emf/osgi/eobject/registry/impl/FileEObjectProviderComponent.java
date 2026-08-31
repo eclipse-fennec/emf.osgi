@@ -14,6 +14,7 @@ package org.eclipse.fennec.emf.osgi.eobject.registry.impl;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +39,10 @@ import org.osgi.service.metatype.annotations.Designate;
  * {@code emf.eobject.provider.name} as service property (DS propagates the
  * configuration automatically).
  * <p>
+ * A directory walk only attempts the configured {@code file.extensions} (defaulting to
+ * {@code xmi}, {@code ecore}, {@code json}, {@code xml}) and never a dotfile, so placeholder and
+ * housekeeping files beside the models do not turn every start into a warning with a stack trace.
+ * <p>
  * The {@link ResourceSet} comes from the whiteboard-configured
  * {@link ResourceSetFactory} service - never {@code new ResourceSetImpl()} - so files
  * load against the registered models and materialize typed instead of as dynamic
@@ -54,6 +59,7 @@ public class FileEObjectProviderComponent implements EObjectProvider {
 	private final String providerName;
 	private final List<Path> locations;
 	private final BiFunction<Resource, EObject, String> keyFunction;
+	private final Collection<String> fileExtensions;
 
 	@Activate
 	public FileEObjectProviderComponent(@Reference ResourceSetFactory resourceSetFactory,
@@ -69,11 +75,15 @@ public class FileEObjectProviderComponent implements EObjectProvider {
 		keyFunction = config.key_feature() == null || config.key_feature().isBlank()
 				? FileEObjectProvider.uriFragmentKeys()
 				: FileEObjectProvider.featureKeys(config.key_feature());
+		// an absent property leaves the annotation default in place; an explicitly empty list is the
+		// documented opt-out that attempts every file again
+		fileExtensions = config.file_extensions() == null ? FileEObjectProvider.DEFAULT_FILE_EXTENSIONS
+				: Arrays.asList(config.file_extensions());
 	}
 
 	@Override
 	public CompletableFuture<Void> load(EObjectRegistryWriter writer) {
-		return new FileEObjectProvider(providerName, resourceSetFactory.createResourceSet(), locations, keyFunction)
-				.load(writer);
+		return new FileEObjectProvider(providerName, resourceSetFactory.createResourceSet(), locations, keyFunction,
+				fileExtensions).load(writer);
 	}
 }

@@ -37,4 +37,11 @@ public @interface FileEObjectProviderConfig {
 	@AttributeDefinition(name = "Key feature", required = false, description = "Optional attribute name whose value "
 			+ "becomes the entry key (e.g. an id attribute). Empty: keys are <fileName>#<uriFragment>.")
 	String key_feature() default "";
+
+	@AttributeDefinition(name = "File extensions", required = false, description = "Extensions (without the leading "
+			+ "dot, matched case-insensitively) a directory walk attempts to load. Files with any other extension "
+			+ "are passed over silently, as are dotfiles such as .keep - only a file that was meant to be a model "
+			+ "and failed to parse is logged. An EMPTY list attempts every file in the directory. A location that "
+			+ "names a file directly is always loaded, whatever its extension.")
+	String[] file_extensions() default { "xmi", "ecore", "json", "xml" };
 }

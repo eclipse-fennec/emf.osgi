@@ -80,6 +80,14 @@ public class FileEObjectProviderComponentTest {
 	}
 
 	private FileEObjectProviderConfig config(String name, String keyFeature, String... locations) {
+		return config(name, keyFeature, DEFAULT_EXTENSIONS, locations);
+	}
+
+	/** The annotation default of {@code file.extensions}, which DS applies when the property is absent. */
+	private static final String[] DEFAULT_EXTENSIONS = { "xmi", "ecore", "json", "xml" };
+
+	private FileEObjectProviderConfig config(String name, String keyFeature, String[] fileExtensions,
+			String... locations) {
 		return new FileEObjectProviderConfig() {
 			@Override
 			public Class<? extends Annotation> annotationType() {
@@ -99,6 +107,11 @@ public class FileEObjectProviderComponentTest {
 			@Override
 			public String key_feature() {
 				return keyFeature;
+			}
+
+			@Override
+			public String[] file_extensions() {
+				return fileExtensions;
 			}
 		};
 	}
@@ -147,6 +160,52 @@ public class FileEObjectProviderComponentTest {
 		assertThat(createdResourceSets - before)
 				.as("each load pass must use a fresh ResourceSet - a cached one would never re-read changed files")
 				.isEqualTo(2);
+	}
+
+	@Test
+	public void testDefaultExtensionsKeepPlaceholderFilesOutOfTheLoad() throws Exception {
+		writeFixture("libs.xmi", "central");
+		// loadable content behind a non-model extension: only the allow-list keeps it out, so this
+		// asserts the default really reaches the walk instead of the walk taking everything
+		writeFixture("README.md", "readme");
+		Files.writeString(tempDir.resolve(".keep"), "");
+		FileEObjectProviderComponent component = new FileEObjectProviderComponent(resourceSetFactory,
+				config("my-files", "name", tempDir.toString()));
+		EObjectRegistryWriter writer = EObjectRegistries.createRegistry("test");
+
+		component.load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).hasSize(1);
+		assertThat(writer.getRegistry().get("central")).isPresent();
+		assertThat(writer.getRegistry().get("readme")).isEmpty();
+	}
+
+	@Test
+	public void testConfiguredExtensionsAreApplied() throws Exception {
+		writeFixture("mapping.conf", "configured");
+		writeFixture("libs.xmi", "central");
+		FileEObjectProviderComponent component = new FileEObjectProviderComponent(resourceSetFactory,
+				config("my-files", "name", new String[] { "conf" }, tempDir.toString()));
+		EObjectRegistryWriter writer = EObjectRegistries.createRegistry("test");
+
+		component.load(writer).join();
+
+		assertThat(writer.getRegistry().get("configured")).isPresent();
+		assertThat(writer.getRegistry().get("central")).isEmpty();
+	}
+
+	@Test
+	public void testEmptyExtensionsConfigurationAttemptsEveryFile() throws Exception {
+		writeFixture("mapping.conf", "configured");
+		writeFixture("libs.xmi", "central");
+		FileEObjectProviderComponent component = new FileEObjectProviderComponent(resourceSetFactory,
+				config("my-files", "name", new String[0], tempDir.toString()));
+		EObjectRegistryWriter writer = EObjectRegistries.createRegistry("test");
+
+		component.load(writer).join();
+
+		assertThat(writer.getRegistry().get("configured")).isPresent();
+		assertThat(writer.getRegistry().get("central")).isPresent();
 	}
 
 	@Test

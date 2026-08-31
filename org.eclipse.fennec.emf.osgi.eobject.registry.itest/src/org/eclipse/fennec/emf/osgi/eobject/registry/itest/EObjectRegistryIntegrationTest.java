@@ -104,11 +104,18 @@ public class EObjectRegistryIntegrationTest {
 	}
 
 	private void createProviderConfig(String providerName, Path location) throws Exception {
+		// the example model registers the 'basic' extension, which is not among the provider's
+		// defaults (xmi, ecore, json, xml) - a domain extension has to be configured
+		createProviderConfig(providerName, location, "basic");
+	}
+
+	private void createProviderConfig(String providerName, Path location, String... fileExtensions) throws Exception {
 		Configuration configuration = configurationAdmin.createFactoryConfiguration("FileEObjectProvider", "?");
 		Dictionary<String, Object> props = new Hashtable<>();
 		props.put(EObjectRegistryConstants.EMF_EOBJECT_PROVIDER_NAME, providerName);
 		props.put("locations", new String[] { location.toAbsolutePath().toString() });
 		props.put("key.feature", "firstName");
+		props.put("file.extensions", fileExtensions);
 		configuration.update(props);
 		configurations.add(configuration);
 	}
@@ -161,6 +168,35 @@ public class EObjectRegistryIntegrationTest {
 			assertThat(registry.getName()).isEqualTo("persons-gating");
 			assertThat(registry.get("Emil")).isPresent();
 			assertThat(registry.getEntry("Emil").orElseThrow().source()).isEqualTo("persons-gating-files");
+		} finally {
+			registryTracker.close();
+		}
+	}
+
+	/**
+	 * Issue #101: a directory holding models alongside placeholder and housekeeping files must load
+	 * the models and pass over the rest. {@code notes.md} carries loadable content on purpose - only
+	 * the configured {@code file.extensions} keeps it out, so this asserts the allow-list really
+	 * reaches the walk rather than the walk happening to fail on unparseable bytes.
+	 */
+	@Test
+	public void testPlaceholderFilesBesideTheModelsAreNotLoaded() throws Exception {
+		Path dir = Files.createTempDirectory("eobject-registry-itest");
+		writePersonFixture(dir, "persons.basic", "Emil");
+		writePersonFixture(dir, "notes.md", "Ignored");
+		Files.writeString(dir.resolve(".keep"), "");
+
+		createProviderConfig("persons-mixed-files", dir);
+		createRegistryConfig("persons-mixed", "persons-mixed-files");
+		ServiceTracker<EObjectRegistry, EObjectRegistry> registryTracker = tracker(EObjectRegistry.class,
+				"persons-mixed");
+		try {
+			EObjectRegistry registry = registryTracker.waitForService(10_000);
+			assertThat(registry).as("the placeholder files must not keep the registry from publishing")
+					.isNotNull();
+			assertThat(registry.get("Emil")).isPresent();
+			assertThat(registry.get("Ignored")).as("a non-model extension must not be loaded").isEmpty();
+			assertThat(registry.entries()).hasSize(1);
 		} finally {
 			registryTracker.close();
 		}
