@@ -17,8 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
@@ -32,13 +37,15 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
- * The file provider against real XMI fixtures: key strategies, directory walking,
- * broken-file resilience and the sync-based re-load swap.
+ * The file provider against real XMI fixtures: key strategies, directory walking, the extension
+ * allow-list that keeps placeholder files out of the load, broken-file resilience and the
+ * sync-based re-load swap.
  */
 public class FileEObjectProviderTest {
 
@@ -51,6 +58,9 @@ public class FileEObjectProviderTest {
 	private EClass libraryClass;
 	private EAttribute nameAttribute;
 	private EObjectRegistryWriter writer;
+	private List<LogRecord> logRecords;
+	private Handler logCollector;
+	private Logger providerLogger;
 
 	@BeforeEach
 	public void setUp() {
@@ -67,6 +77,36 @@ public class FileEObjectProviderTest {
 		libraryPackage.getEClassifiers().add(libraryClass);
 
 		writer = EObjectRegistries.createRegistry("files");
+
+		logRecords = new ArrayList<>();
+		logCollector = new Handler() {
+
+			@Override
+			public void publish(LogRecord record) {
+				logRecords.add(record);
+			}
+
+			@Override
+			public void flush() {
+				// nothing to do
+			}
+
+			@Override
+			public void close() {
+				// nothing to do
+			}
+		};
+		providerLogger = Logger.getLogger(FileEObjectProvider.class.getName());
+		providerLogger.addHandler(logCollector);
+	}
+
+	@AfterEach
+	public void tearDown() {
+		providerLogger.removeHandler(logCollector);
+	}
+
+	private List<LogRecord> warnings() {
+		return logRecords.stream().filter(record -> record.getLevel().intValue() >= Level.WARNING.intValue()).toList();
 	}
 
 	private ResourceSet resourceSet() {
@@ -98,6 +138,11 @@ public class FileEObjectProviderTest {
 
 	private FileEObjectProvider provider(List<Path> locations) {
 		return new FileEObjectProvider("files", resourceSet(), locations, FileEObjectProvider.uriFragmentKeys());
+	}
+
+	private FileEObjectProvider provider(List<Path> locations, List<String> fileExtensions) {
+		return new FileEObjectProvider("files", resourceSet(), locations, FileEObjectProvider.uriFragmentKeys(),
+				fileExtensions);
 	}
 
 	@Test
@@ -166,6 +211,89 @@ public class FileEObjectProviderTest {
 		provider(List.of(tempDir)).load(writer).join();
 
 		assertThat(writer.getRegistry().entries()).hasSize(1);
+		assertThat(warnings()).as("a file with a model extension that fails to parse must stay visible").hasSize(1);
+		assertThat(warnings().get(0).getMessage()).contains("broken.xmi");
+	}
+
+	@Test
+	public void testPlaceholderAndHousekeepingFilesAreSkippedSilently() throws Exception {
+		writeFixture("libs.xmi", library("central"));
+		Files.writeString(tempDir.resolve(".keep"), "");
+		Files.writeString(tempDir.resolve(".gitignore"), "*.tmp");
+		Files.writeString(tempDir.resolve(".DS_Store"), "binary junk");
+		Files.writeString(tempDir.resolve(".libs.xmi.swp"), "vim swap");
+		Files.writeString(tempDir.resolve("README.md"), "# how these models are maintained");
+		Files.writeString(tempDir.resolve("notes.txt"), "not a model");
+
+		provider(List.of(tempDir)).load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).hasSize(1);
+		assertThat(warnings()).as("placeholder and housekeeping files must not be reported as broken models")
+				.isEmpty();
+	}
+
+	@Test
+	public void testExtensionsAreMatchedCaseInsensitively() throws Exception {
+		writeFixture("LIBS.XMI", library("central"));
+
+		provider(List.of(tempDir)).load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).hasSize(1);
+	}
+
+	@Test
+	public void testConfiguredExtensionsReplaceTheDefaults() throws Exception {
+		writeFixture("mapping.conf", library("configured"));
+		writeFixture("libs.xmi", library("central"));
+
+		// a leading dot in the configured entry is tolerated
+		provider(List.of(tempDir), List.of(".conf")).load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).hasSize(1);
+		assertThat(writer.getRegistry().getEntry("mapping.conf#/")).isPresent();
+		assertThat(warnings()).isEmpty();
+	}
+
+	@Test
+	public void testEmptyExtensionListAttemptsEveryFileButStillSkipsDotfiles() throws Exception {
+		writeFixture("mapping.conf", library("configured"));
+		Files.writeString(tempDir.resolve(".keep"), "");
+
+		provider(List.of(tempDir), List.of()).load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).hasSize(1);
+		assertThat(writer.getRegistry().getEntry("mapping.conf#/")).isPresent();
+		assertThat(warnings()).as("a dotfile is never model content, whatever the allow-list says").isEmpty();
+	}
+
+	@Test
+	public void testDirectlyNamedFileBypassesTheExtensionFilter() throws Exception {
+		Path file = writeFixture("mapping.conf", library("configured"));
+
+		provider(List.of(file)).load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).hasSize(1);
+		assertThat(writer.getRegistry().getEntry("mapping.conf#/")).isPresent();
+	}
+
+	@Test
+	public void testDirectlyNamedDotfileIsStillLoaded() throws Exception {
+		Path file = writeFixture(".hidden.xmi", library("hidden"));
+
+		provider(List.of(file)).load(writer).join();
+
+		assertThat(writer.getRegistry().entries())
+				.as("naming a file explicitly is deliberate and must not be second-guessed").hasSize(1);
+	}
+
+	@Test
+	public void testFileWithoutExtensionIsSkippedByTheAllowList() throws Exception {
+		writeFixture("Makefile", library("nope"));
+
+		provider(List.of(tempDir)).load(writer).join();
+
+		assertThat(writer.getRegistry().entries()).isEmpty();
+		assertThat(warnings()).isEmpty();
 	}
 
 	@Test

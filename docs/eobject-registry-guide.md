@@ -66,7 +66,8 @@ Three factory configurations (OSGi Configurator JSON), nothing else:
   "FileEObjectProvider~mappings": {
     "emf.eobject.provider.name": "mapping-files",
     "locations": [ "/opt/app/mappings" ],
-    "key.feature": "mid"
+    "key.feature": "mid",
+    "file.extensions": [ "xmi", "mapping" ]
   },
 
   "EObjectRegistry~mappings": {
@@ -80,6 +81,29 @@ Three factory configurations (OSGi Configurator JSON), nothing else:
   }
 }
 ```
+
+### Which files a directory contributes
+
+A directory is walked recursively, but only files whose extension is in
+`file.extensions` are handed to EMF; dotfiles never are. A `.keep` placeholder, a
+`README.md`, a `.DS_Store`, an editor's `.swp` file are passed over quietly (logged at
+`FINE`), so **a warning from the provider means a real model file failed to parse** —
+which is the only way that signal stays worth reading.
+
+| Setting | Effect |
+|---|---|
+| absent | the default `xmi`, `ecore`, `json`, `xml` |
+| `[ "xmi", "mapping" ]` | those two, matched case-insensitively; a leading dot is tolerated |
+| `[]` (explicitly empty) | attempt **every** file in the directory (dotfiles still excluded) |
+
+A `locations` entry that names a **file** directly is always loaded, whatever it is
+called — naming it is deliberate, and the allow-list only governs what a walk picks up
+on its own.
+
+> **Behaviour change.** Before this, every regular file found was parsed. If your models
+> carry a domain extension (`persons.basic`, `x.mapping`) rather than one of the four
+> defaults, list it in `file.extensions` — or set `[]` to get the previous
+> attempt-everything behaviour back.
 
 Lifecycle: the registry component activates only when SCR satisfied the
 `initialProvider` reference (a missing provider is a visible unsatisfied reference in
@@ -121,6 +145,15 @@ EObjectRegistryWriter writer = EObjectRegistries.createRegistry("sensinact-mappi
                 List.of(Path.of("/opt/app/mappings")),
                 FileEObjectProvider.featureKeys("mid")));
 EObjectRegistry registry = writer.getRegistry();   // fully loaded when this returns
+```
+
+The four-argument constructor applies `FileEObjectProvider.DEFAULT_FILE_EXTENSIONS`; a
+fifth argument takes the extension allow-list explicitly (an empty collection attempts
+every file):
+
+```java
+new FileEObjectProvider("mapping-files", resourceSet, List.of(Path.of("/opt/app/mappings")),
+        FileEObjectProvider.featureKeys("mid"), List.of("xmi", "mapping"));
 ```
 
 ## The metadata bridge
