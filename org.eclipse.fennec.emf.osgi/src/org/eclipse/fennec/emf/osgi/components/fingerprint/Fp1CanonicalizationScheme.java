@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.eclipse.emf.common.util.URI;
+
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -34,6 +36,7 @@ import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.ETypeParameter;
+import org.eclipse.emf.ecore.InternalEObject;
 
 /**
  * The {@code fp1} canonicalization scheme: a canonical textual form of an
@@ -55,8 +58,14 @@ import org.eclipse.emf.ecore.ETypeParameter;
  *       (ExtendedMetaData!), mapping or delegates. The <b>{@code documentation}</b>
  *       detail is excluded under <em>every</em> source, and an annotation left with no
  *       remaining details is dropped entirely.</li>
- *   <li>Type references use a stable {@code nsURI#Name} key, so they resolve
- *       identically regardless of resource/serialization state.</li>
+ *   <li>Type references use a stable {@code nsURI#Name} key and are <b>never
+ *       traversed</b>: only the reference enters the hash, not the referenced
+ *       classifier. The key is the same whether the reference is resolved or still a
+ *       proxy — it is read from the package and name of a resolved classifier, and
+ *       from the proxy URI ({@code nsURI#//Name}) of an unresolved one. A cross-package
+ *       reference addressed by nsURI therefore hashes identically regardless of
+ *       whether the caller's ResourceSet could resolve it: the resolution context is
+ *       not part of the model's identity.</li>
  *   <li>Operation exceptions are sorted — they are a set, their order carries no meaning.</li>
  *   <li>Derivation input tokens are sorted — their order carries no meaning.</li>
  * </ul>
@@ -430,20 +439,63 @@ final class Fp1CanonicalizationScheme implements CanonicalizationScheme {
         sb.append('\n');
     }
 
-    /** Stable {@code nsURI#Name} key for a classifier reference; {@code "null"} when absent. */
+    /**
+     * Stable {@code nsURI#Name} key for a classifier reference; {@code "null"} when absent.
+     * <p>
+     * The key is the same for a resolved classifier and for a proxy to it; only where it
+     * is read from differs. A proxy has neither package nor name — reading them would
+     * yield {@code #null} and make the value depend on the caller's ResourceSet — so its
+     * key is {@linkplain #proxyKey(InternalEObject) derived from the proxy URI}.
+     */
     private String typeKey(EClassifier classifier) {
         if (classifier == null) {
             return "null";
+        }
+        if (classifier.eIsProxy()) {
+            return proxyKey((InternalEObject) classifier);
         }
         EPackage pkg = classifier.getEPackage();
         String ns = pkg != null ? pkg.getNsURI() : "";
         return ns + "#" + classifier.getName();
     }
 
+    /**
+     * Stable {@code nsURI#Class/feature} key for an opposite reference; {@code ""} when
+     * absent. An unresolved opposite (its containing class lives in another package) is
+     * keyed by its proxy URI, in the same shape.
+     */
     private String oppositeKey(EReference opposite) {
         if (opposite == null) {
             return "";
         }
+        if (opposite.eIsProxy()) {
+            return proxyKey((InternalEObject) opposite);
+        }
         return typeKey(opposite.getEContainingClass()) + "/" + opposite.getName();
+    }
+
+    /**
+     * Key of an unresolved reference, derived from its proxy URI. An Ecore fragment path
+     * has the form {@code //Name} or {@code //Class/feature}; the leading {@code //} is
+     * dropped so the key matches the one the resolved element yields ({@code nsURI#Name},
+     * {@code nsURI#Class/feature}). A URI whose fragment is not a path — an ID-based
+     * fragment, or none at all — is emitted verbatim: still deterministic, still distinct
+     * from every resolved key, and no longer a bare {@code #null}.
+     * <p>
+     * Only references addressed by nsURI gain resolution independence here. A reference
+     * addressed by document location ({@code ../other.ecore#//Name}) keeps that location
+     * as its key when unresolved and yields {@code nsURI#Name} once resolved — the two
+     * cannot be unified without loading the target, which the fingerprint never does.
+     */
+    private String proxyKey(InternalEObject proxy) {
+        URI uri = proxy.eProxyURI();
+        if (uri == null) {
+            return "null";
+        }
+        String fragment = uri.fragment();
+        if (fragment != null && fragment.startsWith("//") && fragment.length() > 2) {
+            return uri.trimFragment().toString() + "#" + fragment.substring(2);
+        }
+        return uri.toString();
     }
 }
