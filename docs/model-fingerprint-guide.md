@@ -240,9 +240,17 @@ there is no correct behaviour to fall back to — the model is simply out of con
 nothing about compatibility. Two fingerprints are either equal or not; whether a newer model
 can read an older document is a question the fingerprint does not answer.
 
-**Unresolved proxies degrade the value.** A model with unresolved cross-references hashes
-differently from the same model fully resolved — conservatively, so it will look *different*
-rather than falsely equal. Resolve your models before relying on the value.
+**Resolution state is not identity.** Cross-package references enter the hash as
+`nsURI#Name` keys, never as the referenced classifier, and for a reference that is still an
+unresolved proxy the key is read from the proxy URI. A reference addressed by nsURI — the
+published-schema rule — therefore yields the same fingerprint whether or not the target package
+was resolvable when the value was computed. A package fingerprinted on upload, in a ResourceSet
+that knew its neighbours, and again after a restart, in one that did not, produces one value.
+
+The exception is a reference addressed by document location (`../other/model.ecore#//Name`):
+unresolved, it is keyed by that location; resolved, by the target's nsURI. Its fingerprint does
+depend on resolution, and there is no way to unify the two without loading the target, which the
+fingerprint never does. Address cross-package references by nsURI.
 
 ## Related
 
