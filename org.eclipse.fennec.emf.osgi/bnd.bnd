@@ -23,3 +23,12 @@
 
 -sub: *.bnd
 -testpath: ${junit}
+
+# The parentRegistry reference of ConfigurationEPackageRegistryComponent moved into the
+# constructor (#106), which drops its bind methods. Baselining reports that as a MAJOR change
+# of org.eclipse.fennec.emf.osgi.components.config, but the class is a DS component that only
+# SCR instantiates, so nothing changes for a consumer of the package. Reviewed and deliberately
+# kept at 1.1, see https://github.com/eclipse-fennec/emf.osgi/pull/106.
+-fixupmessages: \
+	"*Baseline mismatch for package org.eclipse.fennec.emf.osgi.components.config*";restrict:=error;is:=ignore,\
+	"*The bundle version*is too low, must be at least 2.0.0*";restrict:=error;is:=ignore
