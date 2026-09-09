@@ -12,19 +12,21 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.components;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.fennec.emf.osgi.RegistryPropertyListener;
+import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.helper.DelegatingEPackageRegistry;
 import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
@@ -37,29 +39,31 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import aQute.bnd.annotation.service.ServiceCapability;
 
 /**
- * An implementation of a package registry;
+ * An implementation of a package registry that delegates failed lookups to its parent, the static
+ * {@link EPackage.Registry} service. The parent is a mandatory constructor level reference, so this
+ * registry only exists as long as the parent it was built on: a parent that goes away or a target
+ * filter that selects another one takes this registry service down with it, instead of silently
+ * changing the set of resolvable packages underneath everyone who is currently using it.
  * {@link DefaultEPackageRegistryComponent} to be enabled as OSGi component
  */
 @Component(name = DefaultEPackageRegistryComponent.NAME, service = {})
 @ProviderType
 @ServiceCapability(EPackage.Registry.class)
-public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComponent{
+public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComponent implements RegistryPropertyListener {
 	
 	/** DEFAULT_E_PACKAGE_REGISTRY */
 	public static final String NAME = "DefaultEPackageRegistry";
 
-	private static final Logger LOG = Logger.getLogger(DefaultEPackageRegistryComponent.class.getName());
-
 	private final Set<EPackageConfigurator> ePackageConfigurators = new CopyOnWriteArraySet<>();
 
-	/** The parent registry failed lookups are delegated to */
-	private final SwitchableEPackageRegistry parentRegistry = new SwitchableEPackageRegistry();
-
-	/** The reference of the service currently targeted by {@link #parentRegistry} */
-	private final AtomicReference<ServiceReference<EPackage.Registry>> parentRegistryRef = new AtomicReference<>();
-
 	private final BundleContext bundleContext;
-	
+
+	/** The reference of the parent registry service failed lookups are delegated to */
+	private final ServiceReference<EPackage.Registry> parentRegistryRef;
+
+	/** Notifies us about property changes of the parent registry, so we can propagate them */
+	private final RegistryTrackingService registryTracker;
+
 	/**
 	 * The delegate registry.
 	 */
@@ -67,20 +71,40 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 
 	/**
 	 * Creates an instance that delegates failed lookups to its parent registry.
+	 * @param ctx the bundle context
+	 * @param parentRegistryRef the reference of the parent registry, failed lookups are delegated to it
+	 * @param registryTracker the tracker that reports property changes of the parent registry
 	 */
 	@Activate
-	public DefaultEPackageRegistryComponent(BundleContext ctx) {
+	public DefaultEPackageRegistryComponent(BundleContext ctx,
+			@Reference(name = "parentRegistry",
+					service = EPackage.Registry.class,
+					cardinality = ReferenceCardinality.MANDATORY,
+					target = "(emf.default.epackage.registry=true)")
+			ServiceReference<EPackage.Registry> parentRegistryRef,
+			@Reference
+			RegistryTrackingService registryTracker) {
 		super(ctx, NAME, Map.of("default.resourceset.epackage.registry", true));
-		bundleContext = ctx;
-		registry = new DelegatingEPackageRegistry(parentRegistry);
+		this.bundleContext = ctx;
+		this.parentRegistryRef = parentRegistryRef;
+		this.registryTracker = registryTracker;
+
+		EPackage.Registry parent = requireNonNull(ctx.getService(parentRegistryRef),
+				"The parent EPackage registry service is gone, this registry cannot be activated without it");
+		registry = new DelegatingEPackageRegistry(parent);
+		getPropertyContext().addSubContext(FrameworkUtil.asMap(parentRegistryRef.getProperties()));
 		registerService(ctx, EPackage.Registry.class, registry);
+
+		registryTracker.registerListener(this, Set.of(parentServiceId()));
 	}
 	
 	
 	@Deactivate
 	public void deactivate() {
+		registryTracker.unregisterListener(this);
 		doDeactivate();
 		ePackageConfigurators.clear();
+		bundleContext.ungetService(parentRegistryRef);
 	}
 
 	/**
@@ -113,74 +137,32 @@ public class DefaultEPackageRegistryComponent extends SelfRegisteringServiceComp
 		updateRegistrationProperties();
 	}
 
-	/**
-	 * Adds the parent static {@link EPackage.Registry}, delegates failed lookups to it and
-	 * propagates its properties
-	 * @param serviceRef the service reference of the parent registry
+	/* 
+	 * (non-Javadoc)
+	 * @see org.eclipse.fennec.emf.osgi.RegistryPropertyListener#onRegistryPropertiesChanged(long, java.lang.String, java.util.Map)
 	 */
-	@Reference(name = "parentRegistry",
-			service = EPackage.Registry.class,
-			cardinality = ReferenceCardinality.MANDATORY,
-			policy = ReferencePolicy.DYNAMIC,
-			target = "(emf.default.epackage.registry=true)",
-			unbind = "removeParentRegistry",
-			updated = "updateParentRegistry")
-	protected void addParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
-		switchParentRegistry(serviceRef);
-		getPropertyContext().addSubContext(FrameworkUtil.asMap(serviceRef.getProperties()));
-		updateRegistrationProperties();
-	}
-
-	/**
-	 * Updates the propagated properties when the parent registry changes
-	 * @param serviceRef the service reference of the parent registry
-	 */
-	protected void updateParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
-		getPropertyContext().addSubContext(FrameworkUtil.asMap(serviceRef.getProperties()));
-		updateRegistrationProperties();
-	}
-
-	/**
-	 * Delegates failed lookups to the {@link EPackage.Registry} service behind the given reference.
-	 * A target filter that made this registry its own parent is ignored - delegating to ourselves
-	 * would turn every lookup into an endless recursion. The obtained service is released again in
-	 * {@link #removeParentRegistry(ServiceReference)}.
-	 * @param serviceRef the service reference of the parent registry
-	 */
-	private void switchParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
-		EPackage.Registry parent = bundleContext.getService(serviceRef);
-		if (parent == null) {
-			LOG.log(Level.WARNING, "[{0}] The parent EPackage registry service is gone already, failed lookups are delegated to the static registry.",
-					NAME);
-		} else if (parent == registry) {
-			LOG.log(Level.WARNING, "[{0}] The parentRegistry target matches the own registry service of this component, failed lookups are delegated to the static registry instead.",
-					NAME);
-		} else {
-			parentRegistryRef.set(serviceRef);
-			parentRegistry.setTarget(parent);
+	@Override
+	public void onRegistryPropertiesChanged(long serviceId, String serviceName, Map<String, Object> newProperties) {
+		if (serviceId == parentServiceId()) {
+			getPropertyContext().addSubContext(newProperties);
+			updateRegistrationProperties();
 		}
 	}
 
-	/**
-	 * Stops delegating to the {@link EPackage.Registry} service behind the given reference and
-	 * releases it. A reference that has already been replaced by a newly bound parent only gets
-	 * released, so the replacement stays in charge.
-	 * @param serviceRef the service reference of the parent registry
+	/* 
+	 * (non-Javadoc)
+	 * @see org.eclipse.fennec.emf.osgi.RegistryPropertyListener#onRegistryServiceRemoved(long, java.lang.String)
 	 */
-	private void releaseParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
-		if (parentRegistryRef.compareAndSet(serviceRef, null)) {
-			parentRegistry.setTarget(null);
-		}
-		bundleContext.ungetService(serviceRef);
+	@Override
+	public void onRegistryServiceRemoved(long serviceId, String serviceName) {
+		// The parent is a static mandatory reference, losing it deactivates this component
 	}
 
 	/**
-	 * Stops delegating and removes the propagated properties when the parent registry is removed
-	 * @param serviceRef the service reference of the parent registry
+	 * Returns the service id of the parent registry
+	 * @return the service id of the parent registry
 	 */
-	protected void removeParentRegistry(ServiceReference<EPackage.Registry> serviceRef) {
-		releaseParentRegistry(serviceRef);
-		getPropertyContext().removeSubContext(FrameworkUtil.asMap(serviceRef.getProperties()));
-		updateRegistrationProperties();
+	private long parentServiceId() {
+		return (Long) parentRegistryRef.getProperty(Constants.SERVICE_ID);
 	}
 }
