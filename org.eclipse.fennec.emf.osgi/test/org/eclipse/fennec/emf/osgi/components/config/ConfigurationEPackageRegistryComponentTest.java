@@ -16,11 +16,13 @@ import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.PROP_RESOURCE_
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,13 +31,14 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
+import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -46,68 +49,55 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
 /**
- * Tests the delegation of the {@link ConfigurationEPackageRegistryComponent} to its bound
- * parent {@link EPackage.Registry} service, see issue #105.
+ * Tests the delegation of the {@link ConfigurationEPackageRegistryComponent} to its parent
+ * {@link EPackage.Registry} service, see issue #105.
  */
 class ConfigurationEPackageRegistryComponentTest {
 
+	private static final long PARENT_SERVICE_ID = 101;
 	private static final String OWN_NS_URI = "http://example.org/fennec/test/own";
 	private static final String PARENT_NS_URI = "http://example.org/fennec/test/parent";
-	private static final String OTHER_PARENT_NS_URI = "http://example.org/fennec/test/otherparent";
-	private static final String SINGLETON_NS_URI = "http://example.org/fennec/test/singleton";
+	private static final String UNKNOWN_NS_URI = "http://example.org/fennec/test/unknown";
 	private static final String SHADOWED_NS_URI = "http://example.org/fennec/test/shadowed";
 
 	private static final Map<String, Object> CONFIGURATOR_PROPERTIES = Map.of(Constants.SERVICE_ID,
 			Long.valueOf(201), EMFNamespaces.EMF_NAME, "ownmodel");
 
 	private final EPackage parentPackage = createPackage("parent", PARENT_NS_URI);
-	private final EPackage otherParentPackage = createPackage("otherparent", OTHER_PARENT_NS_URI);
-	private final EPackage singletonPackage = createPackage("singleton", SINGLETON_NS_URI);
 	private final EPackage ownPackage = createPackage("own", OWN_NS_URI);
 	private final EPackage shadowingPackage = createPackage("shadowing", SHADOWED_NS_URI);
 	private final EPackage shadowedPackage = createPackage("shadowed", SHADOWED_NS_URI);
 
 	private final EPackage.Registry parentRegistry = new EPackageRegistryImpl();
-	private final EPackage.Registry otherParentRegistry = new EPackageRegistryImpl();
 
 	@SuppressWarnings("unchecked")
 	private final ServiceRegistration<EPackage.Registry> registration = mock(ServiceRegistration.class);
+
+	private final RegistryTrackingService registryTracker = mock(RegistryTrackingService.class);
 
 	private BundleContext bundleContext;
 	private ConfigurationEPackageRegistryComponent component;
 	private EPackage.Registry registryService;
 	private ServiceReference<EPackage.Registry> parentReference;
-	private ServiceReference<EPackage.Registry> otherParentReference;
 
 	@BeforeEach
 	void setUp() {
 		parentRegistry.put(PARENT_NS_URI, parentPackage);
 		parentRegistry.put(SHADOWED_NS_URI, shadowedPackage);
-		otherParentRegistry.put(OTHER_PARENT_NS_URI, otherParentPackage);
-		EPackage.Registry.INSTANCE.put(SINGLETON_NS_URI, singletonPackage);
 
 		bundleContext = mock(BundleContext.class);
 		when(bundleContext.getBundles()).thenReturn(new Bundle[0]);
 		when(bundleContext.registerService(eq(EPackage.Registry.class), any(EPackage.Registry.class), any()))
 				.thenReturn(registration);
 
+		parentReference = reference(parentRegistry, PARENT_SERVICE_ID, "parentmodel");
 		component = new ConfigurationEPackageRegistryComponent(bundleContext,
-				Map.of(PROP_RESOURCE_SET_FACTORY_NAME, "test"));
+				Map.of(PROP_RESOURCE_SET_FACTORY_NAME, "test"), parentReference, registryTracker);
 		registryService = capturedRegistryService();
-
-		parentReference = reference(parentRegistry, 101, "parentmodel");
-		otherParentReference = reference(otherParentRegistry, 102, null);
-	}
-
-	@AfterEach
-	void tearDown() {
-		EPackage.Registry.INSTANCE.remove(SINGLETON_NS_URI);
 	}
 
 	@Test
-	void resolvesPackageFromBoundParent() {
-		component.addParentRegistry(parentReference);
-
+	void resolvesPackageFromTheParent() {
 		assertSame(parentPackage, registryService.getEPackage(PARENT_NS_URI));
 		assertSame(parentPackage.getEFactoryInstance(), registryService.getEFactory(PARENT_NS_URI));
 		assertSame(parentPackage, registryService.get(PARENT_NS_URI));
@@ -116,16 +106,13 @@ class ConfigurationEPackageRegistryComponentTest {
 	}
 
 	@Test
-	void doesNotResolveUnknownPackageFromBoundParent() {
-		component.addParentRegistry(parentReference);
-
-		assertNull(registryService.getEPackage("http://example.org/fennec/test/unknown"));
-		assertFalse(registryService.containsKey("http://example.org/fennec/test/unknown"));
+	void doesNotResolveUnknownPackageFromTheParent() {
+		assertNull(registryService.getEPackage(UNKNOWN_NS_URI));
+		assertFalse(registryService.containsKey(UNKNOWN_NS_URI));
 	}
 
 	@Test
 	void ownPackageShadowsParentPackage() {
-		component.addParentRegistry(parentReference);
 		component.addEPackageConfigurator(configuratorFor(SHADOWED_NS_URI, shadowingPackage),
 				CONFIGURATOR_PROPERTIES);
 
@@ -134,7 +121,6 @@ class ConfigurationEPackageRegistryComponentTest {
 
 	@Test
 	void ownPackagesStayResolvableAlongsideTheParent() {
-		component.addParentRegistry(parentReference);
 		component.addEPackageConfigurator(configuratorFor(OWN_NS_URI, ownPackage), CONFIGURATOR_PROPERTIES);
 
 		assertSame(ownPackage, registryService.getEPackage(OWN_NS_URI));
@@ -142,52 +128,49 @@ class ConfigurationEPackageRegistryComponentTest {
 	}
 
 	@Test
-	void resolvesFromSingletonWhileNoParentIsBound() {
-		assertSame(singletonPackage, registryService.getEPackage(SINGLETON_NS_URI));
-	}
+	void requiresTheParentRegistryService() {
+		ServiceReference<EPackage.Registry> goneReference = reference(null, 102, null);
 
-	@Test
-	void parentRemovalRevertsToSingletonOnlyResolution() {
-		component.addParentRegistry(parentReference);
-		component.removeParentRegistry(parentReference);
-
-		assertNull(registryService.getEPackage(PARENT_NS_URI));
-		assertSame(singletonPackage, registryService.getEPackage(SINGLETON_NS_URI));
-		verify(bundleContext).ungetService(parentReference);
-	}
-
-	@Test
-	void replacingTheParentSwitchesTheDelegate() {
-		component.addParentRegistry(parentReference);
-		// a dynamic mandatory reference binds the replacement before the old one is unbound
-		component.addParentRegistry(otherParentReference);
-		component.removeParentRegistry(parentReference);
-
-		assertSame(otherParentPackage, registryService.getEPackage(OTHER_PARENT_NS_URI));
-		assertNull(registryService.getEPackage(PARENT_NS_URI));
-	}
-
-	@Test
-	void updatingTheParentKeepsTheDelegation() {
-		component.addParentRegistry(parentReference);
-		component.updateParentRegistry(parentReference);
-
-		assertSame(parentPackage, registryService.getEPackage(PARENT_NS_URI));
-	}
-
-	@Test
-	void bindingTheOwnRegistryAsParentDoesNotRecurse() {
-		component.addParentRegistry(reference(registryService, 103, null));
-
-		assertNull(registryService.getEPackage(PARENT_NS_URI));
-		assertSame(singletonPackage, registryService.getEPackage(SINGLETON_NS_URI));
+		assertThrows(NullPointerException.class,
+				() -> new ConfigurationEPackageRegistryComponent(bundleContext,
+						Map.of(PROP_RESOURCE_SET_FACTORY_NAME, "test"), goneReference, registryTracker));
 	}
 
 	@Test
 	void propagatesTheParentProperties() {
-		component.addParentRegistry(parentReference);
+		component.addEPackageConfigurator(configuratorFor(OWN_NS_URI, ownPackage), CONFIGURATOR_PROPERTIES);
 
-		assertTrue(propagatedNames(EMFNamespaces.EMF_NAME).contains("parentmodel"));
+		assertTrue(propagatedValues(EMFNamespaces.EMF_NAME).contains("parentmodel"));
+	}
+
+	@Test
+	void propagatesChangedParentProperties() {
+		component.onRegistryPropertiesChanged(PARENT_SERVICE_ID, "EPackage.Registry",
+				Map.of(Constants.SERVICE_ID, Long.valueOf(PARENT_SERVICE_ID), EMFNamespaces.EMF_NAME, "addedmodel"));
+
+		assertTrue(propagatedValues(EMFNamespaces.EMF_NAME).contains("addedmodel"));
+	}
+
+	@Test
+	void ignoresPropertiesOfOtherRegistries() {
+		component.onRegistryPropertiesChanged(999, "EPackage.Registry",
+				Map.of(Constants.SERVICE_ID, Long.valueOf(999), EMFNamespaces.EMF_NAME, "othermodel"));
+
+		verify(registration, never()).setProperties(any());
+	}
+
+	@Test
+	void tracksThePropertiesOfTheParentRegistry() {
+		verify(registryTracker).registerListener(component, Set.of(Long.valueOf(PARENT_SERVICE_ID)));
+	}
+
+	@Test
+	void deactivationReleasesTheParentRegistry() {
+		component.deactivate();
+
+		verify(registryTracker).unregisterListener(component);
+		verify(registration).unregister();
+		verify(bundleContext).ungetService(parentReference);
 	}
 
 	private EPackageConfigurator configuratorFor(String nsURI, EPackage ePackage) {
@@ -215,6 +198,7 @@ class ConfigurationEPackageRegistryComponentTest {
 			properties.put(EMFNamespaces.EMF_NAME, modelName);
 		}
 		when(serviceRef.getProperties()).thenReturn(properties);
+		when(serviceRef.getProperty(Constants.SERVICE_ID)).thenReturn(Long.valueOf(serviceId));
 		when(bundleContext.getService(serviceRef)).thenReturn(registry);
 		return serviceRef;
 	}
@@ -225,7 +209,7 @@ class ConfigurationEPackageRegistryComponentTest {
 		return captor.getValue();
 	}
 
-	private List<Object> propagatedNames(String key) {
+	private List<Object> propagatedValues(String key) {
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Dictionary<String, Object>> captor = ArgumentCaptor.forClass(Dictionary.class);
 		verify(registration, atLeastOnce()).setProperties(captor.capture());

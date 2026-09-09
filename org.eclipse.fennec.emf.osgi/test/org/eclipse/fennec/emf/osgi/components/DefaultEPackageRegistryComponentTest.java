@@ -12,25 +12,32 @@
  ********************************************************************/
 package org.eclipse.fennec.emf.osgi.components;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.impl.EPackageRegistryImpl;
+import org.eclipse.fennec.emf.osgi.RegistryTrackingService;
 import org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -41,65 +48,52 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
 /**
- * Tests the delegation of the {@link DefaultEPackageRegistryComponent} to its bound parent, the
+ * Tests the delegation of the {@link DefaultEPackageRegistryComponent} to its parent, the
  * static {@link EPackage.Registry} service, see issue #105.
  */
 class DefaultEPackageRegistryComponentTest {
 
+	private static final long STATIC_SERVICE_ID = 301;
 	private static final String STATIC_NS_URI = "http://example.org/fennec/default/static";
-	private static final String OTHER_STATIC_NS_URI = "http://example.org/fennec/default/otherstatic";
-	private static final String SINGLETON_NS_URI = "http://example.org/fennec/default/singleton";
+	private static final String UNKNOWN_NS_URI = "http://example.org/fennec/default/unknown";
 	private static final String SHADOWED_NS_URI = "http://example.org/fennec/default/shadowed";
 
 	private static final Map<String, Object> CONFIGURATOR_PROPERTIES = Map.of(Constants.SERVICE_ID,
 			Long.valueOf(303), EMFNamespaces.EMF_NAME, "resourcesetmodel");
 
 	private final EPackage staticPackage = createPackage("static", STATIC_NS_URI);
-	private final EPackage otherStaticPackage = createPackage("otherstatic", OTHER_STATIC_NS_URI);
-	private final EPackage singletonPackage = createPackage("singleton", SINGLETON_NS_URI);
 	private final EPackage shadowingPackage = createPackage("shadowing", SHADOWED_NS_URI);
 	private final EPackage shadowedPackage = createPackage("shadowed", SHADOWED_NS_URI);
 
 	private final EPackage.Registry staticRegistry = new EPackageRegistryImpl();
-	private final EPackage.Registry otherStaticRegistry = new EPackageRegistryImpl();
 
 	@SuppressWarnings("unchecked")
 	private final ServiceRegistration<EPackage.Registry> registration = mock(ServiceRegistration.class);
+
+	private final RegistryTrackingService registryTracker = mock(RegistryTrackingService.class);
 
 	private BundleContext bundleContext;
 	private DefaultEPackageRegistryComponent component;
 	private EPackage.Registry registryService;
 	private ServiceReference<EPackage.Registry> staticReference;
-	private ServiceReference<EPackage.Registry> otherStaticReference;
 
 	@BeforeEach
 	void setUp() {
 		staticRegistry.put(STATIC_NS_URI, staticPackage);
 		staticRegistry.put(SHADOWED_NS_URI, shadowedPackage);
-		otherStaticRegistry.put(OTHER_STATIC_NS_URI, otherStaticPackage);
-		EPackage.Registry.INSTANCE.put(SINGLETON_NS_URI, singletonPackage);
 
 		bundleContext = mock(BundleContext.class);
 		when(bundleContext.getBundles()).thenReturn(new Bundle[0]);
 		when(bundleContext.registerService(eq(EPackage.Registry.class), any(EPackage.Registry.class), any()))
 				.thenReturn(registration);
 
-		component = new DefaultEPackageRegistryComponent(bundleContext);
+		staticReference = reference(staticRegistry, STATIC_SERVICE_ID, "staticmodel");
+		component = new DefaultEPackageRegistryComponent(bundleContext, staticReference, registryTracker);
 		registryService = capturedRegistryService();
-
-		staticReference = reference(staticRegistry, 301);
-		otherStaticReference = reference(otherStaticRegistry, 302);
-	}
-
-	@AfterEach
-	void tearDown() {
-		EPackage.Registry.INSTANCE.remove(SINGLETON_NS_URI);
 	}
 
 	@Test
-	void resolvesPackageFromBoundStaticRegistry() {
-		component.addParentRegistry(staticReference);
-
+	void resolvesPackageFromTheParentRegistry() {
 		assertSame(staticPackage, registryService.getEPackage(STATIC_NS_URI));
 		assertSame(staticPackage.getEFactoryInstance(), registryService.getEFactory(STATIC_NS_URI));
 		assertSame(staticPackage, registryService.get(STATIC_NS_URI));
@@ -107,8 +101,13 @@ class DefaultEPackageRegistryComponentTest {
 	}
 
 	@Test
+	void doesNotResolveUnknownPackage() {
+		assertNull(registryService.getEPackage(UNKNOWN_NS_URI));
+		assertFalse(registryService.containsKey(UNKNOWN_NS_URI));
+	}
+
+	@Test
 	void ownPackageShadowsStaticPackage() {
-		component.addParentRegistry(staticReference);
 		component.addEPackageConfigurator(configuratorFor(SHADOWED_NS_URI, shadowingPackage),
 				CONFIGURATOR_PROPERTIES);
 
@@ -116,37 +115,48 @@ class DefaultEPackageRegistryComponentTest {
 	}
 
 	@Test
-	void resolvesFromSingletonWhileNoParentIsBound() {
-		assertSame(singletonPackage, registryService.getEPackage(SINGLETON_NS_URI));
+	void requiresTheParentRegistryService() {
+		ServiceReference<EPackage.Registry> goneReference = reference(null, 302, null);
+
+		assertThrows(NullPointerException.class,
+				() -> new DefaultEPackageRegistryComponent(bundleContext, goneReference, registryTracker));
 	}
 
 	@Test
-	void parentRemovalRevertsToSingletonOnlyResolution() {
-		component.addParentRegistry(staticReference);
-		component.removeParentRegistry(staticReference);
+	void propagatesTheParentProperties() {
+		component.addEPackageConfigurator(configuratorFor(STATIC_NS_URI, staticPackage), CONFIGURATOR_PROPERTIES);
 
-		assertNull(registryService.getEPackage(STATIC_NS_URI));
-		assertSame(singletonPackage, registryService.getEPackage(SINGLETON_NS_URI));
+		assertTrue(propagatedValues(EMFNamespaces.EMF_NAME).contains("staticmodel"));
+	}
+
+	@Test
+	void propagatesChangedParentProperties() {
+		component.onRegistryPropertiesChanged(STATIC_SERVICE_ID, "EPackage.Registry",
+				Map.of(Constants.SERVICE_ID, Long.valueOf(STATIC_SERVICE_ID), EMFNamespaces.EMF_NAME, "addedmodel"));
+
+		assertTrue(propagatedValues(EMFNamespaces.EMF_NAME).contains("addedmodel"));
+	}
+
+	@Test
+	void ignoresPropertiesOfOtherRegistries() {
+		component.onRegistryPropertiesChanged(999, "EPackage.Registry",
+				Map.of(Constants.SERVICE_ID, Long.valueOf(999), EMFNamespaces.EMF_NAME, "othermodel"));
+
+		verify(registration, never()).setProperties(any());
+	}
+
+	@Test
+	void tracksThePropertiesOfTheParentRegistry() {
+		verify(registryTracker).registerListener(component, Set.of(Long.valueOf(STATIC_SERVICE_ID)));
+	}
+
+	@Test
+	void deactivationReleasesTheParentRegistry() {
+		component.deactivate();
+
+		verify(registryTracker).unregisterListener(component);
+		verify(registration).unregister();
 		verify(bundleContext).ungetService(staticReference);
-	}
-
-	@Test
-	void replacingTheParentSwitchesTheDelegate() {
-		component.addParentRegistry(staticReference);
-		// a dynamic mandatory reference binds the replacement before the old one is unbound
-		component.addParentRegistry(otherStaticReference);
-		component.removeParentRegistry(staticReference);
-
-		assertSame(otherStaticPackage, registryService.getEPackage(OTHER_STATIC_NS_URI));
-		assertNull(registryService.getEPackage(STATIC_NS_URI));
-	}
-
-	@Test
-	void bindingTheOwnRegistryAsParentDoesNotRecurse() {
-		component.addParentRegistry(reference(registryService, 304));
-
-		assertNull(registryService.getEPackage(STATIC_NS_URI));
-		assertSame(singletonPackage, registryService.getEPackage(SINGLETON_NS_URI));
 	}
 
 	private EPackageConfigurator configuratorFor(String nsURI, EPackage ePackage) {
@@ -164,12 +174,17 @@ class DefaultEPackageRegistryComponentTest {
 		};
 	}
 
-	private ServiceReference<EPackage.Registry> reference(EPackage.Registry registry, long serviceId) {
+	private ServiceReference<EPackage.Registry> reference(EPackage.Registry registry, long serviceId,
+			String modelName) {
 		@SuppressWarnings("unchecked")
 		ServiceReference<EPackage.Registry> serviceRef = mock(ServiceReference.class);
 		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put(Constants.SERVICE_ID, Long.valueOf(serviceId));
+		if (modelName != null) {
+			properties.put(EMFNamespaces.EMF_NAME, modelName);
+		}
 		when(serviceRef.getProperties()).thenReturn(properties);
+		when(serviceRef.getProperty(Constants.SERVICE_ID)).thenReturn(Long.valueOf(serviceId));
 		when(bundleContext.getService(serviceRef)).thenReturn(registry);
 		return serviceRef;
 	}
@@ -178,6 +193,14 @@ class DefaultEPackageRegistryComponentTest {
 		ArgumentCaptor<EPackage.Registry> captor = ArgumentCaptor.forClass(EPackage.Registry.class);
 		verify(bundleContext).registerService(eq(EPackage.Registry.class), captor.capture(), any());
 		return captor.getValue();
+	}
+
+	private List<Object> propagatedValues(String key) {
+		@SuppressWarnings("unchecked")
+		ArgumentCaptor<Dictionary<String, Object>> captor = ArgumentCaptor.forClass(Dictionary.class);
+		verify(registration, atLeastOnce()).setProperties(captor.capture());
+		Object value = captor.getValue().get(key);
+		return value instanceof Object[] values ? Arrays.asList(values) : Arrays.asList(value);
 	}
 
 	private static EPackage createPackage(String name, String nsURI) {

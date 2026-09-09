@@ -107,7 +107,7 @@ A dedicated `EPackage.Registry` instance that tracks `EPackageConfigurator` serv
 |---|---|---|---|---|
 | `rsf.name` | `String` | **Yes** | — | Name of the resource set factory this registry belongs to. Used for target filter matching. |
 | `ePackageConfigurator.target` | `String` | No | `(emf.model.scope=resourceset)` | LDAP target filter for the `EPackageConfigurator` services to track. |
-| `parentRegistry.target` | `String` | No | `(default.resourceset.epackage.registry=true)` | LDAP target filter for the parent `EPackage.Registry` used as fallback for failed lookups. |
+| `parentRegistry.target` | `String` | No | `(default.resourceset.epackage.registry=true)` | LDAP target filter for the parent `EPackage.Registry` failed lookups are delegated to. The parent is mandatory and bound for the lifetime of the registry: the registry service only appears once a matching parent is there, and a changed filter takes it down and publishes a new one, so users of the old registry see it go away instead of silently losing packages. |
 
 #### Example
 
