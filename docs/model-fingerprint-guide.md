@@ -71,6 +71,127 @@ structure, validation, serialization, mapping or delegates. It is irrelevant whe
 configures how Java is generated from the model — that is tooling, and the same model built
 with a different base package is still the same model.
 
+## Models that reference other models
+
+Real models rarely come alone. A persistence model references an entity model, both reference
+`XMLType`, and the Ecore editor writes those references as **relative paths** between the files:
+
+```xml
+<eStructuralFeatures xsi:type="ecore:EReference" name="owner"
+    eType="ecore:EClass ../../com.example.person/model/person.ecore#//Person"/>
+```
+
+The same model as generated code has no files at all — `PersistencePackage` simply holds a Java
+reference to `PersonPackage.Literals.PERSON`. Both representations must produce one fingerprint,
+so the way a cross-package reference enters the hash has to be independent of how the file
+happened to spell it.
+
+### What enters the hash
+
+A reference to a classifier in another package contributes exactly one token: the target's
+**nsURI and name**, `http://example.org/person/1.0#Person`. Neither the path in the file nor the
+content of the target enters. Two consequences follow:
+
+- **A fingerprint identifies one package, not the closure.** Changing `Person` does not change
+  the fingerprint of the persistence model; only renaming it, or moving it to another nsURI,
+  does. Consumers that need "the whole model" identify each package separately.
+- **The path is spelling, not identity.** `../person.ecore#//Person`,
+  `platform:/resource/…/person.ecore#//Person` and `http://example.org/person/1.0#//Person`
+  all denote the same classifier and yield the same token — *provided the reference could be
+  resolved*.
+
+### Resolved and unresolved references
+
+While a reference is resolved, the token is read from the target: its package's nsURI and its
+name. While it is still an unresolved proxy, there is no target to read from, so the token is
+read from the **proxy URI** — the address the file gave, made absolute at load time. That is
+where the two ways of addressing part:
+
+| Reference in the `.ecore` | unresolved | resolved |
+|---|---|---|
+| by nsURI — `http://example.org/person/1.0#//Person` | `http://example.org/person/1.0#Person` | `http://example.org/person/1.0#Person` |
+| by location — `../person.ecore#//Person` | `file:/home/ci/ws/person.ecore#Person` | `http://example.org/person/1.0#Person` |
+
+A reference **by nsURI** hashes identically whether or not the target was available: the proxy
+URI already *is* the nsURI. A reference **by location** hashes identically only once resolved.
+Unresolved, it carries the absolute document URI — a filesystem path, or inside OSGi a
+bundle-entry URL (`bundleentry://…`, `bundle://…`) that contains the bundle id — and the value
+then depends on where the file was loaded from. It is still deterministic, still never `null`, but it is not the value the
+generated code has, and it is not the value the next installation of the same bundle gets.
+
+The fingerprint itself never loads anything. Whether a reference is resolved at the moment the
+value is computed is decided by the path that loads the model — and the three paths below behave
+differently.
+
+### The code generator
+
+The generator resolves the complete model before hashing: it calls `EcoreUtil.resolveAll` on the
+ResourceSet that loaded the genmodel, where referenced files are found via `usedGenPackages`, the
+`-buildpath` and the workspace (see
+[Referencing Models from Other Bundles](code-generation-guide.md#referencing-models-from-other-bundles)).
+Then it checks for proxies that are still unresolved. If there are none, the value is computed
+over the resolved model — every cross-package reference keyed by nsURI — and burnt into the
+`FINGERPRINT` constant and the manifest capability. If there is at least one, **no constant is
+emitted** and the generator log says which targets could not be resolved:
+
+```
+Model http://example.org/persistence/1.0 has 1 unresolved proxy target(s) - no fingerprint
+constant is emitted, because the value would differ from the one computed over the generated code.
+```
+
+A missing constant is recoverable — the model falls back to computing at runtime, where the
+generated Java code is resolved by construction. A location-keyed value in the constant would not
+be: it would disagree with the runtime value forever. Relative paths in the `.ecore` are therefore
+perfectly fine for generated models; the only requirement is that they resolve at build time,
+which the generator verifies for you.
+
+### The model extender
+
+The extender registers `.ecore` files straight from a bundle, without generated code. It loads each
+file from its bundle URL and computes the fingerprint immediately. Cross-package references by
+relative path are resolved **on demand while hashing**: the target file is read from the same
+bundle, at the location the relative path names. When that succeeds — the referenced file is in
+the bundle, in the expected folder — the value equals the one the generator would produce for the
+same model, independent of the order in which the files are loaded.
+
+When it does not succeed, the extender logs a warning naming the unresolved targets — the
+runtime counterpart of the generator's message — and registers the model anyway. The reference
+stays a proxy keyed by its bundle-entry URL, so the registered package carries an
+`emf.fingerprint` that differs from the generated one and, because the URL contains the bundle
+id, from every other installation of the same bundle. Two situations lead there:
+
+- The referenced file is **not shipped**, or shipped under a different path than the reference
+  names. Ship every referenced `.ecore` with the folder layout the references assume.
+- The referenced model lives in **another bundle**. A relative path cannot cross a bundle
+  boundary at runtime. Reference it by nsURI in the `.ecore`, or generate the consuming model.
+
+A reference by nsURI hashes the same value whether or not the extender could resolve it, so
+for an extender-deployed model that references models outside its own bundle the nsURI form is
+the only stable one.
+
+### The dynamic package loader
+
+The configuration-driven loader (`dynamicEcoreUri`) loads into a framework ResourceSet and calls
+`EcoreUtil.resolveAll` before registering. The same rules apply: relative references resolve
+against files next to the loaded one, nsURI references against the packages already registered in
+the framework, and whatever remains unresolved is keyed by its absolute URI.
+
+### A single file, nowhere else
+
+A model uploaded or indexed on its own — one `.ecore`, no neighbours, no framework — can only
+resolve what it does not need to resolve. Every reference by nsURI yields the published value;
+every reference by location yields a value nobody else will reproduce. This is the case the
+"resolution state is not identity" rule below is written for.
+
+### Checking
+
+The generated `FINGERPRINT` constant, the manifest attribute and the `emf.fingerprint` service
+property of the same model must agree. If an extender-registered package shows a different value
+from the generated bundle of the same `.ecore`, a reference did not resolve at load time — the
+extender's warning names the file. At build time, the generator log names unresolved targets
+explicitly; a bundle whose capability lacks the `emf.fingerprint` attribute is a bundle whose
+model did not resolve at build.
+
 ## Where you find it
 
 ### 1. As a service property, at runtime
@@ -240,17 +361,11 @@ there is no correct behaviour to fall back to — the model is simply out of con
 nothing about compatibility. Two fingerprints are either equal or not; whether a newer model
 can read an older document is a question the fingerprint does not answer.
 
-**Resolution state is not identity.** Cross-package references enter the hash as
-`nsURI#Name` keys, never as the referenced classifier, and for a reference that is still an
-unresolved proxy the key is read from the proxy URI. A reference addressed by nsURI — the
-published-schema rule — therefore yields the same fingerprint whether or not the target package
-was resolvable when the value was computed. A package fingerprinted on upload, in a ResourceSet
-that knew its neighbours, and again after a restart, in one that did not, produces one value.
-
-The exception is a reference addressed by document location (`../other/model.ecore#//Name`):
-unresolved, it is keyed by that location; resolved, by the target's nsURI. Its fingerprint does
-depend on resolution, and there is no way to unify the two without loading the target, which the
-fingerprint never does. Address cross-package references by nsURI.
+**Resolution state is not identity — for references by nsURI.** A reference addressed by
+nsURI yields the same fingerprint whether or not the target package was resolvable when the value
+was computed. A reference addressed by document location does so only once resolved; unresolved,
+it is keyed by that location. Which loading paths resolve what, and what to do about it, is in
+[Models that reference other models](#models-that-reference-other-models).
 
 ## Related
 

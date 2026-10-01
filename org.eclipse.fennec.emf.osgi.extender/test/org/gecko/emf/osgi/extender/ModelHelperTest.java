@@ -21,20 +21,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.ModelHelper;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
 import org.eclipse.fennec.emf.osgi.fingerprint.util.FingerprintHelper;
 import org.eclipse.fennec.emf.osgi.helper.EcoreHelper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Unit tests for {@link ModelHelper}.
@@ -117,6 +122,70 @@ class ModelHelperTest {
 		assertEquals(2, diagnostic.errors.size());
 		assertEquals("warn1", diagnostic.warnings.get(0));
 		assertEquals("err1", diagnostic.errors.get(0));
+	}
+
+	// ===== loadModelInstance - cross-package references by relative path =====
+
+	private static final String TARGET_ECORE = """
+		<?xml version="1.0" encoding="UTF-8"?>
+		<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+		    name="target" nsURI="http://test/target" nsPrefix="target">
+		  <eClassifiers xsi:type="ecore:EClass" name="Thing"/>
+		</ecore:EPackage>
+		""";
+
+	private static final String USER_ECORE = """
+		<?xml version="1.0" encoding="UTF-8"?>
+		<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI"
+		    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+		    name="user" nsURI="http://test/user" nsPrefix="user">
+		  <eClassifiers xsi:type="ecore:EClass" name="Holder">
+		    <eStructuralFeatures xsi:type="ecore:EReference" name="thing" eType="ecore:EClass target.ecore#//Thing"/>
+		  </eClassifiers>
+		</ecore:EPackage>
+		""";
+
+	@Test
+	void loadModelInstanceResolvesRelativeReferenceFromSiblingFile(@TempDir Path dir) throws IOException {
+		Files.writeString(dir.resolve("target.ecore"), TARGET_ECORE);
+		Path userFile = Files.writeString(dir.resolve("user.ecore"), USER_ECORE);
+
+		// the value a fully resolved model has - what the generator burns into the constant
+		ResourceSet reference = EcoreHelper.createResourceSet();
+		reference.getResource(URI.createFileURI(dir.resolve("target.ecore").toString()), true);
+		EPackage resolved = (EPackage) reference.getResource(URI.createFileURI(userFile.toString()), true)
+				.getContents().get(0);
+		EcoreUtil.resolveAll(reference);
+		String expected = FingerprintHelper.fingerprint(resolved);
+
+		ModelHelper.Diagnostic diagnostic = new ModelHelper.Diagnostic();
+		Model model = ModelHelper.loadModelInstance(7L, EcoreHelper.createResourceSet(), userFile.toUri().toURL(),
+				null, diagnostic);
+
+		assertTrue(diagnostic.warnings.isEmpty(), "Expected no warnings, got: " + diagnostic.warnings);
+		assertEquals(expected, model.getProperties().get(EMFNamespaces.EMF_MODEL_FINGERPRINT),
+				"a relative reference resolved from the sibling file must hash like the generated model");
+	}
+
+	@Test
+	void loadModelInstanceWarnsAboutUnresolvedRelativeReference(@TempDir Path dir) throws IOException {
+		// no target.ecore next to it
+		Path userFile = Files.writeString(dir.resolve("user.ecore"), USER_ECORE);
+
+		ModelHelper.Diagnostic diagnostic = new ModelHelper.Diagnostic();
+		Model model = ModelHelper.loadModelInstance(7L, EcoreHelper.createResourceSet(), userFile.toUri().toURL(),
+				null, diagnostic);
+
+		assertNotNull(model.getProperties().get(EMFNamespaces.EMF_MODEL_FINGERPRINT));
+		assertEquals(1, diagnostic.warnings.size(), "Expected one warning, got: " + diagnostic.warnings);
+		String warning = diagnostic.warnings.get(0);
+		assertTrue(warning.contains("http://test/user"), warning);
+		assertTrue(warning.contains("1 unresolved proxy target(s)"), warning);
+		assertTrue(warning.contains("target.ecore#//Thing"), warning);
+		assertTrue(diagnostic.errors.isEmpty(), "Expected no errors, got: " + diagnostic.errors);
 	}
 
 	// ===== loadModelInstance - using real ecore file =====

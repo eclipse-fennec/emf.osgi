@@ -19,6 +19,7 @@ import static org.eclipse.fennec.emf.osgi.constants.EMFNamespaces.EMF_MODEL_EXTE
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -30,9 +31,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EStructuralFeature.Setting;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.eclipse.fennec.emf.osgi.extender.model.Model;
 import org.eclipse.fennec.emf.osgi.fingerprint.util.ModelPropertiesHelper;
@@ -176,7 +181,14 @@ public class ModelHelper {
 	 * Loads a single ecore file from a URL and creates a {@link Model} instance.
 	 * <p>
 	 * The loaded {@link EPackage} is enriched with standard service properties
-	 * ({@code emf.name}, {@code emf.nsURI}, {@code emf.registration}, {@code emf.model.scope}).
+	 * ({@code emf.name}, {@code emf.nsURI}, {@code emf.fingerprint}, {@code emf.registration},
+	 * {@code emf.model.scope}).
+	 * <p>
+	 * Cross-package references are resolved through the given {@link ResourceSet} before the
+	 * properties are computed, so a reference by relative path finds its target next to the
+	 * loaded file. A reference that stays unresolved is reported as a warning, like the code
+	 * generator does at build time: the fingerprint then keys it by its document location
+	 * instead of the target's nsURI and will not match the value of the generated model.
 	 *
 	 * @param bundleId    the bundle ID that provides this model
 	 * @param resourceSet the {@link ResourceSet} used to load the ecore resource
@@ -194,6 +206,8 @@ public class ModelHelper {
 		EPackage ePackage = EcoreHelper.loadEcore(url, resourceSet);
 		Resource r = ePackage.eResource();
 		try {
+			EcoreUtil.resolveAll(ePackage);
+			warnUnresolvedProxies(ePackage, url, diagnostic);
 			Dictionary<String, Object> serviceProperties = new Hashtable<>();
 			if (properties != null) {
 				properties.forEach(serviceProperties::put);
@@ -222,6 +236,27 @@ public class ModelHelper {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Reports every cross-reference of the package that is still an unresolved proxy after
+	 * {@link EcoreUtil#resolveAll(EObject)}. Such a reference is keyed in the fingerprint by
+	 * its proxy URI - inside a bundle a bundle-entry URL carrying the bundle id - so the
+	 * value differs from the generated model's and from other installations of the same bundle.
+	 */
+	private static void warnUnresolvedProxies(final EPackage ePackage, final URL url, final Diagnostic diagnostic) {
+		Map<EObject, Collection<Setting>> unresolved = EcoreUtil.UnresolvedProxyCrossReferencer.find(ePackage);
+		if (unresolved.isEmpty()) {
+			return;
+		}
+		List<String> targets = unresolved.keySet().stream()
+				.map(proxy -> String.valueOf(((InternalEObject) proxy).eProxyURI()))
+				.sorted()
+				.toList();
+		diagnostic.warnings.add("Model " + ePackage.getNsURI() + " at " + url + " has " + targets.size()
+				+ " unresolved proxy target(s) - its emf.fingerprint keys them by document location and will"
+				+ " not match the generated model. Ship the referenced ecore files in this bundle at the"
+				+ " referenced relative path, or reference them by nsURI. Unresolved: " + targets);
 	}
 
 	/**
