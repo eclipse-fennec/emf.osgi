@@ -11,6 +11,7 @@
 	org.osgi.service.component;version=latest,\
 	org.osgi.service.condition;version=latest,\
 	org.osgi.util.converter;version=latest,\
+	org.osgi.util.tracker;version=latest,\
 	biz.aQute.bnd.annotation;version=latest,\
 	org.eclipse.emf.common;version=latest,\
 	org.eclipse.emf.ecore;version=latest,\

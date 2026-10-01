@@ -244,6 +244,34 @@ Multiple mappings:
 }
 ```
 
+A source URI can also be mapped to the namespace URI of a registered package. A reference to that
+location then resolves to the package itself instead of loading the file.
+
+#### Locations of Generated Packages
+
+A reference to a generated, deployed model by its location needs no mapping:
+
+```xml
+<eStructuralFeatures xsi:type="ecore:EReference" name="geometry" containment="true"
+    eType="ecore:EClass platform:/plugin/org.geojson.model/model/geojson.ecore#//Geometry"/>
+```
+
+Every bundle with a generated model declares an `org.eclipse.emf.ecore.generated_package`
+capability. Its `ecore` attribute is the location of the model file in the bundle. The
+`GeneratedPackageLocationConfigurator` component tracks these capabilities and maps
+`platform:/plugin/<Bundle-SymbolicName>/<ecore>` to the namespace URI given in the `uri` attribute.
+Each `ResourceSet` a `ResourceSetFactory` creates then resolves such a reference to the
+**registered generated package**, the same as a reference by the namespace URI:
+
+- The reference type is the generated `EClass`, so generated instances can be set into the reference.
+- No resource for the location is created or loaded.
+- A resource that is already contained in the `ResourceSet` under that URI takes precedence.
+- Only packages that the `ResourceSet`'s package registry knows are resolved. An isolated factory
+  keeps its isolation.
+
+This differs from Eclipse on purpose. There, such a reference loads the model file as a dynamic copy
+of the package, so the generated classes do not fit it.
+
 ---
 
 ## How They Wire Together
