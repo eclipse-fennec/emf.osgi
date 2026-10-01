@@ -184,11 +184,11 @@ public class ModelHelper {
 	 * ({@code emf.name}, {@code emf.nsURI}, {@code emf.fingerprint}, {@code emf.registration},
 	 * {@code emf.model.scope}).
 	 * <p>
-	 * Cross-package references are resolved through the given {@link ResourceSet} before the
-	 * properties are computed, so a reference by relative path finds its target next to the
-	 * loaded file. A reference that stays unresolved is reported as a warning, like the code
-	 * generator does at build time: the fingerprint then keys it by its document location
-	 * instead of the target's nsURI and will not match the value of the generated model.
+	 * Cross-package references resolve on demand through the given {@link ResourceSet}, so a
+	 * reference by relative path finds its target next to the loaded file. A reference that
+	 * cannot be resolved is reported as a warning, like the code generator does at build time:
+	 * the fingerprint then keys it by its document location instead of the target's nsURI and
+	 * will not match the value of the generated model.
 	 *
 	 * @param bundleId    the bundle ID that provides this model
 	 * @param resourceSet the {@link ResourceSet} used to load the ecore resource
@@ -206,7 +206,6 @@ public class ModelHelper {
 		EPackage ePackage = EcoreHelper.loadEcore(url, resourceSet);
 		Resource r = ePackage.eResource();
 		try {
-			EcoreUtil.resolveAll(ePackage);
 			warnUnresolvedProxies(ePackage, url, diagnostic);
 			Dictionary<String, Object> serviceProperties = new Hashtable<>();
 			if (properties != null) {
@@ -239,8 +238,8 @@ public class ModelHelper {
 	}
 
 	/**
-	 * Reports every cross-reference of the package that is still an unresolved proxy after
-	 * {@link EcoreUtil#resolveAll(EObject)}. Such a reference is keyed in the fingerprint by
+	 * Reports every cross-reference of the package that cannot be resolved through its
+	 * {@link ResourceSet}. Such a reference is keyed in the fingerprint by
 	 * its proxy URI - inside a bundle a bundle-entry URL carrying the bundle id - so the
 	 * value differs from the generated model's and from other installations of the same bundle.
 	 */

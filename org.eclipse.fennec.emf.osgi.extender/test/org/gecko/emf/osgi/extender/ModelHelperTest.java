@@ -148,6 +148,10 @@ class ModelHelperTest {
 		</ecore:EPackage>
 		""";
 
+	/**
+	 * Regression guard for the fingerprint guide's claim: a relative reference resolves on demand
+	 * from the sibling file while hashing, so the value equals the fully resolved one.
+	 */
 	@Test
 	void loadModelInstanceResolvesRelativeReferenceFromSiblingFile(@TempDir Path dir) throws IOException {
 		Files.writeString(dir.resolve("target.ecore"), TARGET_ECORE);
