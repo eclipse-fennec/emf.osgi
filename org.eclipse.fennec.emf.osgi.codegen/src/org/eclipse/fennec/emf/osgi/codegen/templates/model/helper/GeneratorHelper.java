@@ -56,11 +56,14 @@ public class GeneratorHelper {
 	 * path (issue #58). Sound because
 	 * the equivalence gate proves {@code .ecore} and generated code yield the same value.
 	 * <p>
-	 * An unresolved proxy degrades the canonical form (the type key falls back to
-	 * {@code "#null"}), which would burn a wrong identity into the generated code and into
-	 * every downstream consumer of it. In that case <b>no</b> constant is emitted and the
-	 * model keeps the runtime computation: a missing fingerprint is recoverable, a wrong
-	 * one is not.
+	 * An unresolved proxy is keyed by its proxy URI. Cross-package references in an
+	 * {@code .ecore} are usually addressed by document location
+	 * ({@code ../other.ecore#//Name}), whereas the generated code has no document and
+	 * yields {@code nsURI#Name} for the same reference. The two forms cannot be unified
+	 * without loading the target, so the value would differ from the runtime one and
+	 * burn a wrong identity into the generated code and every downstream consumer of it.
+	 * In that case <b>no</b> constant is emitted and the model keeps the runtime
+	 * computation: a missing fingerprint is recoverable, a wrong one is not.
 	 *
 	 * @param genPackage the package being generated; must not be {@code null}
 	 * @return the fingerprint, or {@code null} if it cannot be computed reliably
@@ -85,7 +88,7 @@ public class GeneratorHelper {
 		if (!unresolved.isEmpty()) {
 			FennecEmfGenerator.warn("Model " + ePackage.getNsURI() + " has " + unresolved.size()
 					+ " unresolved proxy target(s) - no fingerprint constant is emitted, because the value would"
-					+ " be computed over a degraded canonical form. Unresolved: " + unresolved.keySet());
+					+ " differ from the one computed over the generated code. Unresolved: " + unresolved.keySet());
 			return null;
 		}
 		return FingerprintHelper.fingerprint(ePackage);
