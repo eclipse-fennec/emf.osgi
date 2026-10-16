@@ -220,7 +220,8 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 				return Optional.of("Unsupported lineEndings value '" + lineEndings + "'. Supported values are: system, lf, crlf");
 			}
 
-			Map<Container, Map<String, String>> refModels = extractedLocationsWithCap(context.getProject().getBuildpath());
+			NsUriIndex nsUriIndex = new NsUriIndex();
+			Map<Container, Map<String, String>> refModels = extractedLocationsWithCap(context.getProject().getBuildpath(), nsUriIndex);
 			Project project = (Project) context.getParent();
 			Iterator<String> iterator = project.getBsns().iterator();
 			String bsn = iterator.hasNext() ? iterator.next() : context.getParent()
@@ -233,7 +234,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 				}
 				String outputFolder = genFolder != null ? genFolder : OUTPUT_DEFAULT;
 				try {
-					genmodel = GenModelDeriver.derive(ecore, outputFolder, refModels, bsn, context.getBase());
+					genmodel = GenModelDeriver.derive(ecore, outputFolder, refModels, nsUriIndex, bsn, context.getBase());
 				} catch (IllegalStateException e) {
 					error(e.getMessage());
 					return Optional.of(e.getMessage());
@@ -247,7 +248,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			}
 
 			return doGenerate(genFolder, genmodel,
-					refModels,
+					refModels, nsUriIndex,
 					context.getBase(),
 					bsn, genmodelLocation,
 					includeGenModelAttr, includeGenModelSourceLocationsAttr,
@@ -272,14 +273,16 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * org.eclipse.emf.ecore.generated_package;class="org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage";uri="http://gecko.org/example/model/basic";genModel="/model/basic.genmodel";sourceLocations="other/main/resources/model/basic.genmodel,org.eclipse.fennec.emf.osgi.example.model.basic/other/main/resources/model/basic.genmodel"
 	 * A bundle carrying multiple EPackages provides one such capability per EPackage; all of them contribute their locations.
 	 * @param buildpath the buildpath containers
+	 * @param nsUriIndex the index to collect the nsURI locations of the buildpath models in
 	 * @return the resolvable model locations per container
 	 * @throws Exception
 	 */
-	private Map<Container, Map<String,String>> extractedLocationsWithCap(Collection<Container> buildpath)
+	private Map<Container, Map<String,String>> extractedLocationsWithCap(Collection<Container> buildpath, NsUriIndex nsUriIndex)
 			throws Exception {
 		Map<Container, Map<String, String>> refModels = new HashMap<>();
 		for(Container c : buildpath) {
 			File f = c.getFile();
+			String containerBsn = ResourceUriHandler.getBSN(c);
 			List<Attrs> capabilities = List.of();
 			if(!f.isDirectory()) {
 				Domain domain = Domain.domain(c.getManifest());
@@ -289,7 +292,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			// scan the jar for ecore files unless every capability already names its ecore location
 			boolean checkForEcore = capabilities.isEmpty();
 			for (Attrs attrs : capabilities) {
-				if (!mergeCapabilityLocations(attrs, result)) {
+				if (!mergeCapabilityLocations(attrs, result, containerBsn, nsUriIndex)) {
 					checkForEcore = true;
 				}
 			}
@@ -297,10 +300,29 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			try (Jar jar = new Jar(f)){
 				jar.getResourceNames(s -> (scanForEcore && s.endsWith(".ecore")) || s.endsWith(".genmodel") ||  s.endsWith(".uml"))
 					.forEach(s -> result.put(s, s));
+				if (scanForEcore) {
+					indexEcoreNsUris(jar, containerBsn, nsUriIndex);
+				}
 			}
 			refModels.put(c, result);
 		}
 		return refModels;
+	}
+
+	/**
+	 * Adds the nsURIs the ecore files of a bundle declare, for bundles whose capabilities do not name them.
+	 * @param jar the bundle
+	 * @param bsn the bundle symbolic name
+	 * @param nsUriIndex the index to add to
+	 */
+	private static void indexEcoreNsUris(Jar jar, String bsn, NsUriIndex nsUriIndex) {
+		for (String name : jar.getResourceNames(s -> s.endsWith(".ecore")).toList()) {
+			try (InputStream in = jar.getResource(name).openInputStream()) {
+				nsUriIndex.addEcore(bsn, name, in);
+			} catch (Exception e) {
+				warn("Could not read " + bsn + "/" + name + ": " + e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -324,11 +346,13 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * Merges the model locations of one generated_package capability into the container's location map.
 	 * @param attrs the capability attributes
 	 * @param result the location map to merge into
+	 * @param bsn the bundle symbolic name of the providing bundle
+	 * @param nsUriIndex the index to add the nsURI location to
 	 * @return <code>true</code> if the capability named its ecore location
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	private static boolean mergeCapabilityLocations(Attrs attrs, Map<String, String> result) throws Exception {
+	private static boolean mergeCapabilityLocations(Attrs attrs, Map<String, String> result, String bsn, NsUriIndex nsUriIndex) throws Exception {
 		CapabilityBuilder builder = new CapabilityBuilder(EPackage.NAMESPACE);
 		builder.addAttributesOrDirectives(attrs);
 		Capability capability = builder.synthetic();
@@ -352,6 +376,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 		String uri = (String) capability.getAttributes().get("uri");
 		if(uri != null) {
 			result.put(uri, ecoreLocation);
+			nsUriIndex.add(bsn, uri, ecoreLocation);
 		}
 		return true;
 	}
@@ -413,13 +438,14 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 		gen.getAdapterFactoryDescriptorRegistry().addDescriptor(GenModelPackage.eNS_URI, BNDGeneratorAdapterFactory.DESCRIPTOR);
 	}
 
-	static void configureEMF(ResourceSet resourceSet, Map<Container, Map<String, String>> refModels, String bsn, File base) {
+	static void configureEMF(ResourceSet resourceSet, Map<Container, Map<String, String>> refModels, NsUriIndex nsUriIndex, String bsn, File base) {
 
 		GenModelPackageImpl.init();
 		GenModelFactoryImpl.init();
 		org.eclipse.uml2.codegen.ecore.genmodel.impl.GenModelPackageImpl.init();
 
 		resourceSet.getURIConverter().getURIHandlers().add(0, new ResourceUriHandler(refModels, bsn, base));
+		nsUriIndex.register(resourceSet, bsn);
 		resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().put(GenModelPackage.eCONTENT_TYPE, new XMIResourceFactoryImpl());
 		resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().put("application/xmi", new XMIResourceFactoryImpl());
 	}
@@ -429,6 +455,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * @param genmodelPath
 	 * @param genmodelFile
 	 * @param refModels
+	 * @param nsUriIndex the nsURI locations of the buildpath models
 	 * @param genmodelLocation
 	 * @param string
 	 * @param file
@@ -440,13 +467,13 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * @return
 	 * @throws IOException
 	 */
-	protected Optional<String> doGenerate(String output, String genmodelPath, Map<Container, Map<String, String>> refModels, File base, String bsn, String genmodelLocation,
+	protected Optional<String> doGenerate(String output, String genmodelPath, Map<Container, Map<String, String>> refModels, NsUriIndex nsUriIndex, File base, String bsn, String genmodelLocation,
 			boolean includeGenModelAttr, boolean includeGenModelSourceLocationsAttr, boolean includeEcoreAttr, boolean includeEcoreSourceLocationsAttr,
 			String lineDelimiter) {
 		info("Running for genmodel " + genmodelPath + " in " + base.getAbsolutePath()); 
 		ResourceSet resourceSet = new ResourceSetImpl();
 		try {
-			configureEMF(resourceSet, refModels, bsn, base);
+			configureEMF(resourceSet, refModels, nsUriIndex, bsn, base);
 			URI genModelUri = URI.createURI("resource://" + bsn + "/" + genmodelPath);
 			
 			info("Loading " + genModelUri.toString());

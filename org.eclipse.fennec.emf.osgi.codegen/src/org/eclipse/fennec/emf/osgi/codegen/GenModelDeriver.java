@@ -72,16 +72,17 @@ public final class GenModelDeriver {
 	 * @param ecorePath the project relative path of the ecore
 	 * @param output the output folder of the generated code, becomes the genmodel's model directory
 	 * @param refModels the resolvable model locations per buildpath container
+	 * @param nsUriIndex the nsURI locations of the buildpath models
 	 * @param bsn the bundle symbolic name of the generating project
 	 * @param base the project directory
 	 * @return the project relative path of the saved genmodel
 	 * @throws IllegalStateException with a user readable message when the genmodel cannot be derived
 	 * @throws Exception when loading or saving a model fails
 	 */
-	public static String derive(String ecorePath, String output, Map<Container, Map<String, String>> refModels, String bsn, File base) throws Exception {
+	public static String derive(String ecorePath, String output, Map<Container, Map<String, String>> refModels, NsUriIndex nsUriIndex, String bsn, File base) throws Exception {
 		ResourceSet resourceSet = new ResourceSetImpl();
 		try {
-			FennecEmfGenerator.configureEMF(resourceSet, refModels, bsn, base);
+			FennecEmfGenerator.configureEMF(resourceSet, refModels, nsUriIndex, bsn, base);
 			URI ecoreUri = URI.createURI(UriSanatizer.SCHEMA_RESOURCE + bsn + UriSanatizer.SLASH + ecorePath);
 			FennecEmfGenerator.info("Deriving a genmodel from " + ecoreUri);
 			Resource ecoreResource = resourceSet.getResource(ecoreUri, true);
@@ -269,7 +270,7 @@ public final class GenModelDeriver {
 		ePackage.getESubpackages().forEach(sub -> collectNsURIs(sub, out));
 	}
 
-	private static boolean isEmfCorePackage(String nsURI) {
+	static boolean isEmfCorePackage(String nsURI) {
 		return nsURI.startsWith("http://www.eclipse.org/emf/") //$NON-NLS-1$
 				|| nsURI.startsWith("http://www.w3.org/") //$NON-NLS-1$
 				|| nsURI.startsWith("http:///org/eclipse/emf/"); //$NON-NLS-1$

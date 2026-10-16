@@ -275,27 +275,100 @@ class GeneratorTest {
 		}
 	}
 
+	@Test
+	void testGeneratorNsUriReferenceInGenmodelMode() throws Exception {
+		assertNsUriReferenceInGenmodelMode("model/nsuri.genmodel");
+	}
+
+	@Test
+	void testGeneratorNsUriReferenceInEcoreMode() throws Exception {
+		String genmodelContent = generateNsUriEcore(true);
+		assertThat(genmodelContent)
+				.contains("../../org.fennec.test.multi.model/model/multi.genmodel#//packb")
+				.doesNotContain("resource://");
+	}
+
+	@Test
+	void testGeneratorNsUriReferenceWithoutCapability() throws Exception {
+		// the nsURI is read from the ecore files of the bundle
+		String genmodelContent = generateNsUriEcore(false);
+		assertThat(genmodelContent).contains("multi.genmodel#//packb");
+	}
+
+	private void assertNsUriReferenceInGenmodelMode(String genmodel) throws Exception {
+		IO.copy(new File("test-resources/ws-3"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.consumer/lib/org.fennec.test.multi.model.jar"));
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.consumer");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("genmodel", "model/nsuri.genmodel");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isEmpty();
+			File file = project.getFile("src-gen/org/fennec/test/nsuri/NsuriObject.java");
+			assertThat(file).exists();
+			assertThat(Files.readString(file.toPath())).contains("org.fennec.test.multi.packb.BObject");
+		}
+	}
+
+	private String generateNsUriEcore(boolean withCapability) throws Exception {
+		IO.copy(new File("test-resources/ws-4"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.ecoremode/lib/org.fennec.test.multi.model.jar"), withCapability);
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.ecoremode");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("ecore", "model/nsuri.ecore");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isEmpty();
+			File file = project.getFile("src-gen/org/fennec/test/nsuri/NsuriObject.java");
+			assertThat(file).exists();
+			assertThat(Files.readString(file.toPath())).contains("org.fennec.test.multi.packb.BObject");
+			return Files.readString(project.getFile("model/nsuri.genmodel").toPath());
+		}
+	}
+
 	/**
 	 * Builds the multi-package model bundle referenced from the ws-3 consumer's buildpath:
 	 * one jar carrying two EPackages, providing one generated_package capability per EPackage,
 	 * where only the second EPackage is referenced via usedGenPackages (issue #87).
 	 */
 	private void createMultiPackageModelJar(File target) throws Exception {
+		createMultiPackageModelJar(target, true);
+	}
+
+	/**
+	 * @param withCapability <code>false</code> builds the bundle without the generated_package
+	 *        capabilities, the codegen then finds the models by scanning the jar
+	 */
+	private void createMultiPackageModelJar(File target, boolean withCapability) throws Exception {
 		Manifest manifest = new Manifest();
 		Attributes main = manifest.getMainAttributes();
 		main.put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		main.putValue("Bundle-ManifestVersion", "2");
 		main.putValue("Bundle-SymbolicName", "org.fennec.test.multi.model");
 		main.putValue("Bundle-Version", "1.0.0");
-		main.putValue("Provide-Capability",
-				"org.eclipse.emf.ecore.generated_package;"
-						+ "uri=\"http://fennec.eclipse.org/test/multi/a\";"
-						+ "class=\"org.fennec.test.multi.packa.PackaPackage\";"
-						+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/a.ecore\","
-						+ "org.eclipse.emf.ecore.generated_package;"
-						+ "uri=\"http://fennec.eclipse.org/test/multi/b\";"
-						+ "class=\"org.fennec.test.multi.packb.PackbPackage\";"
-						+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/b.ecore\"");
+		if (withCapability) {
+			main.putValue("Provide-Capability",
+					"org.eclipse.emf.ecore.generated_package;"
+							+ "uri=\"http://fennec.eclipse.org/test/multi/a\";"
+							+ "class=\"org.fennec.test.multi.packa.PackaPackage\";"
+							+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/a.ecore\","
+							+ "org.eclipse.emf.ecore.generated_package;"
+							+ "uri=\"http://fennec.eclipse.org/test/multi/b\";"
+							+ "class=\"org.fennec.test.multi.packb.PackbPackage\";"
+							+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/b.ecore\"");
+		}
 		target.getParentFile().mkdirs();
 		File modelDir = new File("test-resources/multi-model");
 		try (JarOutputStream jar = new JarOutputStream(new FileOutputStream(target), manifest)) {
