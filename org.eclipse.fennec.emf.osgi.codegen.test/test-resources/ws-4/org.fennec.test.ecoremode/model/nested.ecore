@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="nested" nsURI="http://fennec.eclipse.org/test/nested" nsPrefix="nested">
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="basePackage" value="org.fennec.test"/>
+  </eAnnotations>
+  <eSubpackages name="onoff" nsURI="http://fennec.eclipse.org/test/nested/onoff" nsPrefix="onoff">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="prefix" value="OnOff"/>
+    </eAnnotations>
+    <eClassifiers xsi:type="ecore:EEnum" name="StartUpOnOffEnum">
+      <eLiterals name="off"/>
+      <eLiterals name="on" value="1"/>
+    </eClassifiers>
+  </eSubpackages>
+  <eSubpackages name="level" nsURI="http://fennec.eclipse.org/test/nested/level" nsPrefix="level">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="basePackage" value="org.fennec.other"/>
+      <details key="prefix" value="LevelControl"/>
+    </eAnnotations>
+    <eClassifiers xsi:type="ecore:EClass" name="Level">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="startUp" eType="#//onoff/StartUpOnOffEnum"/>
+    </eClassifiers>
+  </eSubpackages>
+</ecore:EPackage>

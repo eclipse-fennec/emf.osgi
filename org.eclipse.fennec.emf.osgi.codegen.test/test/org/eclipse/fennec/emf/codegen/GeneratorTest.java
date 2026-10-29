@@ -257,6 +257,40 @@ class GeneratorTest {
 	}
 
 	@Test
+	void testGeneratorFromAnnotatedEcoreWithSubpackages() throws Exception {
+		IO.copy(new File("test-resources/ws-4"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.ecoremode/lib/org.fennec.test.multi.model.jar"));
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.ecoremode");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("ecore", "model/nested.ecore");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isEmpty();
+
+			String genmodelContent = Files.readString(project.getFile("model/nested.genmodel").toPath());
+			assertThat(genmodelContent)
+					.contains("prefix=\"OnOff\"")
+					.contains("prefix=\"LevelControl\"")
+					.contains("basePackage=\"org.fennec.other\"");
+
+			// the prefix annotation of a subpackage names its package and factory
+			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff/OnOffPackage.java")).exists();
+			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff/OnOffFactory.java")).exists();
+			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff/OnoffPackage.java")).doesNotExist();
+			// an explicit basePackage of a subpackage wins over the one inherited from the parent
+			File level = project.getFile("src-gen/org/fennec/other/level/Level.java");
+			assertThat(level).exists();
+			assertThat(Files.readString(level.toPath())).contains("StartUpOnOffEnum");
+		}
+	}
+
+	@Test
 	void testGeneratorEcoreAndGenmodelAreMutuallyExclusive() throws Exception {
 		IO.copy(new File("test-resources/ws-4"), tmp);
 		createMultiPackageModelJar(new File(tmp, "org.fennec.test.ecoremode/lib/org.fennec.test.multi.model.jar"));
