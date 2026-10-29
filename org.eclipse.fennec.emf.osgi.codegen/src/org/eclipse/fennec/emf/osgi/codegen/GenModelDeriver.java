@@ -114,7 +114,7 @@ public final class GenModelDeriver {
 			genModel.getForeignModel().add(new File(ecorePath).getName());
 			// applied last: initialize and proxy resolution may flip it for large models
 			for (int i = 0; i < genPackageCount; i++) {
-				genModel.getGenPackages().get(i).setLoadInitialization(annotationBoolean(rootPackages.get(i), "loadInitialization", false));
+				applyLoadInitialization(genModel.getGenPackages().get(i), rootPackages.get(i));
 			}
 			genModelResource.save(Map.of(XMLResource.OPTION_LINE_WIDTH, 80, XMLResource.OPTION_ENCODING, "UTF-8")); //$NON-NLS-1$
 			FennecEmfGenerator.info("Saved the derived genmodel to " + genModelPath);
@@ -153,17 +153,31 @@ public final class GenModelDeriver {
 		annotation(ePackage, "copyrightText").ifPresent(genModel::setCopyrightText);
 	}
 
+	/**
+	 * Applies the GenModel annotation of the EPackage to its GenPackage and recursively to the
+	 * nested GenPackages of the subpackages (issue #123).
+	 * @param genPackage the GenPackage to configure
+	 * @param ePackage the EPackage of the GenPackage
+	 */
 	private static void configureGenPackage(GenPackage genPackage, EPackage ePackage) {
-		String basePackage = annotation(ePackage, "basePackage").orElseGet(() -> deriveBasePackage(ePackage.getNsURI()));
-		if (basePackage != null && !basePackage.isEmpty()) {
-			genPackage.setBasePackage(basePackage);
+		Optional<String> basePackage = annotation(ePackage, "basePackage");
+		// a nested GenPackage without basePackage inherits the qualified package name of its parent
+		if (!(genPackage.eContainer() instanceof GenPackage)) {
+			basePackage = basePackage.or(() -> Optional.ofNullable(deriveBasePackage(ePackage.getNsURI())));
 		}
+		basePackage.filter(b -> !b.isEmpty()).ifPresent(genPackage::setBasePackage);
 		genPackage.setPrefix(annotation(ePackage, "prefix").orElseGet(() -> capitalize(ePackage.getName())));
 		annotation(ePackage, "fileExtensions").or(() -> annotation(ePackage, "fileExtension")).ifPresent(genPackage::setFileExtensions);
 		annotation(ePackage, "resource").map(GenResourceKind::get).ifPresent(genPackage::setResource);
 		annotation(ePackage, "contentTypeIdentifier").ifPresent(genPackage::setContentTypeIdentifier);
 		genPackage.setLiteralsInterface(annotationBoolean(ePackage, "literalsInterface", true));
 		genPackage.setDisposableProviderFactory(true);
+		genPackage.getNestedGenPackages().forEach(nested -> configureGenPackage(nested, nested.getEcorePackage()));
+	}
+
+	private static void applyLoadInitialization(GenPackage genPackage, EPackage ePackage) {
+		genPackage.setLoadInitialization(annotationBoolean(ePackage, "loadInitialization", false));
+		genPackage.getNestedGenPackages().forEach(nested -> applyLoadInitialization(nested, nested.getEcorePackage()));
 	}
 
 	private static Optional<String> annotation(EPackage ePackage, String key) {
