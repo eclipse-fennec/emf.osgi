@@ -417,6 +417,17 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 	}
 
 	@Override
+	public void update(Runnable change) {
+		Objects.requireNonNull(change, "change");
+		lock.writeLock().lock();
+		try {
+			change.run();
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	@Override
 	public Optional<MetadataIndex> getMetadataIndex() {
 		return Optional.ofNullable(index);
 	}
@@ -790,11 +801,24 @@ public class MetadataServiceImpl implements MetadataWhiteboard {
 		return fingerprint != null ? fingerprint : fingerprintFor(ePackage);
 	}
 
-	private static Optional<AspectEntry> aspect(List<AspectEntry> aspects, String aspectTypeId) {
+	/**
+	 * First aspect entry with the type id. Takes the read lock: aspect lists are the part of
+	 * a published tree that changes - handlers and {@link #update(Runnable)} add and remove
+	 * entries - and an unguarded iteration fails with a ConcurrentModificationException
+	 * (issue #129). The metadata object must be resolved <b>before</b> the call:
+	 * {@link #getPackageMetadata(EPackage)} may take the write lock, and a read lock cannot
+	 * be upgraded.
+	 */
+	private Optional<AspectEntry> aspect(List<AspectEntry> aspects, String aspectTypeId) {
 		if (aspectTypeId == null) {
 			return Optional.empty();
 		}
-		return aspects.stream().filter(entry -> aspectTypeId.equals(entry.getTypeId())).findFirst();
+		lock.readLock().lock();
+		try {
+			return aspects.stream().filter(entry -> aspectTypeId.equals(entry.getTypeId())).findFirst();
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	private static Optional<PackageMetadata> newest(List<PackageMetadata> versions) {

@@ -97,29 +97,42 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 		this.anchorResolver = Objects.requireNonNull(anchorResolver, "anchorResolver");
 	}
 
+	/*
+	 * Lock order: the metadata service's write lock first, then the bridge's own lock. The
+	 * handler callbacks below are entered with the write lock already held; the registry
+	 * callbacks take it through MetadataService#update, so that readers of the aspect lists
+	 * never iterate while an aspect is placed or removed (issue #129).
+	 */
+
 	@Override
 	public void entryAdded(EObjectRegistryEntry entry) {
-		synchronized (lock) {
-			mirror.put(entry.key(), entry);
-			attach(entry);
-		}
+		metadataService.update(() -> {
+			synchronized (lock) {
+				mirror.put(entry.key(), entry);
+				attach(entry);
+			}
+		});
 	}
 
 	@Override
 	public void entryUpdated(EObjectRegistryEntry entry, EObjectRegistryEntry oldEntry) {
-		synchronized (lock) {
-			mirror.put(entry.key(), entry);
-			detach(entry.key());
-			attach(entry);
-		}
+		metadataService.update(() -> {
+			synchronized (lock) {
+				mirror.put(entry.key(), entry);
+				detach(entry.key());
+				attach(entry);
+			}
+		});
 	}
 
 	@Override
 	public void entryRemoved(EObjectRegistryEntry entry) {
-		synchronized (lock) {
-			mirror.remove(entry.key());
-			detach(entry.key());
-		}
+		metadataService.update(() -> {
+			synchronized (lock) {
+				mirror.remove(entry.key());
+				detach(entry.key());
+			}
+		});
 	}
 
 	/**
@@ -158,10 +171,13 @@ public class RegistryMetadataBridge implements EObjectRegistryListener, Metadata
 
 	@Override
 	public void clear() {
-		synchronized (lock) {
-			List.copyOf(placed.keySet()).forEach(this::detach);
-			mirror.clear();
-		}
+		// also reached through close(), outside any handler callback
+		metadataService.update(() -> {
+			synchronized (lock) {
+				List.copyOf(placed.keySet()).forEach(this::detach);
+				mirror.clear();
+			}
+		});
 	}
 
 	/** Detaches every contributed aspect and drops all state. */

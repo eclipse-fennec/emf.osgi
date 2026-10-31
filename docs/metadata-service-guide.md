@@ -301,6 +301,42 @@ call back into `MetadataService` for the package being registered; it is not vis
 the tree it is handed already holds everything. Handlers run inside the registration of an
 `EPackage` service, so they must be quick and must not block.
 
+### Changing a published tree later
+
+The trees are plain EMF objects, guarded by one read/write lock of the service. Registration,
+withdrawal and every handler callback run under the write lock; the aspect accessors
+(`getPackageAspect`, `getClassAspect`, `getFeatureAspect`, `getOperationAspect`) walk the aspect
+lists under the read lock. That is what lets a contributor add or replace aspects while other
+threads look them up.
+
+A contributor that changes a tree **outside** a handler callback — typically because it also
+listens to some other source, as the [EObject registry bridge](eobject-registry-guide.md#the-metadata-bridge)
+does — must make the change inside `update`, which takes the same write lock:
+
+```java
+metadata.update(() -> {
+    classMetadata.getAspects().removeIf(entry -> "codec".equals(entry.getTypeId()));
+    classMetadata.getAspects().add(newEntry);
+});
+```
+
+An unguarded change races with the lookups: a reader iterating the list at that moment fails with
+a `ConcurrentModificationException`.
+
+Rules for the `Runnable`:
+
+- **It may call the lookups of the service.** The lock is reentrant, and the write lock covers
+  the read lock.
+- **Lock order: the service first, your own lock second.** Handler callbacks are entered with
+  the write lock already held. If the contributor synchronizes on a lock of its own, it must take
+  that lock *inside* `update`, never around it. The opposite order deadlocks against a
+  registration running at the same time.
+- **Keep it short.** It blocks every reader for as long as it runs.
+
+Readers that walk a tree directly, e.g. through `getRegistry()` or a returned `ClassMetadata`'s
+aspect list, get no protection from the accessors. Prefer the aspect accessors. If you must walk
+the aspect lists yourself while contributors are active, do it inside `update`.
+
 ---
 
 ## Reusing an expensive derivation

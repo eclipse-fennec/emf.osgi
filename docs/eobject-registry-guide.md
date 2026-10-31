@@ -184,6 +184,16 @@ up as such in the SCR diagnostics:
 }
 ```
 
+**Concurrency.** The bridge writes from two directions: registry callbacks (`entryAdded`,
+`entryUpdated`, `entryRemoved`) and metadata handler callbacks (a new model version's tree, or
+the replay when a bridge starts after the content). Both change the aspect lists that
+`getClassAspect` reads on other threads. The bridge therefore makes every change under the
+metadata service's write lock. Handler callbacks already hold it. The registry callbacks take it
+through `MetadataService.update`, and only then the bridge's own lock, the same order as in the
+handler path. A lookup that runs during a placement sees either the old aspect or the new one,
+never a broken iteration. The rules for writing to a tree outside a handler are in the
+[Metadata Service guide](metadata-service-guide.md#changing-a-published-tree-later).
+
 ### Which model versions an entry reaches
 
 One nsURI can have several live model versions at the same time — a draft next to an

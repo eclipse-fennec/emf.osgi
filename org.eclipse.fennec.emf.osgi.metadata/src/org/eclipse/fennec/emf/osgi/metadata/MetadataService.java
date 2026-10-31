@@ -44,6 +44,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * builds and caches on a miss. That is a memoized read, not lifecycle - deterministic,
  * idempotent, and invisible to unregistration - so stateless consumers holding only an
  * EPackage need no admin interface.
+ * <p>
+ * <b>Concurrency.</b> The trees are plain EMF objects guarded by one read/write lock of
+ * the service. The lookups take the read lock where they iterate a list that can change
+ * after publication - the aspect lists. Code that changes a published tree from outside a
+ * {@link MetadataHandler} callback must do so inside {@link #update(Runnable)}.
  *
  * @author Data In Motion Consulting
  */
@@ -236,4 +241,22 @@ public interface MetadataService {
 	 * @return the registry, never {@code null}
 	 */
 	MetadataRegistry getRegistry();
+
+	/**
+	 * Runs a change to published metadata trees under the service's write lock.
+	 * <p>
+	 * Lookups read the aspect lists under the read lock, so a change made here is never
+	 * observed half done and never breaks a concurrent iteration. {@link MetadataHandler}
+	 * callbacks already run under the write lock and need no wrapping; this is for changes
+	 * that originate elsewhere, e.g. a listener of another registry placing or removing an
+	 * aspect entry.
+	 * <p>
+	 * The lock is reentrant: the change may call the lookups of this service. It may also
+	 * take locks of its own, but then every path that holds such a lock must take this one
+	 * first - handler callbacks are entered with the write lock held, so the opposite order
+	 * deadlocks. Keep the change short; it blocks all readers.
+	 *
+	 * @param change the change to apply; must not be {@code null}
+	 */
+	void update(Runnable change);
 }
