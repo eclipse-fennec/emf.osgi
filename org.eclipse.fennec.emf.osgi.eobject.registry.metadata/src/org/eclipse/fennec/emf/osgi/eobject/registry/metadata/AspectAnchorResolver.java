@@ -25,13 +25,22 @@ import org.osgi.annotation.versioning.ConsumerType;
  * content's own {@code eClass()}; a sensinact provider mapping would anchor at
  * {@code mapping.getProviderClasses()} instead (one entry, many anchors).
  * <p>
- * In OSGi a resolver can be a service the bridge component references by target.
+ * In OSGi the bridge component always requires a resolver service, selected by the
+ * {@code anchorResolver.target} of its configuration. Without a configured target it
+ * binds the {@link #contentClass()} default, which the bridge bundle registers under
+ * {@link #ANCHOR_RESOLVER}{@code =}{@link #CONTENT_CLASS}.
  *
  * @author Data In Motion Consulting
  */
 @ConsumerType
 @FunctionalInterface
 public interface AspectAnchorResolver {
+
+	/** Service property naming a resolver service. */
+	String ANCHOR_RESOLVER = "aspect.anchor.resolver";
+
+	/** {@link #ANCHOR_RESOLVER} value of the {@link #contentClass()} default service. */
+	String CONTENT_CLASS = "content";
 
 	/**
 	 * Returns the anchor classes of the given entry.

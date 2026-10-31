@@ -13,7 +13,6 @@
 package org.eclipse.fennec.emf.osgi.eobject.registry.metadata.impl;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryEntry;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryListener;
@@ -27,7 +26,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.metatype.annotations.Designate;
 
 /**
@@ -37,6 +35,10 @@ import org.osgi.service.metatype.annotations.Designate;
  * {@code emf.eobject.registry.name} (DS propagates the configuration), so the registry
  * component binds and replays it; as {@link MetadataHandler} the metadata whiteboard
  * tracks it for new model versions. Deactivation detaches every contributed aspect.
+ * <p>
+ * The anchor resolver is mandatory: by default the {@link ContentClassAnchorResolverComponent},
+ * otherwise the one {@code anchorResolver.target} selects. A bridge whose resolver is
+ * missing stays unsatisfied instead of anchoring with the wrong resolver.
  *
  * @author Data In Motion Consulting
  */
@@ -44,11 +46,14 @@ import org.osgi.service.metatype.annotations.Designate;
 @Designate(ocd = RegistryMetadataBridgeConfig.class, factory = true)
 public class RegistryMetadataBridgeComponent implements EObjectRegistryListener, MetadataHandler {
 
+	static final String DEFAULT_ANCHOR_RESOLVER = "(" + AspectAnchorResolver.ANCHOR_RESOLVER + "="
+			+ AspectAnchorResolver.CONTENT_CLASS + ")";
+
 	private final RegistryMetadataBridge bridge;
 
 	@Activate
 	public RegistryMetadataBridgeComponent(@Reference MetadataService metadataService,
-			@Reference(name = "anchorResolver", cardinality = ReferenceCardinality.OPTIONAL) Optional<AspectAnchorResolver> anchorResolver,
+			@Reference(name = "anchorResolver", target = DEFAULT_ANCHOR_RESOLVER) AspectAnchorResolver anchorResolver,
 			RegistryMetadataBridgeConfig config) {
 		Objects.requireNonNull(config, "config");
 		if (config.aspect_type_id() == null || config.aspect_type_id().isBlank()) {
@@ -57,8 +62,7 @@ public class RegistryMetadataBridgeComponent implements EObjectRegistryListener,
 		if (config.emf_eobject_registry_name() == null || config.emf_eobject_registry_name().isBlank()) {
 			throw new IllegalArgumentException("Bridge configuration requires a non-blank emf.eobject.registry.name");
 		}
-		bridge = new RegistryMetadataBridge(metadataService, config.aspect_type_id(),
-				anchorResolver.orElseGet(AspectAnchorResolver::contentClass));
+		bridge = new RegistryMetadataBridge(metadataService, config.aspect_type_id(), anchorResolver);
 	}
 
 	@Deactivate

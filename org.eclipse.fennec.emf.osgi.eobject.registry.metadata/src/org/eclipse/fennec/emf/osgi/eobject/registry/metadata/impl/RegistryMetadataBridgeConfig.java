@@ -20,7 +20,8 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
  * maps to the {@code emf.eobject.registry.name} service property, which is what the
  * registry component's listener whiteboard matches on. A custom anchor resolver is
  * selected via the standard DS reference target
- * {@code anchorResolver.target=(...)} - not an OCD attribute.
+ * {@code anchorResolver.target=(...)} - not an OCD attribute. The reference is
+ * mandatory, so a bridge waits for the selected resolver.
  */
 @ObjectClassDefinition(name = "EObject Registry Metadata Bridge", description = "Attaches the content of one named "
 		+ "EObject registry as AspectEntry to the ClassMetadata of every live model version, under a domain aspect type id.")
