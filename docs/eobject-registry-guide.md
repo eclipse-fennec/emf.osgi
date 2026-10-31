@@ -169,6 +169,21 @@ selected via `anchorResolver.target`): the default anchors at the content's own
 `eClass()`; a sensinact resolver anchors a mapping at its
 `ProviderMapping.getProviderClasses()` — one entry, many anchors.
 
+The resolver reference is mandatory. The bridge bundle registers the default as a
+service with `aspect.anchor.resolver=content`, and that is the reference's default
+target. A bridge configured for a resolver of its own therefore waits for exactly that
+service, however the bundles start. It never starts with the default and anchors
+wrongly in the meantime. A bridge whose resolver is missing stays unsatisfied and shows
+up as such in the SCR diagnostics:
+
+```json
+"EObjectRegistryMetadataBridge~mappings": {
+  "emf.eobject.registry.name": "mappings",
+  "aspect.type.id": "sensinact.mapping",
+  "anchorResolver.target": "(aspect.anchor.resolver=sensinact.provider)"
+}
+```
+
 ### Which model versions an entry reaches
 
 One nsURI can have several live model versions at the same time — a draft next to an

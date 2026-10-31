@@ -35,6 +35,7 @@ import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryConstants;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryEntry;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryListener;
 import org.eclipse.fennec.emf.osgi.eobject.registry.EObjectRegistryWriter;
+import org.eclipse.fennec.emf.osgi.eobject.registry.metadata.AspectAnchorResolver;
 import org.eclipse.fennec.emf.osgi.example.model.basic.BasicFactory;
 import org.eclipse.fennec.emf.osgi.example.model.basic.BasicPackage;
 import org.eclipse.fennec.emf.osgi.example.model.basic.Person;
@@ -131,11 +132,19 @@ public class EObjectRegistryIntegrationTest {
 	}
 
 	private void createBridgeConfig(String registryName, String typeId) throws Exception {
+		createBridgeConfig(registryName, typeId, null);
+	}
+
+	private void createBridgeConfig(String registryName, String typeId, String anchorResolverTarget)
+			throws Exception {
 		Configuration configuration = configurationAdmin
 				.createFactoryConfiguration("EObjectRegistryMetadataBridge", "?");
 		Dictionary<String, Object> props = new Hashtable<>();
 		props.put(EObjectRegistryConstants.EMF_EOBJECT_REGISTRY_NAME, registryName);
 		props.put("aspect.type.id", typeId);
+		if (anchorResolverTarget != null) {
+			props.put("anchorResolver.target", anchorResolverTarget);
+		}
 		configuration.update(props);
 		configurations.add(configuration);
 	}
@@ -287,6 +296,42 @@ public class EObjectRegistryIntegrationTest {
 				"itest.person.aspect");
 		Person snapshot = (Person) aspect.orElseThrow().getContent();
 		assertThat(snapshot.getFirstName()).isEqualTo("Emil");
+	}
+
+	/**
+	 * Issue #127: a bridge configured for a custom resolver that registers after the bridge
+	 * configuration must wait for it - never start with the default and anchor every entry at
+	 * the content's own class.
+	 */
+	@Test
+	public void testBridgeWaitsForAConfiguredResolverThatComesLater(@InjectService MetadataService metadataService)
+			throws Exception {
+		Path dir = Files.createTempDirectory("eobject-registry-itest");
+		writePersonFixture(dir, "persons.basic", "Emil");
+		createProviderConfig("persons-late-files", dir);
+		createRegistryConfig("persons-late", "persons-late-files");
+		createBridgeConfig("persons-late", "itest.late.aspect", "(itest.resolver=late)");
+
+		ServiceTracker<EObjectRegistry, EObjectRegistry> registryTracker = tracker(EObjectRegistry.class,
+				"persons-late");
+		try {
+			assertThat(registryTracker.waitForService(10_000)).isNotNull();
+			Thread.sleep(500);
+			assertThat(metadataService.getClassAspect(BasicPackage.Literals.PERSON, "itest.late.aspect"))
+					.as("without its resolver the bridge must not fall back to the content class").isEmpty();
+
+			AspectAnchorResolver addressResolver = entry -> List.of(BasicPackage.Literals.ADDRESS);
+			Dictionary<String, Object> props = new Hashtable<>();
+			props.put("itest.resolver", "late");
+			registrations.add(ctx.registerService(AspectAnchorResolver.class, addressResolver, props));
+
+			awaitTrue(() -> metadataService.getClassAspect(BasicPackage.Literals.ADDRESS, "itest.late.aspect")
+					.isPresent(), "the bridge starts once its resolver is there and anchors where it says");
+			assertThat(metadataService.getClassAspect(BasicPackage.Literals.PERSON, "itest.late.aspect"))
+					.as("the content class is not an anchor of the configured resolver").isEmpty();
+		} finally {
+			registryTracker.close();
+		}
 	}
 
 	/**
