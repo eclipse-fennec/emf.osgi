@@ -24,10 +24,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
@@ -289,10 +291,11 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 				capabilities = generatedPackageCapabilities(domain.getProvideCapability());
 			}
 			Map<String, String> result = new HashMap<>();
+			Set<String> namedEcores = new LinkedHashSet<>();
 			// scan the jar for ecore files unless every capability already names its ecore location
 			boolean checkForEcore = capabilities.isEmpty();
 			for (Attrs attrs : capabilities) {
-				if (!mergeCapabilityLocations(attrs, result, containerBsn, nsUriIndex)) {
+				if (!mergeCapabilityLocations(attrs, result, containerBsn, nsUriIndex, namedEcores)) {
 					checkForEcore = true;
 				}
 			}
@@ -302,6 +305,9 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 					.forEach(s -> result.put(s, s));
 				if (scanForEcore) {
 					indexEcoreNsUris(jar, containerBsn, nsUriIndex);
+				} else {
+					// a root package without classifiers has no capability, index all nsURIs of the named ecores (issue #133)
+					indexEcoreNsUris(jar, containerBsn, nsUriIndex, namedEcores);
 				}
 			}
 			refModels.put(c, result);
@@ -316,8 +322,25 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * @param nsUriIndex the index to add to
 	 */
 	private static void indexEcoreNsUris(Jar jar, String bsn, NsUriIndex nsUriIndex) {
-		for (String name : jar.getResourceNames(s -> s.endsWith(".ecore")).toList()) {
-			try (InputStream in = jar.getResource(name).openInputStream()) {
+		indexEcoreNsUris(jar, bsn, nsUriIndex, jar.getResourceNames(s -> s.endsWith(".ecore")).toList());
+	}
+
+	/**
+	 * Adds the nsURIs of the root package and all subpackages the given ecore files of a bundle declare.
+	 * @param jar the bundle
+	 * @param bsn the bundle symbolic name
+	 * @param nsUriIndex the index to add to
+	 * @param ecoreLocations the bundle relative ecore locations, with or without leading slash
+	 */
+	private static void indexEcoreNsUris(Jar jar, String bsn, NsUriIndex nsUriIndex, Collection<String> ecoreLocations) {
+		for (String location : ecoreLocations) {
+			String name = location.startsWith(UriSanatizer.SLASH) ? location.substring(1) : location;
+			var resource = jar.getResource(name);
+			if (resource == null) {
+				warn("The ecore " + bsn + "/" + name + " named by a generated_package capability does not exist");
+				continue;
+			}
+			try (InputStream in = resource.openInputStream()) {
 				nsUriIndex.addEcore(bsn, name, in);
 			} catch (Exception e) {
 				warn("Could not read " + bsn + "/" + name + ": " + e.getMessage());
@@ -348,11 +371,13 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 	 * @param result the location map to merge into
 	 * @param bsn the bundle symbolic name of the providing bundle
 	 * @param nsUriIndex the index to add the nsURI location to
+	 * @param namedEcores collects the ecore location the capability names
 	 * @return <code>true</code> if the capability named its ecore location
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
-	private static boolean mergeCapabilityLocations(Attrs attrs, Map<String, String> result, String bsn, NsUriIndex nsUriIndex) throws Exception {
+	private static boolean mergeCapabilityLocations(Attrs attrs, Map<String, String> result, String bsn, NsUriIndex nsUriIndex,
+			Set<String> namedEcores) throws Exception {
 		CapabilityBuilder builder = new CapabilityBuilder(EPackage.NAMESPACE);
 		builder.addAttributesOrDirectives(attrs);
 		Capability capability = builder.synthetic();
@@ -373,6 +398,7 @@ public class FennecEmfGenerator implements Generator<GeneratorOptions> {
 			ecoreSourceLocations.forEach(l -> result.put(l, ecoreLocation));
 		}
 		result.put(ecoreLocation, ecoreLocation);
+		namedEcores.add(ecoreLocation);
 		String uri = (String) capability.getAttributes().get("uri");
 		if(uri != null) {
 			result.put(uri, ecoreLocation);

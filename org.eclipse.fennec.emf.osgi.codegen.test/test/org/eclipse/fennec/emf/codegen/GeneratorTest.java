@@ -329,6 +329,34 @@ class GeneratorTest {
 		assertThat(genmodelContent).contains("multi.genmodel#//packb");
 	}
 
+	@Test
+	void testGeneratorRootNsUriReferenceIntoSubpackage() throws Exception {
+		// issue #133: the reference uses the nsURI of the root package, which has no capability
+		IO.copy(new File("test-resources/ws-4"), tmp);
+		createMultiPackageModelJar(new File(tmp, "org.fennec.test.ecoremode/lib/org.fennec.test.multi.model.jar"));
+		try (Workspace workspace = new Workspace(tmp)) {
+			Project project = workspace.getProject("org.fennec.test.ecoremode");
+			assertThat(project).isNotNull();
+			project.verifyDependencies(false);
+			assertThat(project.getErrors()).isEmpty();
+			Map<String, String> attrs = new HashMap<>();
+			attrs.put("generate", "fennecEMF");
+			attrs.put("ecore", "model/nestref.ecore");
+			attrs.put("output", "src-gen");
+			BuildContext bc = new BuildContext(project, attrs, Collections.emptyList(), System.in, System.out, System.err);
+			Optional<String> result = new FennecEmfGenerator().generate(bc, emptyOptions());
+			assertThat(result).isEmpty();
+
+			assertThat(Files.readString(project.getFile("model/nestref.genmodel").toPath()))
+					.contains("multi.genmodel#//nest/subc");
+			File file = project.getFile("src-gen/org/fennec/test/nestref/ExtendedCObject.java");
+			assertThat(file).exists();
+			assertThat(Files.readString(file.toPath()))
+					.contains("import org.fennec.test.multi.nest.subc.CObject;")
+					.contains("extends CObject");
+		}
+	}
+
 	private void assertNsUriReferenceInGenmodelMode(String genmodel) throws Exception {
 		IO.copy(new File("test-resources/ws-3"), tmp);
 		createMultiPackageModelJar(new File(tmp, "org.fennec.test.consumer/lib/org.fennec.test.multi.model.jar"));
@@ -401,12 +429,17 @@ class GeneratorTest {
 							+ "org.eclipse.emf.ecore.generated_package;"
 							+ "uri=\"http://fennec.eclipse.org/test/multi/b\";"
 							+ "class=\"org.fennec.test.multi.packb.PackbPackage\";"
-							+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/b.ecore\"");
+							+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/b.ecore\","
+							// the root package of nest.ecore has no classifiers, so only its subpackage is announced
+							+ "org.eclipse.emf.ecore.generated_package;"
+							+ "uri=\"http://fennec.eclipse.org/test/multi/nest/subc\";"
+							+ "class=\"org.fennec.test.multi.nest.subc.SubcPackage\";"
+							+ "genModel=\"/model/multi.genmodel\";ecore=\"/model/nest.ecore\"");
 		}
 		target.getParentFile().mkdirs();
 		File modelDir = new File("test-resources/multi-model");
 		try (JarOutputStream jar = new JarOutputStream(new FileOutputStream(target), manifest)) {
-			for (String name : List.of("a.ecore", "b.ecore", "multi.genmodel")) {
+			for (String name : List.of("a.ecore", "b.ecore", "nest.ecore", "multi.genmodel")) {
 				jar.putNextEntry(new ZipEntry("model/" + name));
 				jar.write(Files.readAllBytes(new File(modelDir, name).toPath()));
 				jar.closeEntry();

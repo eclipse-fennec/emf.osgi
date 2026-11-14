@@ -7,6 +7,7 @@
     operationReflection="true" importOrganizing="true">
   <foreignModel>a.ecore</foreignModel>
   <foreignModel>b.ecore</foreignModel>
+  <foreignModel>nest.ecore</foreignModel>
   <genPackages prefix="Packa" basePackage="org.fennec.test.multi" disposableProviderFactory="true"
       ecorePackage="a.ecore#/">
     <genClasses ecoreClass="a.ecore#//AObject">
@@ -18,5 +19,13 @@
     <genClasses ecoreClass="b.ecore#//BObject">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute b.ecore#//BObject/id"/>
     </genClasses>
+  </genPackages>
+  <genPackages prefix="Nest" basePackage="org.fennec.test.multi" disposableProviderFactory="true"
+      ecorePackage="nest.ecore#/">
+    <nestedGenPackages prefix="Subc" disposableProviderFactory="true" ecorePackage="nest.ecore#//subc">
+      <genClasses ecoreClass="nest.ecore#//subc/CObject">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute nest.ecore#//subc/CObject/code"/>
+      </genClasses>
+    </nestedGenPackages>
   </genPackages>
 </genmodel:GenModel>
