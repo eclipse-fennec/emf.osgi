@@ -1,6 +1,11 @@
 -runfw: org.apache.felix.framework;version='[7.0.5,7.0.5]'
 -runee: JavaSE-21
 
+# SBOM for `./gradlew sbom`: the exporter is included only once it has been fetched (see
+# cnf/sbom/plugin.bnd); resolve, the build and the tests ignore both lines.
+-include: ${if;${isfile;${workspace}/cnf/cache/sbom-exporter/org.gecko.bnd.sbom.jar};${workspace}/cnf/sbom/plugin.bnd}
+-sbom: level=medium, format=cyclonedx
+
 -runrequires: \
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.api',\
 	bnd.identity;id='org.eclipse.fennec.emf.osgi.codegen',\
