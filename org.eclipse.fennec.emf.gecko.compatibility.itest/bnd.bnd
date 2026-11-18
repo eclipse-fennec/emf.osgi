@@ -2,6 +2,8 @@ Bundle-Name: EMF Gecko Compatibility Integration Tests
 Bundle-Description: Integration tests for the Eclipse Fennec EMF Gecko compatibility layer
 
 -baseline:
+# test.bndrun runs org.eclipse.fennec.emf.osgi.component.minimal, which is not on the buildpath
+-dependson: org.eclipse.fennec.emf.osgi
 -library: \
 	enableOSGi-Test
 -buildpath: \
