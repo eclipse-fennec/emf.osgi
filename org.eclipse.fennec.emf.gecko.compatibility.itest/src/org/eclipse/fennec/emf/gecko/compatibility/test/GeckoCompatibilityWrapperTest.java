@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,9 +41,14 @@ import org.eclipse.emf.ecore.resource.impl.URIHandlerImpl;
 import org.eclipse.fennec.emf.osgi.constants.EMFNamespaces;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.Version;
+import org.osgi.framework.namespace.PackageNamespace;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.test.common.annotation.InjectBundleContext;
 import org.osgi.test.junit5.context.BundleContextExtension;
 import org.osgi.test.junit5.service.ServiceExtension;
@@ -518,6 +524,188 @@ public class GeckoCompatibilityWrapperTest {
 		// The Resource.Factory wrapper should disappear
 		boolean gone = waitForNoServiceReference(Resource.Factory.class, "(test.id=rfconfig-removal)", TIMEOUT_MS);
 		assertTrue(gone, "Resource.Factory service should disappear after ResourceFactoryConfigurator is unregistered");
+	}
+
+	// --- Pre-6 GeckoEMF (org.gecko.emf.osgi 3.x) support ---
+
+	@Test
+	public void testLegacyPackageVersionsExported() {
+		Bundle compat = Arrays.stream(bundleContext.getBundles())
+				.filter(b -> "org.eclipse.fennec.emf.gecko.compatibility.api".equals(b.getSymbolicName()))
+				.findFirst()
+				.orElseThrow();
+		List<BundleCapability> exports = compat.adapt(BundleRevision.class).getDeclaredCapabilities(PackageNamespace.PACKAGE_NAMESPACE);
+		List<Version> versions = exports.stream()
+				.filter(c -> "org.gecko.emf.osgi".equals(c.getAttributes().get(PackageNamespace.PACKAGE_NAMESPACE)))
+				.map(c -> (Version) c.getAttributes().get(PackageNamespace.CAPABILITY_VERSION_ATTRIBUTE))
+				.toList();
+		assertThat(versions).contains(
+				Version.parseVersion("3.0.0"),
+				Version.parseVersion("3.1.0"),
+				Version.parseVersion("4.0.0"),
+				Version.parseVersion("4.1.0"));
+	}
+
+	@Test
+	public void testLegacyEPackageConfiguratorGeckoToFennec() throws Exception {
+		AtomicBoolean configureCalled = new AtomicBoolean(false);
+		AtomicBoolean unconfigureCalled = new AtomicBoolean(false);
+
+		org.gecko.emf.osgi.EPackageConfigurator legacyConfigurator =
+				new org.gecko.emf.osgi.EPackageConfigurator() {
+					@Override
+					public void configureEPackage(EPackage.Registry registry) {
+						configureCalled.set(true);
+					}
+
+					@Override
+					public void unconfigureEPackage(EPackage.Registry registry) {
+						unconfigureCalled.set(true);
+					}
+				};
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "legacy-epackage-g2f");
+		props.put("emf.model.name", "legacyModel");
+		props.put("emf.model.nsURI", "http://legacy/model/1.0");
+
+		ServiceRegistration<org.gecko.emf.osgi.EPackageConfigurator> reg =
+				bundleContext.registerService(org.gecko.emf.osgi.EPackageConfigurator.class, legacyConfigurator, props);
+		try {
+			ServiceReference<org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator> fennecRef =
+					waitForServiceReference(org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator.class, "(test.id=legacy-epackage-g2f)", TIMEOUT_MS);
+			assertNotNull(fennecRef, "Fennec EPackageConfigurator wrapper should appear for a pre-6 Gecko configurator");
+
+			assertThat(fennecRef.getProperty(EMFNamespaces.EMF_NAME)).isEqualTo("legacyModel");
+			assertThat(fennecRef.getProperty(EMFNamespaces.EMF_MODEL_NSURI)).isEqualTo("http://legacy/model/1.0");
+
+			org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator fennecConfigurator = bundleContext.getService(fennecRef);
+			fennecConfigurator.configureEPackage(EPackage.Registry.INSTANCE);
+			assertTrue(configureCalled.get(), "configureEPackage should delegate to the pre-6 Gecko configurator");
+			fennecConfigurator.unconfigureEPackage(EPackage.Registry.INSTANCE);
+			assertTrue(unconfigureCalled.get(), "unconfigureEPackage should delegate to the pre-6 Gecko configurator");
+		} finally {
+			reg.unregister();
+		}
+		assertTrue(waitForNoServiceReference(org.eclipse.fennec.emf.osgi.configurator.EPackageConfigurator.class, "(test.id=legacy-epackage-g2f)", TIMEOUT_MS),
+				"Fennec wrapper should disappear after the pre-6 Gecko configurator is unregistered");
+	}
+
+	@Test
+	public void testLegacyResourceSetConfiguratorGeckoToFennec() throws Exception {
+		ResourceSet testResourceSet = new ResourceSetImpl();
+		AtomicBoolean configureCalled = new AtomicBoolean(false);
+
+		org.gecko.emf.osgi.ResourceSetConfigurator legacyConfigurator = resourceSet -> {
+			assertThat(resourceSet).isSameAs(testResourceSet);
+			configureCalled.set(true);
+		};
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "legacy-rsconfig-g2f");
+		props.put("emf.configurator.name", "legacyRsConfig");
+
+		ServiceRegistration<org.gecko.emf.osgi.ResourceSetConfigurator> reg =
+				bundleContext.registerService(org.gecko.emf.osgi.ResourceSetConfigurator.class, legacyConfigurator, props);
+		try {
+			ServiceReference<org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator> fennecRef =
+					waitForServiceReference(org.eclipse.fennec.emf.osgi.configurator.ResourceSetConfigurator.class, "(test.id=legacy-rsconfig-g2f)", TIMEOUT_MS);
+			assertNotNull(fennecRef, "Fennec ResourceSetConfigurator wrapper should appear for a pre-6 Gecko configurator");
+			assertThat(fennecRef.getProperty(EMFNamespaces.EMF_CONFIGURATOR_NAME)).isEqualTo("legacyRsConfig");
+
+			bundleContext.getService(fennecRef).configureResourceSet(testResourceSet);
+			assertTrue(configureCalled.get(), "configureResourceSet should delegate to the pre-6 Gecko configurator");
+		} finally {
+			reg.unregister();
+		}
+	}
+
+	@Test
+	public void testLegacyResourceFactoryConfiguratorGeckoToFennec() throws Exception {
+		Resource.Factory testFactory = uri -> new ResourceImpl(uri);
+
+		org.gecko.emf.osgi.ResourceFactoryConfigurator legacyConfigurator =
+				new org.gecko.emf.osgi.ResourceFactoryConfigurator() {
+					@Override
+					public void configureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getProtocolToFactoryMap().put("legacyproto", testFactory);
+					}
+
+					@Override
+					public void unconfigureResourceFactory(Resource.Factory.Registry registry) {
+						registry.getProtocolToFactoryMap().remove("legacyproto");
+					}
+				};
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "legacy-rfconfig-g2f");
+		props.put("emf.resource.configurator.name", "legacyRfConfig");
+
+		ServiceRegistration<org.gecko.emf.osgi.ResourceFactoryConfigurator> reg =
+				bundleContext.registerService(org.gecko.emf.osgi.ResourceFactoryConfigurator.class, legacyConfigurator, props);
+		try {
+			ServiceReference<Resource.Factory> factoryRef =
+					waitForServiceReference(Resource.Factory.class, "(test.id=legacy-rfconfig-g2f)", TIMEOUT_MS);
+			assertNotNull(factoryRef, "Resource.Factory service should appear for a pre-6 Gecko configurator");
+			assertThat(bundleContext.getService(factoryRef)).isSameAs(testFactory);
+			assertThat(toStringList(factoryRef.getProperty(EMFNamespaces.EMF_MODEL_PROTOCOL))).contains("legacyproto");
+			assertThat(factoryRef.getProperty(EMFNamespaces.EMF_CONFIGURATOR_NAME)).isEqualTo("legacyRfConfig");
+		} finally {
+			reg.unregister();
+		}
+		assertTrue(waitForNoServiceReference(Resource.Factory.class, "(test.id=legacy-rfconfig-g2f)", TIMEOUT_MS),
+				"Resource.Factory service should disappear after the pre-6 Gecko configurator is unregistered");
+	}
+
+	@Test
+	public void testResourceSetFactoryAdvertisesLegacyPropertyNames() throws Exception {
+		org.eclipse.fennec.emf.osgi.ResourceSetFactory fennecFactory = ResourceSetImpl::new;
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("test.id", "rsfactory-legacy-props");
+		props.put(EMFNamespaces.EMF_NAME, new String[] { "modelA" });
+		props.put(EMFNamespaces.EMF_MODEL_NSURI, new String[] { "http://modelA/1.0" });
+		props.put(EMFNamespaces.EMF_CONFIGURATOR_NAME, new String[] { "mongo", "xmi" });
+
+		ServiceRegistration<org.eclipse.fennec.emf.osgi.ResourceSetFactory> reg =
+				bundleContext.registerService(org.eclipse.fennec.emf.osgi.ResourceSetFactory.class, fennecFactory, props);
+		try {
+			String legacyFilter = "(&(test.id=rsfactory-legacy-props)(emf.model.name=modelA)(emf.model.nsURI=http://modelA/1.0)"
+					+ "(emf.configurator.name=mongo)(emf.resource.configurator.name=xmi))";
+			ServiceReference<org.gecko.emf.osgi.ResourceSetFactory> geckoRef =
+					waitForServiceReference(org.gecko.emf.osgi.ResourceSetFactory.class, legacyFilter, TIMEOUT_MS);
+			assertNotNull(geckoRef, "Gecko ResourceSetFactory wrapper should be selectable with pre-6 property names");
+			assertThat(geckoRef.getProperty(EMFNamespaces.EMF_NAME)).isEqualTo(new String[] { "modelA" });
+		} finally {
+			reg.unregister();
+		}
+	}
+
+	/**
+	 * Mirrors org.gecko.emf.repository.mongo 3.1.0: a pre-6 ResourceSetConfigurator registered with
+	 * {@code emf.configurator.name=mongo} must make a legacy ResourceSetFactory selectable via
+	 * {@code (emf.configurator.name=mongo)}, going through the real Fennec ResourceSetFactory.
+	 */
+	@Test
+	public void testLegacyConfiguratorNameReachesLegacyResourceSetFactory() throws Exception {
+		AtomicBoolean configureCalled = new AtomicBoolean(false);
+		org.gecko.emf.osgi.ResourceSetConfigurator legacyConfigurator = resourceSet -> configureCalled.set(true);
+
+		Hashtable<String, Object> props = new Hashtable<>();
+		props.put("emf.configurator.name", "legacyMongoLike");
+
+		ServiceRegistration<org.gecko.emf.osgi.ResourceSetConfigurator> reg =
+				bundleContext.registerService(org.gecko.emf.osgi.ResourceSetConfigurator.class, legacyConfigurator, props);
+		try {
+			ServiceReference<org.gecko.emf.osgi.ResourceSetFactory> geckoRef =
+					waitForServiceReference(org.gecko.emf.osgi.ResourceSetFactory.class, "(emf.configurator.name=legacyMongoLike)", TIMEOUT_MS);
+			assertNotNull(geckoRef, "Legacy ResourceSetFactory should advertise the pre-6 configurator name");
+
+			bundleContext.getService(geckoRef).createResourceSet();
+			assertTrue(configureCalled.get(), "ResourceSet created via the legacy factory should be configured by the pre-6 configurator");
+		} finally {
+			reg.unregister();
+		}
 	}
 
 	@SuppressWarnings("unchecked")

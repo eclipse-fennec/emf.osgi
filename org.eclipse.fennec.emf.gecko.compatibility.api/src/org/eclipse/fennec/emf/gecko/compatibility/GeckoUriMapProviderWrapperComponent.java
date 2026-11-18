@@ -13,16 +13,12 @@
 package org.eclipse.fennec.emf.gecko.compatibility;
 
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.fennec.emf.osgi.UriMapProvider;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -45,16 +41,6 @@ import aQute.bnd.annotation.service.ServiceCapability;
 @ServiceCapability(org.gecko.emf.osgi.UriMapProvider.class)
 public class GeckoUriMapProviderWrapperComponent {
 
-	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(
-			Constants.SERVICE_ID,
-			Constants.SERVICE_BUNDLEID,
-			Constants.SERVICE_SCOPE,
-			Constants.OBJECTCLASS,
-			Constants.SERVICE_PID,
-			ComponentConstants.COMPONENT_NAME,
-			ComponentConstants.COMPONENT_ID
-	);
-
 	private final BundleContext ctx;
 	private final Map<org.gecko.emf.osgi.UriMapProvider, ServiceRegistration<UriMapProvider>> registrations = new ConcurrentHashMap<>();
 
@@ -72,7 +58,7 @@ public class GeckoUriMapProviderWrapperComponent {
 	@Reference(name = "geckoUriMapProvider", cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC, unbind = "removeGeckoUriMapProvider", updated = "updatedGeckoUriMapProvider")
 	public void addGeckoUriMapProvider(org.gecko.emf.osgi.UriMapProvider provider, Map<String, Object> properties) {
 		UriMapProvider wrapper = provider::getUriMap;
-		Dictionary<String, Object> converted = convertProperties(properties);
+		Dictionary<String, Object> converted = GeckoServiceProperties.toFennec(properties);
 		ServiceRegistration<UriMapProvider> reg = ctx.registerService(UriMapProvider.class, wrapper, converted);
 		registrations.put(provider, reg);
 	}
@@ -80,7 +66,7 @@ public class GeckoUriMapProviderWrapperComponent {
 	public void updatedGeckoUriMapProvider(org.gecko.emf.osgi.UriMapProvider provider, Map<String, Object> properties) {
 		ServiceRegistration<UriMapProvider> reg = registrations.get(provider);
 		if (reg != null) {
-			reg.setProperties(convertProperties(properties));
+			reg.setProperties(GeckoServiceProperties.toFennec(properties));
 		}
 	}
 
@@ -91,13 +77,4 @@ public class GeckoUriMapProviderWrapperComponent {
 		}
 	}
 
-	private Dictionary<String, Object> convertProperties(Map<String, Object> properties) {
-		Hashtable<String, Object> converted = new Hashtable<>();
-		properties.forEach((key, value) -> {
-			if (value != null && !EXCLUDED_PROPERTIES.contains(key)) {
-				converted.put(key, value);
-			}
-		});
-		return converted;
-	}
 }

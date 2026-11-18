@@ -113,6 +113,52 @@ allows a runtime to mix migrated and unmigrated bundles. It contains:
     under the legacy interfaces, so unmigrated consumers can still inject
     `org.gecko.emf.osgi.ResourceSetFactory`.
 
+### Supported GeckoEMF versions
+
+Since 1.1.0 the compatibility bundle supports bundles built against
+**GeckoEMF 3.x – 6.x**. Version 1.0.0 supports GeckoEMF 6.x only: bundles built
+against older versions do not resolve with it (`missing requirement
+osgi.wiring.package=org.gecko.emf.osgi … version>=3.0.0 … !(version>=4.0.0)`).
+
+The legacy interfaces stayed binary compatible across all these GeckoEMF
+versions. The package versions changed because GeckoEMF 6 reorganized the
+packages. The bundle therefore exports `org.gecko.emf.osgi` once for every
+version GeckoEMF used:
+
+| `org.gecko.emf.osgi` export | Used by bundles built against |
+|---|---|
+| 4.1.0 | current version of the package |
+| 4.0.0 | GeckoEMF 6.x |
+| 3.1.0 | GeckoEMF 4.5.x |
+| 3.0.0 | GeckoEMF 3.x, 4.0 – 4.4, 4.6, 5.x |
+
+`org.gecko.emf.osgi.configurator` (1.0) and `org.gecko.emf.osgi.model.info`
+(1.0.0) exist only in GeckoEMF 6.
+
+Before GeckoEMF 6, `EPackageConfigurator`, `ResourceFactoryConfigurator` and
+`ResourceSetConfigurator` lived directly in `org.gecko.emf.osgi`. Services
+registered under these old interfaces are bridged like their GeckoEMF 6
+counterparts.
+
+Service property names changed in GeckoEMF 6 as well (`emf.model.name` →
+`emf.name`, `emf.model.nsURI` → `emf.nsURI`, `emf.configurator.name` and
+`emf.resource.configurator.name` → `emf.configuratorName`, …). The bridges
+keep the original properties and add the counterpart names. Old target filters
+such as `(emf.configurator.name=mongo)` therefore still match the re-registered
+`org.gecko.emf.osgi.ResourceSetFactory`.
+
+Known example: the last Gecko Mongo/repository releases on Maven Central
+(`org.geckoprojects.repository:org.gecko.emf.repository.api:9.2.2`,
+`org.gecko.emf.repository.mongo:3.1.0`,
+`org.geckoprojects.mongo:org.gecko.emf.mongo.*:6.0.0`) were built against
+GeckoEMF 4.x/5.x (`org.gecko.emf.osgi;version="[3.0,4)"`). They need
+compatibility bundle 1.1.0 or later.
+
+Not covered are implementation classes that GeckoEMF before 6 also shipped in
+`org.gecko.emf.osgi`, such as `DefaultResourceSetFactory`. Constants classes
+such as `EMFNamespaces` are not covered either; code built against them
+usually needs no class at runtime because the compiler inlines the constants.
+
 **When to use it:** you cannot migrate everything at once — e.g. third-party
 model bundles compiled against GeckoEMF, or a large code base migrated module
 by module. Install the compatibility bundle alongside the Fennec runtime and

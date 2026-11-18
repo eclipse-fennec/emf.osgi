@@ -10,6 +10,14 @@
  * Contributors:
  *   Data In Motion Consulting - initial implementation
  ********************************************************************/
-@org.osgi.annotation.versioning.Version("4.0.0")
-@org.osgi.annotation.bundle.Export
+/**
+ * Legacy GeckoEMF API ({@code org.gecko.emf.osgi}).
+ * <p>
+ * The package is exported in several versions (see {@code bnd.bnd}) so that bundles
+ * built against GeckoEMF 3.x - 6.x resolve against the compatibility layer. The
+ * {@code Export-Package} header is therefore declared in {@code bnd.bnd} and not via
+ * {@code @Export} here.
+ * </p>
+ */
+@org.osgi.annotation.versioning.Version("4.1.0")
 package org.gecko.emf.osgi;

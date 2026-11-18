@@ -172,7 +172,10 @@ coexist. It works in two ways:
 1. **Old API packages are re-exported.** The bundle exports the deprecated
    `org.gecko.emf.osgi`, `org.gecko.emf.osgi.configurator`, and
    `org.gecko.emf.osgi.model.info` packages, so code still importing the old
-   package names continues to compile and resolve against it.
+   package names continues to compile and resolve against it. Since 1.1.0,
+   `org.gecko.emf.osgi` is exported in every version GeckoEMF used for it, so
+   bundles built against GeckoEMF 3.x – 6.x resolve. See
+   [Supported GeckoEMF versions](gecko-migration-guide.md#supported-geckoemf-versions).
 2. **Runtime service bridging.** Declarative Services wrapper components track
    services published under the old `org.gecko.emf.osgi` interfaces and
    re-register them under the corresponding `org.eclipse.fennec.emf.osgi`
