@@ -199,13 +199,13 @@ tag rule, what enters the hash, and usage recipes.
 ### Core EMF Dependencies
 ```xml
 <!-- EMF Core -->
-org.eclipse.emf:org.eclipse.emf.ecore:2.41.0
-org.eclipse.emf:org.eclipse.emf.common:2.44.0
-org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.39.0
+org.eclipse.emf:org.eclipse.emf.ecore:2.43.0
+org.eclipse.emf:org.eclipse.emf.common:2.46.0
+org.eclipse.emf:org.eclipse.emf.ecore.xmi:2.41.0
 
 <!-- EMF Code Generation (for codegen module) -->
-org.eclipse.emf:org.eclipse.emf.codegen.ecore:2.44.0
-org.eclipse.emf:org.eclipse.emf.codegen:2.27.0
+org.eclipse.emf:org.eclipse.emf.codegen.ecore:2.47.0
+org.eclipse.emf:org.eclipse.emf.codegen:2.29.0
 ```
 
 ### OSGi Framework Dependencies
