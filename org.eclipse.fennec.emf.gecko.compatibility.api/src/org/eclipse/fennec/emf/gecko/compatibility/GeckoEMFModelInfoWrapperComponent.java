@@ -13,11 +13,9 @@
 package org.eclipse.fennec.emf.gecko.compatibility;
 
 import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.emf.ecore.EClass;
@@ -25,9 +23,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.fennec.emf.osgi.model.info.EMFModelInfo;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -53,16 +49,6 @@ import aQute.bnd.annotation.service.ServiceCapability;
 @SuppressWarnings("deprecation")
 @ServiceCapability(org.gecko.emf.osgi.model.info.EMFModelInfo.class)
 public class GeckoEMFModelInfoWrapperComponent {
-
-	private static final Set<String> EXCLUDED_PROPERTIES = Set.of(
-			Constants.SERVICE_ID,
-			Constants.SERVICE_BUNDLEID,
-			Constants.SERVICE_SCOPE,
-			Constants.OBJECTCLASS,
-			Constants.SERVICE_PID,
-			ComponentConstants.COMPONENT_NAME,
-			ComponentConstants.COMPONENT_ID
-	);
 
 	private final BundleContext ctx;
 	private final Map<EMFModelInfo, ServiceRegistration<org.gecko.emf.osgi.model.info.EMFModelInfo>> registrations = new ConcurrentHashMap<>();
@@ -96,7 +82,7 @@ public class GeckoEMFModelInfoWrapperComponent {
 				return modelInfo.getUpperTypeHierarchyForEClass(eClass);
 			}
 		};
-		Dictionary<String, Object> converted = convertProperties(properties);
+		Dictionary<String, Object> converted = GeckoServiceProperties.toLegacy(properties);
 		ServiceRegistration<org.gecko.emf.osgi.model.info.EMFModelInfo> reg = ctx.registerService(org.gecko.emf.osgi.model.info.EMFModelInfo.class, wrapper, converted);
 		registrations.put(modelInfo, reg);
 	}
@@ -104,7 +90,7 @@ public class GeckoEMFModelInfoWrapperComponent {
 	public void updatedFennecEMFModelInfo(EMFModelInfo modelInfo, Map<String, Object> properties) {
 		ServiceRegistration<org.gecko.emf.osgi.model.info.EMFModelInfo> reg = registrations.get(modelInfo);
 		if (reg != null) {
-			reg.setProperties(convertProperties(properties));
+			reg.setProperties(GeckoServiceProperties.toLegacy(properties));
 		}
 	}
 
@@ -115,13 +101,4 @@ public class GeckoEMFModelInfoWrapperComponent {
 		}
 	}
 
-	private Dictionary<String, Object> convertProperties(Map<String, Object> properties) {
-		Hashtable<String, Object> converted = new Hashtable<>();
-		properties.forEach((key, value) -> {
-			if (value != null && !EXCLUDED_PROPERTIES.contains(key)) {
-				converted.put(key, value);
-			}
-		});
-		return converted;
-	}
 }
