@@ -280,9 +280,10 @@ class GeneratorTest {
 					.contains("basePackage=\"org.fennec.other\"");
 
 			// the prefix annotation of a subpackage names its package and factory
-			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff/OnOffPackage.java")).exists();
-			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff/OnOffFactory.java")).exists();
-			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff/OnoffPackage.java")).doesNotExist();
+			// compare the listed names: File.exists() ignores case on Windows/macOS
+			assertThat(project.getFile("src-gen/org/fennec/test/nested/onoff").list())
+					.contains("OnOffPackage.java", "OnOffFactory.java")
+					.doesNotContain("OnoffPackage.java");
 			// an explicit basePackage of a subpackage wins over the one inherited from the parent
 			File level = project.getFile("src-gen/org/fennec/other/level/Level.java");
 			assertThat(level).exists();
